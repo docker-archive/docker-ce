@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+BUILDDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "Building all binaries"
+SHELL=/bin/bash parallel ::: \
+    "$BUILDDIR/linux-cross" \
+    "$BUILDDIR/windows" \
+    "$BUILDDIR/osx" \
+    ;
