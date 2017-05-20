@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -x
+# I want to rip this install-binaries script out so badly
+cd engine && \
+    TMP_GOPATH="/go" hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini && \
+    cd -
+echo VERSION AAA $VERSION
+
+VERSION=${VERSION:-$( cat engine/VERSION )}
+
+echo VERSION bbb $VERSION
+export TZ=UTC
+
+tilde='~' # ouch Bash 4.2 vs 4.3, you keel me
+# git running in different directories, backwards compatible too
+GIT_COMMAND="git --git-dir=/root/build-deb/engine/.git --work-tree=/root/build-deb/engine/"
+debVersion="${VERSION//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
+# if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
+if [[ "$VERSION" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; then
+    gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
+    gitDate="$(date --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
+    gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
+    gitVersion="git${gitDate}.0.${gitCommit}"
+    # gitVersion is now something like 'git20150128.112847.0.17e840a'
+    debVersion="$debVersion~$gitVersion"
+
+    # $ dpkg --compare-versions 1.5.0 gt 1.5.0~rc1 && echo true || echo false
+    # true
+    # $ dpkg --compare-versions 1.5.0~rc1 gt 1.5.0~git20150128.112847.17e840a && echo true || echo false
+    # true
+    # $ dpkg --compare-versions 1.5.0~git20150128.112847.17e840a gt 1.5.0~dev~git20150128.112847.17e840a && echo true || echo false
+    # true
+
+    # ie, 1.5.0 > 1.5.0~rc1 > 1.5.0~git20150128.112847.17e840a > 1.5.0~dev~git20150128.112847.17e840a
+fi
+debSource="$(awk -F ': ' '$1 == "Source" { print $2; exit }' debian/control)"
+debMaintainer="$(awk -F ': ' '$1 == "Maintainer" { print $2; exit }' debian/control)"
+debDate="$(date --rfc-2822)"
+
+cat > "debian/changelog" <<-EOF
+$debSource (${debVersion}-0~${DISTRO}) $SUITE; urgency=low
+  * Version: $VERSION
+ -- $debMaintainer  $debDate
+EOF
+# The space above at the start of the line for the debMaintainer is very important
+
+# Give the script a git commit because it wants it
+export DOCKER_GITCOMMIT=${DOCKER_GITCOMMIT-$($GIT_COMMAND rev-parse --short HEAD)}
+
+echo VERSION BBB $VERSION
+dpkg-buildpackage -v -uc -us -I.git
+destination="/build"
+mkdir -p "$destination"
+mv -v /root/docker-ce* "$destination"

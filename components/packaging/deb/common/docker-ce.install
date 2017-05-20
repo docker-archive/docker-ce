@@ -1,0 +1,12 @@
+#engine/contrib/syntax/vim/doc/* /usr/share/vim/vimfiles/doc/
+#engine/contrib/syntax/vim/ftdetect/* /usr/share/vim/vimfiles/ftdetect/
+#engine/contrib/syntax/vim/syntax/* /usr/share/vim/vimfiles/syntax/
+engine/contrib/*-integration usr/share/docker-ce/contrib/
+engine/contrib/check-config.sh usr/share/docker-ce/contrib/
+engine/contrib/completion/fish/docker.fish usr/share/fish/vendor_completions.d/
+engine/contrib/completion/zsh/_docker usr/share/zsh/vendor-completions/
+engine/contrib/init/systemd/docker.service lib/systemd/system/
+engine/contrib/init/systemd/docker.socket lib/systemd/system/
+engine/contrib/mk* usr/share/docker-ce/contrib/
+engine/contrib/nuke-graph-directory.sh usr/share/docker-ce/contrib/
+engine/contrib/syntax/nano/Dockerfile.nanorc usr/share/nano/
