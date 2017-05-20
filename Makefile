@@ -20,3 +20,8 @@ rpm: ## build rpm packages
 
 static: ## build static packages
 	$(MAKE) VERSION=$(VERSION) CLI_DIR=$(CLI_DIR) ENGINE_DIR=$(ENGINE_DIR) -C $(PACKAGING_DIR) static
+
+clean: ## clean the build artifacts
+	-$(MAKE) -C $(CLI_DIR) clean
+	-$(MAKE) -C $(ENGINE_DIR) clean
+	-$(MAKE) -C $(PACKAGING_DIR) clean
