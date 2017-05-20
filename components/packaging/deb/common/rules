@@ -1,0 +1,56 @@
+#!/usr/bin/make -f
+
+VERSION ?= $(shell cat engine/VERSION)
+BUNDLE_VERSION = $(shell cat engine/VERSION)
+SYSTEMD_VERSION := $(shell dpkg-query -W -f='$${Version}\n' systemd | cut -d- -f1)
+SYSTEMD_GT_227 := $(shell [ '$(SYSTEMD_VERSION)' ] && [ '$(SYSTEMD_VERSION)' -gt 227 ] && echo true )
+
+override_dh_gencontrol:
+	# if we're on Ubuntu, we need to Recommends: apparmor
+	echo 'apparmor:Recommends=$(shell dpkg-vendor --is Ubuntu && echo apparmor)' >> debian/docker-ce.substvars
+	dh_gencontrol
+
+override_dh_auto_build:
+	cd engine && ./hack/make.sh dynbinary
+	cd cli && LDFLAGS="" make VERSION=$(VERSION) dynbinary
+	# ./man/md2man-all.sh runs outside the build container (if at all), since we don't have go-md2man here
+
+override_dh_auto_test:
+	./engine/bundles/$(BUNDLE_VERSION)/dynbinary-daemon/dockerd -v
+
+override_dh_strip:
+	# Go has lots of problems with stripping, so just don't
+
+override_dh_auto_install:
+	mkdir -p debian/docker-ce/usr/bin
+	cp -aTL cli/build/docker debian/docker-ce/usr/bin/docker
+	cp -aT "$$(readlink -f engine/bundles/$(BUNDLE_VERSION)/dynbinary-daemon/dockerd)" debian/docker-ce/usr/bin/dockerd
+	cp -aT /usr/local/bin/docker-proxy debian/docker-ce/usr/bin/docker-proxy
+	cp -aT /usr/local/bin/docker-containerd debian/docker-ce/usr/bin/docker-containerd
+	cp -aT /usr/local/bin/docker-containerd-shim debian/docker-ce/usr/bin/docker-containerd-shim
+	cp -aT /usr/local/bin/docker-containerd-ctr debian/docker-ce/usr/bin/docker-containerd-ctr
+	cp -aT /usr/local/bin/docker-runc debian/docker-ce/usr/bin/docker-runc
+	cp -aT /usr/local/bin/docker-init debian/docker-ce/usr/bin/docker-init
+	mkdir -p debian/docker-ce/usr/lib/docker
+
+override_dh_installinit:
+	# use "docker" as our service name, not "docker-ce"
+	dh_installinit --name=docker
+ifeq (true, $(SYSTEMD_GT_227))
+	$(warning "Setting TasksMax=infinity")
+	sed -i -- 's/#TasksMax=infinity/TasksMax=infinity/' debian/docker-ce/lib/systemd/system/docker.service
+endif
+
+override_dh_installudev:
+	# match our existing priority
+	dh_installudev --priority=z80
+
+override_dh_install:
+	dh_install
+	dh_apparmor --profile-name=docker-ce -pdocker-ce
+
+override_dh_shlibdeps:
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
+
+%:
+	dh $@ --with=bash-completion $(shell command -v dh_systemd_enable > /dev/null 2>&1 && echo --with=systemd)

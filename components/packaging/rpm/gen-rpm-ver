@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+ENGINE_DIR=$1
+VERSION=$2
+
+[[ $# < 2 ]] && echo 'not enough args' && exit 1
+
+GIT_COMMAND="git -C $ENGINE_DIR"
+rpmName=docker-ce
+rpmVersion="$VERSION"
+rpmRelease=1
+
+# rpmRelease versioning is as follows
+# Docker 1.7.0:  version=1.7.0, release=1
+# Docker 1.7.0-rc1: version=1.7.0, release=0.1.rc1
+# Docker 1.7.0-cs1: version=1.7.0.cs1, release=1
+# Docker 1.7.0-cs1-rc1: version=1.7.0.cs1, release=0.1.rc1
+# Docker 1.7.0-dev nightly: version=1.7.0, release=0.0.YYYYMMDD.HHMMSS.gitHASH
+
+# if we have a "-rc*" suffix, set appropriate release
+if [[ "$rpmVersion" =~ .*-rc[0-9]+$ ]] ; then
+    rcVersion=${rpmVersion#*-rc}
+    rpmVersion=${rpmVersion%-rc*}
+    rpmRelease="0.${rcVersion}.rc${rcVersion}"
+fi
+
+DOCKER_GITCOMMIT=$($GIT_COMMAND rev-parse --short HEAD)
+if [ -n "$($GIT_COMMAND status --porcelain --untracked-files=no)" ]; then
+    DOCKER_GITCOMMIT="$DOCKER_GITCOMMIT-unsupported"
+fi
+
+# if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
+if [[ "$rpmVersion" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; then
+    gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
+    gitDate="$(date --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
+    gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
+    gitVersion="${gitDate}.git${gitCommit}"
+    # gitVersion is now something like '20150128.112847.17e840a'
+    rpmVersion="${rpmVersion%-dev}"
+    rpmRelease="0.0.$gitVersion"
+fi
+
+# Replace any other dashes with periods
+rpmVersion="${rpmVersion/-/.}"
+echo $rpmVersion $rpmRelease $DOCKER_GITCOMMIT
