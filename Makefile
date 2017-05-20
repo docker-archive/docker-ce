@@ -17,5 +17,5 @@ deb: ## build deb packages
 rpm: ## build rpm packages
 	$(MAKE) CLI_DIR=$(CLI_DIR) ENGINE_DIR=$(ENGINE_DIR) -C $(PACKAGING_DIR) rpm
 
-tgz: ## build static packages
-	$(MAKE) CLI_DIR=$(CLI_DIR) ENGINE_DIR=$(ENGINE_DIR) -C $(PACKAGING_DIR) tgz
+static: ## build static packages
+	$(MAKE) CLI_DIR=$(CLI_DIR) ENGINE_DIR=$(ENGINE_DIR) -C $(PACKAGING_DIR) static
