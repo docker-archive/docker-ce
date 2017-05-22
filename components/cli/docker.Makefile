@@ -8,6 +8,7 @@ DEV_DOCKER_IMAGE_NAME = docker-cli-dev
 LINTER_IMAGE_NAME = docker-cli-lint
 CROSS_IMAGE_NAME = docker-cli-cross
 MOUNTS = -v `pwd`:/go/src/github.com/docker/cli
+VERSION = $(shell cat VERSION)
 
 # build docker image (dockerfiles/Dockerfile.build)
 .PHONY: build_docker_image
@@ -26,8 +27,7 @@ build_cross_image:
 
 # build executable using a container
 binary: build_docker_image
-	@echo "WARNING: this will drop a Linux executable on your host (not a macOS or Windows one)"
-	@docker run --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make binary
+	docker run --rm -e VERSION=$(VERSION) $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make binary
 
 build: binary
 
@@ -44,7 +44,7 @@ test: build_docker_image
 # build the CLI for multiple architectures using a container
 .PHONY: cross
 cross: build_cross_image
-	@docker run --rm $(MOUNTS) $(CROSS_IMAGE_NAME) make cross
+	docker run --rm -e VERSION=$(VERSION) $(MOUNTS) $(CROSS_IMAGE_NAME) make cross
 
 .PHONY: watch
 watch: build_docker_image
