@@ -92,7 +92,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 	if err != nil {
 		return err
 	}
-	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth)
+	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth, opts.noResolveImage)
 }
 
 func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
@@ -282,6 +282,7 @@ func deployServices(
 	services map[string]swarm.ServiceSpec,
 	namespace convert.Namespace,
 	sendAuth bool,
+	noResolveImage bool,
 ) error {
 	apiClient := dockerCli.Client()
 	out := dockerCli.Out()
@@ -300,9 +301,9 @@ func deployServices(
 		name := namespace.Scope(internalName)
 
 		encodedAuth := ""
+		image := serviceSpec.TaskTemplate.ContainerSpec.Image
 		if sendAuth {
 			// Retrieve encoded auth token from the image reference
-			image := serviceSpec.TaskTemplate.ContainerSpec.Image
 			encodedAuth, err = command.RetrieveAuthTokenFromImage(ctx, dockerCli, image)
 			if err != nil {
 				return err
@@ -312,10 +313,14 @@ func deployServices(
 		if service, exists := existingServiceMap[name]; exists {
 			fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, service.ID)
 
-			updateOpts := types.ServiceUpdateOptions{}
-			if sendAuth {
-				updateOpts.EncodedRegistryAuth = encodedAuth
+			updateOpts := types.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
+
+			if image != service.Spec.Labels["com.docker.stack.image"] {
+				if !noResolveImage {
+					updateOpts.QueryRegistry = true
+				}
 			}
+
 			response, err := apiClient.ServiceUpdate(
 				ctx,
 				service.ID,
@@ -333,10 +338,13 @@ func deployServices(
 		} else {
 			fmt.Fprintf(out, "Creating service %s\n", name)
 
-			createOpts := types.ServiceCreateOptions{}
-			if sendAuth {
-				createOpts.EncodedRegistryAuth = encodedAuth
+			createOpts := types.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
+
+			// query registry if flag disabling it was not set
+			if !noResolveImage {
+				createOpts.QueryRegistry = true
 			}
+
 			if _, err := apiClient.ServiceCreate(ctx, serviceSpec, createOpts); err != nil {
 				return err
 			}
