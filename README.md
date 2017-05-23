@@ -7,6 +7,18 @@ into a product version for the lifetime of the product.
 
 This repository is solely maintained by Docker, Inc.
 
+## Issues
+
+There are separate issue-tracking repos for the end user Docker CE
+products specialized for a platform. Find your issue or file a new issue
+for the platform you are using:
+
+* https://github.com/docker/for-linux
+* https://github.com/docker/for-mac
+* https://github.com/docker/for-win
+* https://github.com/docker/for-aws
+* https://github.com/docker/for-azure
+
 ## Unifying upstream sources
 
 The `master` branch is a combination of components adapted from
