@@ -1,9 +1,9 @@
 # Docker CE
 
-This repository hosts open source components of Docker Community Edition
-(CE) products. The `master` branch serves to unify the upstream components
-on a regular basis. Long-lived release branches host the code that goes
-into a product version for the lifetime of the product.
+This repository hosts open source components of Docker CE products. The
+`master` branch serves to unify the upstream components on a regular
+basis. Long-lived release branches host the code that goes into a product
+version for the lifetime of the product.
 
 This repository is solely maintained by Docker, Inc.
 
