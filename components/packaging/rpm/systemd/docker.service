@@ -11,6 +11,7 @@ Type=notify
 # for containers run by docker
 ExecStart=/usr/bin/dockerd
 ExecReload=/bin/kill -s HUP $MAINPID
+ExecStartPost=/usr/bin/load-telemetry-plugin
 # Having non-zero Limit*s causes performance problems due to accounting overhead
 # in the kernel. We recommend using cgroups to do container-local accounting.
 LimitNOFILE=infinity
