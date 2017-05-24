@@ -4,7 +4,7 @@ CLI_DIR:=$(CURDIR)/../../cli
 ENGINE_VER=$(shell cat $(ENGINE_DIR)/VERSION)
 VERSION=$(shell cat $(ENGINE_DIR)/VERSION)
 CHOWN=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-HASH_CMD=docker run -v $(CURDIR):/sum -it -w /sum debian:jessie bash hash_files
+HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
 
 .PHONY: help clean static static-linux cross-mac cross-win cross-arm static-cli static-engine cross-all-cli cross-win-engine hash_files
