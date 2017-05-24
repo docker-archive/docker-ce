@@ -85,7 +85,7 @@ cgroupfs_mount() {
 case "$1" in
 	start)
 		check_init
-		
+
 		fail_unless_root
 
 		cgroupfs_mount
@@ -114,6 +114,8 @@ case "$1" in
 				$DOCKER_OPTS \
 					>> "$DOCKER_LOGFILE" 2>&1
 		log_end_msg $?
+		# load metrics plugin (disabled by default)
+		/usr/bin/load-telemetry-plugin
 		;;
 
 	stop)

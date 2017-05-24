@@ -11,6 +11,8 @@ override_dh_gencontrol:
 	dh_gencontrol
 
 override_dh_auto_build:
+	# create metrics plugin metadata
+	printf '{"edition_type":"ce","edition_name":"%s","edition_version":"%s"}\n' "$(DISTRO)" "$(VERSION)" > /plugin/.plugin-metadata
 	cd engine && ./hack/make.sh dynbinary
 	cd /go/src/github.com/docker/cli && LDFLAGS='' make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
 
@@ -31,6 +33,10 @@ override_dh_auto_install:
 	cp -aT /usr/local/bin/docker-runc debian/docker-ce/usr/bin/docker-runc
 	cp -aT /usr/local/bin/docker-init debian/docker-ce/usr/bin/docker-init
 	mkdir -p debian/docker-ce/usr/lib/docker
+	mkdir -p debian/docker-ce/var/lib/docker/plugins/tar
+	cp -aTL /plugin/telemetry_$(PLUGIN_VERSION).tgz debian/docker-ce/var/lib/docker/plugins/tar/telemetry_$(PLUGIN_VERSION).tgz
+	cp -aTL /plugin/.plugin-metadata debian/docker-ce/var/lib/docker/plugins/tar/.plugin-metadata
+	cp -aTL /root/build-deb/common/load-telemetry-plugin debian/docker-ce/usr/bin/load-telemetry-plugin
 
 override_dh_installinit:
 	# use "docker" as our service name, not "docker-ce"
