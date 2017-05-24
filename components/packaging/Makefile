@@ -2,6 +2,7 @@ SHELL:=/bin/bash
 ENGINE_DIR:=$(CURDIR)/../engine
 CLI_DIR:=$(CURDIR)/../cli
 VERSION=unknown
+PLUGIN_VERSION=unknown
 DOCKER_GITCOMMIT:=abcdefg
 
 .PHONY: help clean rpm deb static
@@ -17,17 +18,18 @@ clean: ## remove build artifacts
 rpm: DOCKER_BUILD_PKGS:=fedora-25 fedora-24 centos-7
 rpm: ## build rpm packages
 	for p in $(DOCKER_BUILD_PKGS); do \
-		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
+		$(MAKE) -C $@ VERSION=$(VERSION) PLUGIN_VERSION=$(PLUGIN_VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
 	done
 
 deb: DOCKER_BUILD_PKGS:=ubuntu-zesty ubuntu-yakkety ubuntu-xenial ubuntu-trusty debian-stretch debian-wheezy debian-jessie
 deb: ## build deb packages
+	$(MAKE) -C $@ metrics_plugin
 	for p in $(DOCKER_BUILD_PKGS); do \
-		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
+		$(MAKE) -C $@ VERSION=$(VERSION) PLUGIN_VERSION=$(PLUGIN_VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
 	done
 
 static: DOCKER_BUILD_PKGS:=static-linux cross-mac cross-win cross-arm
 static: ## build static-compiled packages
 	for p in $(DOCKER_BUILD_PKGS); do \
-		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
+		$(MAKE) -C $@ VERSION=$(VERSION) PLUGIN_VERSION=$(PLUGIN_VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
 	done
