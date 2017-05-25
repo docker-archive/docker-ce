@@ -12,7 +12,7 @@ override_dh_gencontrol:
 
 override_dh_auto_build:
 	cd engine && ./hack/make.sh dynbinary
-	cd cli && LDFLAGS="" make VERSION=$(VERSION) dynbinary
+	cd cli && LDFLAGS='' make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary
 	# ./man/md2man-all.sh runs outside the build container (if at all), since we don't have go-md2man here
 
 override_dh_auto_test:
