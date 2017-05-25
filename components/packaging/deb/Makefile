@@ -47,6 +47,8 @@ ubuntu-trusty: ## build ubuntu trusty deb packages
 ubuntu-yakkety: ## build ubuntu yakkety deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm \
+		-e VERSION=$(VERSION) \
+		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CLI_DIR):/cli \
@@ -56,6 +58,8 @@ ubuntu-yakkety: ## build ubuntu yakkety deb packages
 ubuntu-zesty: ## build ubuntu zesty deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm \
+		-e VERSION=$(VERSION) \
+		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CLI_DIR):/cli \
@@ -65,6 +69,8 @@ ubuntu-zesty: ## build ubuntu zesty deb packages
 debian-jessie: ## build debian jessie deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm \
+		-e VERSION=$(VERSION) \
+		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CLI_DIR):/cli \
@@ -74,6 +80,8 @@ debian-jessie: ## build debian jessie deb packages
 debian-stretch: ## build debian stretch deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm \
+		-e VERSION=$(VERSION) \
+		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CLI_DIR):/cli \
@@ -83,6 +91,8 @@ debian-stretch: ## build debian stretch deb packages
 debian-wheezy: ## build debian wheezy deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm \
+		-e VERSION=$(VERSION) \
+		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CLI_DIR):/cli \
