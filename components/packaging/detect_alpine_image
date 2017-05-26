@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+arch="$(uname -m)"
+img="unknown"
+
+if [ "$arch" = "x86_64" ]; then
+    img="alpine"
+elif [ "$arch" = "armv7l" ]; then
+    img="armhf/alpine"
+elif [ "$arch" = "s390x" ]; then
+    img="s390x/alpine"
+else
+    echo "Architecture $(arch) not supported"
+    exit 1;
+fi
+
+echo "$img"
