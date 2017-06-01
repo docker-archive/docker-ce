@@ -1048,6 +1048,10 @@ definitions:
         type: "string"
         description: "Mount path of the volume on the host."
         x-nullable: false
+      CreatedAt:
+        type: "string"
+        format: "dateTime"
+        description: "Time volume was created."
       Status:
         type: "object"
         description: |
@@ -1101,6 +1105,7 @@ definitions:
         com.example.some-label: "some-value"
         com.example.some-other-label: "some-other-value"
       Scope: "local"
+      CreatedAt: "2016-06-07T20:31:11.853781916Z"
 
   Network:
     type: "object"
@@ -2174,9 +2179,6 @@ definitions:
       Runtime:
         description: "Runtime is the type of runtime specified for the task executor."
         type: "string"
-      RuntimeData:
-        description: "RuntimeData is the payload sent to be used with the runtime for the executor."
-        type: "array"
       Networks:
         type: "array"
         items:
@@ -3122,7 +3124,7 @@ paths:
                       all processes in the container. Freezing the process requires the process to
                       be running. As a result, paused containers are both `Running` _and_ `Paused`.
 
-                      Use the `Status` field instead to determin if a container's state is "running".
+                      Use the `Status` field instead to determine if a container's state is "running".
                     type: "boolean"
                   Paused:
                     description: "Whether this container is paused."
