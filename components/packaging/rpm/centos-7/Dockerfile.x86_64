@@ -18,6 +18,8 @@ RUN yum install -y \
    vim-common
 
 ENV GO_VERSION 1.7.5
+ENV DISTRO centos
+ENV SUITE 7
 RUN curl -fSL "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" | tar xzC /usr/local
 RUN mkdir -p /go
 ENV GOPATH=/go
