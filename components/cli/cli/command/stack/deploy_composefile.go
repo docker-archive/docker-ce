@@ -92,7 +92,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 	if err != nil {
 		return err
 	}
-	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth, opts.noResolveImage)
+	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth, opts.resolveImage)
 }
 
 func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
@@ -282,7 +282,7 @@ func deployServices(
 	services map[string]swarm.ServiceSpec,
 	namespace convert.Namespace,
 	sendAuth bool,
-	noResolveImage bool,
+	resolveImage string,
 ) error {
 	apiClient := dockerCli.Client()
 	out := dockerCli.Out()
@@ -315,10 +315,8 @@ func deployServices(
 
 			updateOpts := types.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
 
-			if image != service.Spec.Labels["com.docker.stack.image"] {
-				if !noResolveImage {
-					updateOpts.QueryRegistry = true
-				}
+			if resolveImage == resolveImageAlways || (resolveImage == resolveImageChanged && image != service.Spec.Labels[convert.LabelImage]) {
+				updateOpts.QueryRegistry = true
 			}
 
 			response, err := apiClient.ServiceUpdate(
@@ -341,7 +339,7 @@ func deployServices(
 			createOpts := types.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
 
 			// query registry if flag disabling it was not set
-			if !noResolveImage {
+			if resolveImage == resolveImageAlways || resolveImage == resolveImageChanged {
 				createOpts.QueryRegistry = true
 			}
 
