@@ -68,5 +68,15 @@ lint: build_linter_image
 vendor: build_docker_image vendor.conf
 	@docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make vendor
 
+## generate man pages from go source and markdown
+.PHONY: manpages
+manpages: build_docker_image
+	@docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make manpages
+
+## Generate documentation YAML files consumed by docs repo
+.PHONY: yamldocs
+yamldocs: build_docker_image
+	@docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make yamldocs
+
 dynbinary: build_cross_image
 	docker run --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make dynbinary

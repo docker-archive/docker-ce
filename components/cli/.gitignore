@@ -2,3 +2,7 @@
 /build/
 cli/winresources/rsrc_386.syso
 cli/winresources/rsrc_amd64.syso
+/man/man1/
+/man/man5/
+/man/man8/
+/docs/yaml/gen/
