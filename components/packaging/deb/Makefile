@@ -12,7 +12,7 @@ PLUGIN_VERSION?=1.0.0.$(KERNEL)-$(ARCH)-test
 DOCKER_EXPERIMENTAL:=0
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v $(ALPINE_IMG) chown
 
-.PHONY: help clean deb ubuntu debian ubuntu-xenial ubuntu-trusty ubuntu-yakkety ubuntu-zesty debian-jessie debian-stretch debian-wheezy
+.PHONY: help clean deb ubuntu debian ubuntu-xenial ubuntu-trusty ubuntu-zesty debian-jessie debian-stretch debian-wheezy raspbian-jessie raspbian-stretch
 
 help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,11 +21,13 @@ clean: ## remove build artifacts
 	[ ! -d debbuild ] || $(CHOWN) -R $(shell id -u):$(shell id -g) debbuild
 	$(RM) -r debbuild
 
-deb: ubuntu debian ## build all deb packages
+deb: ubuntu debian raspbian ## build all deb packages
 
 ubuntu: ubuntu-zesty ubuntu-yakkety ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
 
 debian: debian-stretch debian-wheezy debian-jessie ## build all debian deb packages
+
+raspbian: raspbian-stretch debian-jessie ## build all raspbian deb packages
 
 metrics_plugin: ## pull telemetry plugin tarball
 	mkdir -p $(PLUGIN_DIR)
@@ -124,6 +126,36 @@ debian-stretch: ## build debian stretch deb packages
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 debian-wheezy: ## build debian wheezy deb packages
+	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
+	docker run --rm -i \
+		-e VERSION=$(VERSION) \
+		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
+		-e PLUGIN_VERSION=$(PLUGIN_VERSION) \
+		-v $(CURDIR)/debbuild/$@:/build \
+		-v $(ENGINE_DIR):/engine \
+		-v $(PLUGIN_DIR):/plugin \
+		-v $(CLI_DIR):/cli \
+		-v $(CURDIR)/systemd:/root/build-deb/systemd \
+		-v $(COMMON_DIR):/root/build-deb/common \
+		debbuild-$@/$(ARCH)
+	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
+
+raspbian-jessie: ## build raspbian jessie deb packages
+	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
+	docker run --rm -i \
+		-e VERSION=$(VERSION) \
+		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
+		-e PLUGIN_VERSION=$(PLUGIN_VERSION) \
+		-v $(CURDIR)/debbuild/$@:/build \
+		-v $(ENGINE_DIR):/engine \
+		-v $(PLUGIN_DIR):/plugin \
+		-v $(CLI_DIR):/cli \
+		-v $(CURDIR)/systemd:/root/build-deb/systemd \
+		-v $(COMMON_DIR):/root/build-deb/common \
+		debbuild-$@/$(ARCH)
+	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
+
+raspbian-stretch: ## build raspbian stretch deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
 		-e VERSION=$(VERSION) \
