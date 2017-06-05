@@ -7,7 +7,7 @@ version for the lifetime of the product.
 
 This repository is solely maintained by Docker, Inc.
 
-Contribution rules can be found here: [CONTRIBUTING.md](CONTRIBUTING.md)
+Rules for contributing can be found here: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Issues
 
