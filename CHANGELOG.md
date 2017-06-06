@@ -5,7 +5,7 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
-## 17.06.0-ce (2017-06-07)
+## 17.06.0-ce (2017-06-15)
 
 ### Builder
 
@@ -25,7 +25,8 @@ be found.
 + Add new `ca ` subcommand to `docker swarm` to allow managing a swarm CA [#docker/cli/48](https://github.com/docker/cli/pull/48)
 + Add credential-spec to compose [#docker/cli/71](https://github.com/docker/cli/pull/71)
 + Add support for csv format options to `--network` and `--network-add` [#docker/cli/62](https://github.com/docker/cli/pull/62) [#33130](https://github.com/moby/moby/pull/33130)
-
+- Fix stack compose bind-mount volumes on Windows [#docker/cli/136](https://github.com/docker/cli/pull/136)
+- Correctly handle a Docker daemon without registry info [#docker/cli/126](https://github.com/docker/cli/pull/126)
 ### Distribution
 
 * Select digest over tag when both are provided during a pull [#33214](https://github.com/moby/moby/pull/33214)
@@ -59,6 +60,8 @@ be found.
 + Add daemon option to allow pushing foreign layers [#33151](https://github.com/moby/moby/pull/33151)
 - Fix an issue preventing containerd to be restarted after it died [#32986](https://github.com/moby/moby/pull/32986)
 + Add cluster events to Docker event stream. [#32421](https://github.com/moby/moby/pull/32421)
++ Add support for DNS search on windows [#33311](https://github.com/moby/moby/pull/33311)
+* Upgrade to Go 1.8.3 [#33387](https://github.com/moby/moby/pull/33387)
 
 ### Security
 
@@ -74,6 +77,9 @@ be found.
 + Add API to rotate swarm CA certificate [#32993](https://github.com/moby/moby/pull/32993)
 * Service digest pining is now handled client side [#32388](https://github.com/moby/moby/pull/32388), [#33239](https://github.com/moby/moby/pull/33239)
 + Placement now also take platform in account [#33144](https://github.com/moby/moby/pull/33144)
+- Fix missing ipam driver option usage in config only networks in swarm mode [#docker-ce/21](https://github.com/docker/docker-ce/pull/21)
+- Fix possible hang when joining fails [#docker-ce/19](https://github.com/docker/docker-ce/pull/19)
+- Fix an issue preventing external CA to be accepted [#33341](https://github.com/moby/moby/pull/33341)
 
 ## 17.05.0-ce (2017-05-04)
 
