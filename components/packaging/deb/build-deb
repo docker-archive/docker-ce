@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 set -x
 # I want to rip this install-binaries script out so badly
-cd engine && \
-    TMP_GOPATH="/go" hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini && \
-    cd -
+cd engine
+TMP_GOPATH="/go" bash hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini
+if [[ $? -ne 0 ]]; then
+    echo "Binaries required for package building not installed correctly."
+    echo "Exiting..."
+    exit 1
+fi
+cd -
 echo VERSION AAA $VERSION
 
 VERSION=${VERSION:-$( cat engine/VERSION )}

@@ -1,12 +1,8 @@
-FROM debian:stretch
-
-# allow replacing httpredir or deb mirror
-ARG APT_MIRROR=deb.debian.org
-RUN sed -ri "s/(httpredir|deb).debian.org/$APT_MIRROR/g" /etc/apt/sources.list
+FROM ubuntu:xenial
 
 RUN apt-get update && apt-get install -y apparmor bash-completion btrfs-tools build-essential cmake curl ca-certificates debhelper dh-apparmor dh-systemd git libapparmor-dev libdevmapper-dev libltdl-dev libseccomp-dev pkg-config vim-common libsystemd-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-ENV GO_VERSION 1.8.1
+ENV GO_VERSION 1.8.3
 RUN curl -fSL "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" | tar xzC /usr/local
 ENV PATH $PATH:/usr/local/go/bin
 
@@ -26,8 +22,8 @@ RUN mkdir -p /go/src/github.com/docker && \
 	ln -snf /root/build-deb/cli /go/src/github.com/docker/cli
 
 
-ENV DISTRO debian
-ENV SUITE stretch
+ENV DISTRO ubuntu
+ENV SUITE xenial
 
 WORKDIR /root/build-deb
 
