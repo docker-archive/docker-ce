@@ -20,7 +20,7 @@ rpm: ## build rpm packages
 		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
 	done
 
-deb: DOCKER_BUILD_PKGS:=ubuntu-zesty ubuntu-yakkety ubuntu-xenial ubuntu-trusty debian-stretch debian-wheezy debian-jessie
+deb: DOCKER_BUILD_PKGS:=ubuntu-zesty ubuntu-yakkety ubuntu-xenial ubuntu-trusty debian-stretch debian-wheezy debian-jessie raspbian-stretch raspbian-jessie
 deb: ## build deb packages
 	for p in $(DOCKER_BUILD_PKGS); do \
 		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
