@@ -6,7 +6,7 @@ CLI_DIR:=$(CURDIR)/../../cli
 GITCOMMIT?=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=$(shell cat $(ENGINE_DIR)/VERSION)
 DOCKER_EXPERIMENTAL:=0
-CHOWN:=docker run --rm -v $(CURDIR):/v -w /v $(ALPINE) chown
+CHOWN:=docker run --rm -i -t -v $(CURDIR):/v -w /v $(ALPINE) chown
 
 .PHONY: help clean deb ubuntu debian ubuntu-xenial ubuntu-trusty ubuntu-yakkety ubuntu-zesty debian-jessie debian-stretch debian-wheezy
 
@@ -25,7 +25,7 @@ debian: debian-stretch debian-wheezy debian-jessie ## build all debian deb packa
 
 ubuntu-xenial: ## build ubuntu xenial deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm \
+	docker run --rm -i -t \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -36,7 +36,7 @@ ubuntu-xenial: ## build ubuntu xenial deb packages
 
 ubuntu-trusty: ## build ubuntu trusty deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm \
+	docker run --rm -i -t \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -47,7 +47,7 @@ ubuntu-trusty: ## build ubuntu trusty deb packages
 
 ubuntu-yakkety: ## build ubuntu yakkety deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm \
+	docker run --rm -i -t \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -58,7 +58,7 @@ ubuntu-yakkety: ## build ubuntu yakkety deb packages
 
 ubuntu-zesty: ## build ubuntu zesty deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm \
+	docker run --rm -i -t \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -69,7 +69,7 @@ ubuntu-zesty: ## build ubuntu zesty deb packages
 
 debian-jessie: ## build debian jessie deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm \
+	docker run --rm -i -t \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -80,7 +80,7 @@ debian-jessie: ## build debian jessie deb packages
 
 debian-stretch: ## build debian stretch deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm \
+	docker run --rm -i -t \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -91,7 +91,7 @@ debian-stretch: ## build debian stretch deb packages
 
 debian-wheezy: ## build debian wheezy deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm \
+	docker run --rm -i -t \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
