@@ -5,7 +5,7 @@ This repository hosts open source components of Docker CE products. The
 basis. Long-lived release branches host the code that goes into a product
 version for the lifetime of the product.
 
-This repository is solely maintained by Docker, Inc.
+This repository is solely maintained by [Docker, Inc](https://github.com/docker).
 
 ## Issues
 
