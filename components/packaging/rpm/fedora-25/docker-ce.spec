@@ -54,14 +54,13 @@ export DOCKER_GITCOMMIT=%{_gitcommit}
 mkdir -p /go/src/github.com/docker
 rm -f /go/src/github.com/docker/cli
 ln -s /root/rpmbuild/BUILD/src/cli /go/src/github.com/docker/cli
-pushd cli
-make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary # cli
+pushd /go/src/github.com/docker/cli
+make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
 popd
 pushd engine
 TMP_GOPATH="/go" hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini
 hack/make.sh dynbinary
 popd
-# ./man/md2man-all.sh runs outside the build container (if at all), since we don't have go-md2man here
 
 %check
 cli/build/docker -v
@@ -106,11 +105,11 @@ install -p -m 644 engine/contrib/completion/fish/docker.fish $RPM_BUILD_ROOT/usr
 
 # install manpages
 install -d %{buildroot}%{_mandir}/man1
-#install -p -m 644 man/man1/*.1 $RPM_BUILD_ROOT/%{_mandir}/man1
+install -p -m 644 cli/man/man1/*.1 $RPM_BUILD_ROOT/%{_mandir}/man1
 install -d %{buildroot}%{_mandir}/man5
-#install -p -m 644 man/man5/*.5 $RPM_BUILD_ROOT/%{_mandir}/man5
+install -p -m 644 cli/man/man5/*.5 $RPM_BUILD_ROOT/%{_mandir}/man5
 install -d %{buildroot}%{_mandir}/man8
-#install -p -m 644 man/man8/*.8 $RPM_BUILD_ROOT/%{_mandir}/man8
+install -p -m 644 cli/man/man8/*.8 $RPM_BUILD_ROOT/%{_mandir}/man8
 
 # add vimfiles
 install -d $RPM_BUILD_ROOT/usr/share/vim/vimfiles/doc
@@ -141,9 +140,9 @@ install -p -m 644 engine/contrib/syntax/nano/Dockerfile.nanorc $RPM_BUILD_ROOT/u
 /usr/share/zsh/vendor-completions/_docker
 /usr/share/fish/vendor_completions.d/docker.fish
 %doc
-#/%{_mandir}/man1/*
-#/%{_mandir}/man5/*
-#/%{_mandir}/man8/*
+/%{_mandir}/man1/*
+/%{_mandir}/man5/*
+/%{_mandir}/man8/*
 /usr/share/vim/vimfiles/doc/dockerfile.txt
 /usr/share/vim/vimfiles/ftdetect/dockerfile.vim
 /usr/share/vim/vimfiles/syntax/dockerfile.vim

@@ -5,8 +5,8 @@ GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION=$(shell cat $(ENGINE_DIR)/VERSION)
 DOCKER_EXPERIMENTAL=0
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(ENGINE_DIR) $(VERSION))
-CHOWN=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-RPMBUILD=docker run --privileged --rm \
+CHOWN=docker run --rm -i -t -v $(CURDIR):/v -w /v alpine chown
+RPMBUILD=docker run --privileged --rm -i -t \
 	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
 	-v $(CURDIR)/rpmbuild/BUILD:/root/rpmbuild/BUILD \
 	-v $(CURDIR)/rpmbuild/BUILDROOT:/root/rpmbuild/BUILDROOT \
@@ -52,7 +52,7 @@ centos-7: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build centos-7
 
 rpmbuild/SOURCES/cli.tgz:
 	mkdir -p rpmbuild/SOURCES
-	docker run --rm -w /v \
+	docker run --rm -i -t -w /v \
 		-v $(CLI_DIR):/cli \
 		-v $(CURDIR)/rpmbuild/SOURCES:/v \
 		alpine \
@@ -60,7 +60,7 @@ rpmbuild/SOURCES/cli.tgz:
 
 rpmbuild/SOURCES/engine.tgz:
 	mkdir -p rpmbuild/SOURCES
-	docker run --rm -w /v \
+	docker run --rm -i -t -w /v \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CURDIR)/rpmbuild/SOURCES:/v \
 		alpine \
