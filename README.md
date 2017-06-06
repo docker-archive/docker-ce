@@ -7,6 +7,8 @@ version for the lifetime of the product.
 
 This repository is solely maintained by Docker, Inc.
 
+Rules for contributing can be found here: [CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## Issues
 
 There are separate issue-tracking repos for the end user Docker CE
