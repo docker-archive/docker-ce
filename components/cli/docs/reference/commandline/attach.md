@@ -34,13 +34,12 @@ Use `docker attach` to attach your terminal's standard input, output, and error
 ID or name. This allows you to view its ongoing output or to control it
 interactively, as though the commands were running directly in your terminal.
 
-> **Note:**
-> The `attach` command will display the output of the `ENTRYPOINT/CMD` process.  This
-> can appear as if the attach command is hung when in fact the process may simply
-> not be interacting with the terminal at that time.
+> **Note**: The `attach` command will display the output of the `ENTRYPOINT/CMD`
+> process. This can appear as if the attach command is hung when in fact the
+> process may simply not be interacting with the terminal at that time.
 
 You can attach to the same contained process multiple times simultaneously,
-even as a different user with the appropriate permissions.
+even as a different user on the Docker host with the appropriate permissions.
 
 To stop a container, use `CTRL-c`. This key sequence sends `SIGKILL` to the
 container. If `--sig-proxy` is true (the default),`CTRL-c` sends a `SIGINT` to
@@ -70,7 +69,7 @@ foreground over a slow client connection. Instead, users should use the
 If you want, you can configure an override the Docker key sequence for detach.
 This is useful if the Docker default sequence conflicts with key sequence you
 use for other applications. There are two ways to define your own detach key
-sequence, as a per-container override or as a configuration property on  your
+sequence, as a per-container override or as a configuration property on your
 entire configuration.
 
 To override the sequence for an individual container, use the
