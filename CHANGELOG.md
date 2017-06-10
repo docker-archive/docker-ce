@@ -5,7 +5,7 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
-## 17.06.0-ce (2017-06-15)
+## 17.06.0-ce (2017-06-19)
 
 ### Builder
 
@@ -77,7 +77,6 @@ be found.
 + Add API to rotate swarm CA certificate [#32993](https://github.com/moby/moby/pull/32993)
 * Service digest pining is now handled client side [#32388](https://github.com/moby/moby/pull/32388), [#33239](https://github.com/moby/moby/pull/33239)
 + Placement now also take platform in account [#33144](https://github.com/moby/moby/pull/33144)
-- Fix missing ipam driver option usage in config only networks in swarm mode [#docker-ce/21](https://github.com/docker/docker-ce/pull/21)
 - Fix possible hang when joining fails [#docker-ce/19](https://github.com/docker/docker-ce/pull/19)
 - Fix an issue preventing external CA to be accepted [#33341](https://github.com/moby/moby/pull/33341)
 
