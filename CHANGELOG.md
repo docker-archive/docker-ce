@@ -27,6 +27,9 @@ be found.
 + Add support for csv format options to `--network` and `--network-add` [#docker/cli/62](https://github.com/docker/cli/pull/62) [#33130](https://github.com/moby/moby/pull/33130)
 - Fix stack compose bind-mount volumes on Windows [#docker/cli/136](https://github.com/docker/cli/pull/136)
 - Correctly handle a Docker daemon without registry info [#docker/cli/126](https://github.com/docker/cli/pull/126)
++ Allow --detach and --quiet flags when using --rollback [#docker/cli/144](https://github.com/docker/cli/pull/144)
++ Remove deprecated `--email` flag from `docker login` [#docker/cli/143](https://github.com/docker/cli/pull/143)
+
 ### Distribution
 
 * Select digest over tag when both are provided during a pull [#33214](https://github.com/moby/moby/pull/33214)
@@ -62,6 +65,12 @@ be found.
 + Add cluster events to Docker event stream. [#32421](https://github.com/moby/moby/pull/32421)
 + Add support for DNS search on windows [#33311](https://github.com/moby/moby/pull/33311)
 * Upgrade to Go 1.8.3 [#33387](https://github.com/moby/moby/pull/33387)
+- Prevent a containerd crash when journald is restarted [#containerd/930](https://github.com/containerd/containerd/pull/930)
+- Fix healthcheck failures due to invalid environment variables [#33249](https://github.com/moby/moby/pull/33249)
+- Prevent a directory to be created in lieu of the daemon socket when a container mounting it is to be restarted during a shutdown [#30348](https://github.com/moby/moby/pull/33330)
+- Prevent a container to be restarted upon stop if its stop signal is set to `SIGKILL` [#33335](https://github.com/moby/moby/pull/33335)
+- Ensure log drivers get passed the same filename to both StartLogging and StopLogging endpoints [#33583](https://github.com/moby/moby/pull/33583)
+- Remove daemon data structure dump on `SIGUSR1` to avoid a panic [#33598](https://github.com/moby/moby/pull/33598)
 
 ### Security
 
