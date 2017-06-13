@@ -33,6 +33,7 @@ be found.
 ### Distribution
 
 * Select digest over tag when both are provided during a pull [#33214](https://github.com/moby/moby/pull/33214)
+* Disable legacy registry (v1) by default [#33629](https://github.com/moby/moby/pull/33629)
 
 ### Logging
 
