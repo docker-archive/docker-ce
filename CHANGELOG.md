@@ -88,6 +88,7 @@ be found.
 + Placement now also take platform in account [#33144](https://github.com/moby/moby/pull/33144)
 - Fix possible hang when joining fails [#docker-ce/19](https://github.com/docker/docker-ce/pull/19)
 - Fix an issue preventing external CA to be accepted [#33341](https://github.com/moby/moby/pull/33341)
+- Fix possible orchestration panic in mixed version clusters [#swarmkit/2233](https://github.com/docker/swarmkit/pull/2233)
 
 ## 17.05.0-ce (2017-05-04)
 
