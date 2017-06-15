@@ -5,6 +5,11 @@ VERSION=$2
 
 [[ $# < 2 ]] && echo 'not enough args' && exit 1
 
+DATE_COMMAND="date"
+if [[ $(uname) -eq "Darwin" ]]; then
+    DATE_COMMAND="docker run --rm alpine date"
+fi
+
 GIT_COMMAND="git -C $ENGINE_DIR"
 rpmName=docker-ce
 rpmVersion="$VERSION"
@@ -32,7 +37,7 @@ fi
 # if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
 if [[ "$rpmVersion" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; then
     gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
-    gitDate="$(date --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
+    gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
     gitVersion="${gitDate}.git${gitCommit}"
     # gitVersion is now something like '20150128.112847.17e840a'
