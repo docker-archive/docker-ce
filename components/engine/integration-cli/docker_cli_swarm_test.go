@@ -1691,23 +1691,22 @@ func (s *DockerSwarmSuite) TestSwarmServicePsMultipleServiceIDs(c *check.C) {
 	d := s.AddDaemon(c, true, true)
 
 	name1 := "top1"
-	result := icmd.RunCmd(d.Command("service", "create", "--no-resolve-image", "--detach=true", "--name", name1, "--replicas=3", "busybox", "top"))
-	result.Assert(c, icmd.Success)
-	id1 := strings.TrimSpace(result.Stdout())
-	c.Assert(id1, checker.Not(checker.Equals), "")
+	out, err := d.Cmd("service", "create", "--no-resolve-image", "--detach=true", "--name", name1, "--replicas=3", "busybox", "top")
+	c.Assert(err, checker.IsNil)
+	c.Assert(strings.TrimSpace(out), checker.Not(checker.Equals), "")
+	id1 := strings.TrimSpace(out)
 
 	name2 := "top2"
-	result = icmd.RunCmd(d.Command("service", "create", "--no-resolve-image", "--detach=true", "--name", name2, "--replicas=3", "busybox", "top"))
-	result.Assert(c, icmd.Success)
-	id2 := strings.TrimSpace(result.Stdout())
-	c.Assert(id2, checker.Not(checker.Equals), "")
+	out, err = d.Cmd("service", "create", "--no-resolve-image", "--detach=true", "--name", name2, "--replicas=3", "busybox", "top")
+	c.Assert(err, checker.IsNil)
+	c.Assert(strings.TrimSpace(out), checker.Not(checker.Equals), "")
+	id2 := strings.TrimSpace(out)
 
 	// make sure task has been deployed.
 	waitAndAssert(c, defaultReconciliationTimeout, d.CheckActiveContainerCount, checker.Equals, 6)
 
-	result = icmd.RunCmd(d.Command("service", "ps", name1))
-	result.Assert(c, icmd.Success)
-	out := result.Stdout()
+	out, err = d.Cmd("service", "ps", name1)
+	c.Assert(err, checker.IsNil)
 	c.Assert(out, checker.Contains, name1+".1")
 	c.Assert(out, checker.Contains, name1+".2")
 	c.Assert(out, checker.Contains, name1+".3")
@@ -1715,9 +1714,8 @@ func (s *DockerSwarmSuite) TestSwarmServicePsMultipleServiceIDs(c *check.C) {
 	c.Assert(out, checker.Not(checker.Contains), name2+".2")
 	c.Assert(out, checker.Not(checker.Contains), name2+".3")
 
-	result = icmd.RunCmd(d.Command("service", "ps", name1, name2))
-	result.Assert(c, icmd.Success)
-	out = result.Stdout()
+	out, err = d.Cmd("service", "ps", name1, name2)
+	c.Assert(err, checker.IsNil)
 	c.Assert(out, checker.Contains, name1+".1")
 	c.Assert(out, checker.Contains, name1+".2")
 	c.Assert(out, checker.Contains, name1+".3")
@@ -1726,9 +1724,8 @@ func (s *DockerSwarmSuite) TestSwarmServicePsMultipleServiceIDs(c *check.C) {
 	c.Assert(out, checker.Contains, name2+".3")
 
 	// Name Prefix
-	result = icmd.RunCmd(d.Command("service", "ps", "to"))
-	result.Assert(c, icmd.Success)
-	out = result.Stdout()
+	out, err = d.Cmd("service", "ps", "to")
+	c.Assert(err, checker.IsNil)
 	c.Assert(out, checker.Contains, name1+".1")
 	c.Assert(out, checker.Contains, name1+".2")
 	c.Assert(out, checker.Contains, name1+".3")
@@ -1737,15 +1734,12 @@ func (s *DockerSwarmSuite) TestSwarmServicePsMultipleServiceIDs(c *check.C) {
 	c.Assert(out, checker.Contains, name2+".3")
 
 	// Name Prefix (no hit)
-	result = icmd.RunCmd(d.Command("service", "ps", "noname"))
-	result.Assert(c, icmd.Expected{
-		ExitCode: 1,
-		Err: "no such services: noname",
-	})
+	out, err = d.Cmd("service", "ps", "noname")
+	c.Assert(err, checker.NotNil)
+	c.Assert(out, checker.Contains, "no such services: noname")
 
-	result = icmd.RunCmd(d.Command("service", "ps", id1))
-	result.Assert(c, icmd.Success)
-	out = result.Stdout()
+	out, err = d.Cmd("service", "ps", id1)
+	c.Assert(err, checker.IsNil)
 	c.Assert(out, checker.Contains, name1+".1")
 	c.Assert(out, checker.Contains, name1+".2")
 	c.Assert(out, checker.Contains, name1+".3")
@@ -1753,9 +1747,8 @@ func (s *DockerSwarmSuite) TestSwarmServicePsMultipleServiceIDs(c *check.C) {
 	c.Assert(out, checker.Not(checker.Contains), name2+".2")
 	c.Assert(out, checker.Not(checker.Contains), name2+".3")
 
-	result = icmd.RunCmd(d.Command("service", "ps", id1, id2))
-	result.Assert(c, icmd.Success)
-	out = result.Stdout()
+	out, err = d.Cmd("service", "ps", id1, id2)
+	c.Assert(err, checker.IsNil)
 	c.Assert(out, checker.Contains, name1+".1")
 	c.Assert(out, checker.Contains, name1+".2")
 	c.Assert(out, checker.Contains, name1+".3")
