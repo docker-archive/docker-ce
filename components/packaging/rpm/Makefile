@@ -11,7 +11,8 @@ RPMBUILD=docker run --privileged --rm -i \
 	-v $(CURDIR)/rpmbuild/BUILD:/root/rpmbuild/BUILD \
 	-v $(CURDIR)/rpmbuild/BUILDROOT:/root/rpmbuild/BUILDROOT \
 	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
-	-v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS
+	-v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS \
+	-v $(CURDIR)/systemd:/systemd
 RPMBUILD_FLAGS=-ba\
 	--define '_gitcommit $(word 3,$(GEN_RPM_VER))' \
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
