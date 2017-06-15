@@ -163,4 +163,14 @@ fi
 
 %changelog
 
-* Wed May 10 2017 <andrewhsu@docker.com> 17.06.0-dev
+* Thu Jun 15 2017 <andrewhsu@docker.com> 17.06.0-ce-rc4
+- release docker-ce 17.06.0-ce-rc4
+
+* Tue Jun 13 2017 <andrewhsu@docker.com> 17.06.0-ce-rc3
+- release docker-ce 17.06.0-ce-rc3
+
+* Wed Jun 07 2017 <andrewhsu@docker.com> 17.06.0-ce-rc2
+- release docker-ce 17.06.0-ce-rc2
+
+* Mon May 29 2017 <andrewhsu@docker.com> 17.06.0-ce-rc1
+- release docker-ce 17.06.0-ce-rc1
