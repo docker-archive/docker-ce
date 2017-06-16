@@ -27,6 +27,7 @@ Requires: libcgroup
 Requires: systemd-units
 Requires: tar
 Requires: xz
+Requires: container-selinux >= 1.10.3-55
 
 # Resolves: rhbz#1165615
 Requires: device-mapper-libs >= 1.02.90-1
@@ -35,6 +36,11 @@ Requires: device-mapper-libs >= 1.02.90-1
 Conflicts: docker
 Conflicts: docker-io
 Conflicts: docker-engine-cs
+
+# Obsolete packages
+Obsoletes: docker-ce-selinux
+Obsoletes: docker-engine-selinux
+Obsoletes: docker-engine
 
 %description
 Docker is an open source project to build, ship and run any application as a

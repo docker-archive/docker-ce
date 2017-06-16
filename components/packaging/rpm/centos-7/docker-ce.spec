@@ -36,6 +36,11 @@ Conflicts: docker
 Conflicts: docker-io
 Conflicts: docker-engine-cs
 
+# Obsolete packages
+Obsoletes: docker-ce-selinux
+Obsoletes: docker-engine-selinux
+Obsoletes: docker-engine
+
 %description
 Docker is an open source project to build, ship and run any application as a
 lightweight container.
