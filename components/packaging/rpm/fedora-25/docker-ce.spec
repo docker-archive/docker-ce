@@ -34,6 +34,7 @@ Requires: device-mapper-libs >= 1.02.90-1
 Conflicts: docker
 Conflicts: docker-io
 Conflicts: docker-engine-cs
+Conflicts: docker-ee
 
 # Obsolete packages
 Obsoletes: docker-ce-selinux
