@@ -35,6 +35,7 @@ Requires: device-mapper-libs >= 1.02.90-1
 Conflicts: docker
 Conflicts: docker-io
 Conflicts: docker-engine-cs
+Conflicts: docker-ee
 
 %description
 Docker is an open source project to build, ship and run any application as a
