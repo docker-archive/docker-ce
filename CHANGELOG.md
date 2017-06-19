@@ -7,6 +7,11 @@ be found.
 
 ## 17.06.0-ce (2017-06-19)
 
+**NOTE**: Docker 17.06 by default disables communication with legacy (v1) registries. If you
+require interaction with registries that have not yet migrated to the v2 protocol, set the
+`--disable-legacy-registry=false` daemon option. Interaction with v1 registries will be removed
+in Docker 17.12.
+
 ### Builder
 
 + Add `--iidfile` option to docker build. It allows specifying a location where to save the resulting image ID
@@ -29,11 +34,11 @@ be found.
 - Correctly handle a Docker daemon without registry info [#docker/cli/126](https://github.com/docker/cli/pull/126)
 + Allow --detach and --quiet flags when using --rollback [#docker/cli/144](https://github.com/docker/cli/pull/144)
 + Remove deprecated `--email` flag from `docker login` [#docker/cli/143](https://github.com/docker/cli/pull/143)
+* Adjusted `docker stats` memory output [#docker/cli/80](https://github.com/docker/cli/pull/80)
 
 ### Distribution
 
 * Select digest over tag when both are provided during a pull [#33214](https://github.com/moby/moby/pull/33214)
-* Disable legacy registry (v1) by default [#33629](https://github.com/moby/moby/pull/33629)
 
 ### Logging
 
@@ -45,6 +50,7 @@ be found.
 + Add Support swarm-mode services with node-local networks such as macvlan, ipvlan, bridge, host  [#32981](https://github.com/moby/moby/pull/32981)
 + Pass driver-options to network drivers on service creation [#32981] (https://github.com/moby/moby/pull/33130)
 + Isolate Swarm Control-plane traffic from Application data traffic using --data-path-addr [#32717] (https://github.com/moby/moby/pull/32717)
+* Several improvments to  Service Discovery [#docker/libnetwork/1796](https://github.com/docker/libnetwork/pull/1796)
 
 ### Packaging
 
@@ -90,6 +96,11 @@ be found.
 - Fix possible hang when joining fails [#docker-ce/19](https://github.com/docker/docker-ce/pull/19)
 - Fix an issue preventing external CA to be accepted [#33341](https://github.com/moby/moby/pull/33341)
 - Fix possible orchestration panic in mixed version clusters [#swarmkit/2233](https://github.com/docker/swarmkit/pull/2233)
+- Avoid assigning duplicate IPs during initialization [#swarmkit/2237](https://github.com/docker/swarmkit/pull/2237)
+
+### Deprecation
+
+* Disable legacy registry (v1) by default [#33629](https://github.com/moby/moby/pull/33629)
 
 ## 17.05.0-ce (2017-05-04)
 
