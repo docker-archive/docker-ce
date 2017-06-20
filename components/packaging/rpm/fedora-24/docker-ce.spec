@@ -163,6 +163,9 @@ fi
 
 %changelog
 
+* Mon Jun 19 2017 <eli.uriegas@docker.com> 17.06.0-ce-rc5
+- release docker-ce 17.06.0-ce-rc5
+
 * Thu Jun 15 2017 <andrewhsu@docker.com> 17.06.0-ce-rc4
 - release docker-ce 17.06.0-ce-rc4
 
