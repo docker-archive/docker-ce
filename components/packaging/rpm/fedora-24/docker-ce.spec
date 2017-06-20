@@ -27,6 +27,7 @@ Requires: libcgroup
 Requires: systemd-units
 Requires: tar
 Requires: xz
+Requires: container-selinux >= 1.10.3-55
 
 # Resolves: rhbz#1165615
 Requires: device-mapper-libs >= 1.02.90-1
@@ -35,6 +36,12 @@ Requires: device-mapper-libs >= 1.02.90-1
 Conflicts: docker
 Conflicts: docker-io
 Conflicts: docker-engine-cs
+Conflicts: docker-ee
+
+# Obsolete packages
+Obsoletes: docker-ce-selinux
+Obsoletes: docker-engine-selinux
+Obsoletes: docker-engine
 
 %description
 Docker is an open source project to build, ship and run any application as a
@@ -124,9 +131,18 @@ install -p -m 644 engine/contrib/syntax/vim/syntax/dockerfile.vim $RPM_BUILD_ROO
 install -d $RPM_BUILD_ROOT/usr/share/nano
 install -p -m 644 engine/contrib/syntax/nano/Dockerfile.nanorc $RPM_BUILD_ROOT/usr/share/nano/Dockerfile.nanorc
 
+mkdir -p build-docs
+for engine_file in AUTHORS CHANGELOG.md CONTRIBUTING.md LICENSE MAINTAINERS NOTICE README.md; do
+    cp "engine/$engine_file" "build-docs/engine-$engine_file"
+done
+for cli_file in LICENSE MAINTAINERS NOTICE README.md; do
+    cp "cli/$cli_file" "build-docs/cli-$cli_file"
+done
+
 # list files owned by the package here
 %files
-%doc engine/AUTHORS engine/CHANGELOG.md engine/CONTRIBUTING.md engine/LICENSE engine/MAINTAINERS engine/NOTICE engine/README.md
+%doc build-docs/engine-AUTHORS build-docs/engine-CHANGELOG.md build-docs/engine-CONTRIBUTING.md build-docs/engine-LICENSE build-docs/engine-MAINTAINERS build-docs/engine-NOTICE build-docs/engine-README.md
+%doc build-docs/cli-LICENSE build-docs/cli-MAINTAINERS build-docs/cli-NOTICE build-docs/cli-README.md
 /%{_bindir}/docker
 /%{_bindir}/dockerd
 /%{_bindir}/docker-containerd
@@ -149,6 +165,20 @@ install -p -m 644 engine/contrib/syntax/nano/Dockerfile.nanorc $RPM_BUILD_ROOT/u
 /usr/share/vim/vimfiles/syntax/dockerfile.vim
 /usr/share/nano/Dockerfile.nanorc
 
+%pre
+if [ $1 -gt 0 ] ; then
+    # package upgrade scenario, before new files are installed
+
+    # clear any old state
+    rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+
+    # check if docker service is running
+    if systemctl is-active docker > /dev/null 2>&1; then
+        systemctl stop docker > /dev/null 2>&1 || :
+        touch %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+    fi
+fi
+
 %post
 %systemd_post docker
 if ! getent group docker > /dev/null; then
@@ -161,7 +191,21 @@ fi
 %postun
 %systemd_postun_with_restart docker
 
+%posttrans
+if [ $1 -ge 0 ] ; then
+    # package upgrade scenario, after new files are installed
+
+    # check if docker was running before upgrade
+    if [ -f %{_localstatedir}/lib/rpm-state/docker-is-active ]; then
+        systemctl start docker > /dev/null 2>&1 || :
+        rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+    fi
+fi
+
 %changelog
+
+* Mon Jun 19 2017 <eli.uriegas@docker.com> 17.06.0-ce-rc5
+- release docker-ce 17.06.0-ce-rc5
 
 * Thu Jun 15 2017 <andrewhsu@docker.com> 17.06.0-ce-rc4
 - release docker-ce 17.06.0-ce-rc4
