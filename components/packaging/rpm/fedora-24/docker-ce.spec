@@ -107,9 +107,9 @@ install -p -m 644 /systemd/docker.service $RPM_BUILD_ROOT/%{_unitdir}/docker.ser
 install -d $RPM_BUILD_ROOT/usr/share/bash-completion/completions
 install -d $RPM_BUILD_ROOT/usr/share/zsh/vendor-completions
 install -d $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d
-install -p -m 644 engine/contrib/completion/bash/docker $RPM_BUILD_ROOT/usr/share/bash-completion/completions/docker
-install -p -m 644 engine/contrib/completion/zsh/_docker $RPM_BUILD_ROOT/usr/share/zsh/vendor-completions/_docker
-install -p -m 644 engine/contrib/completion/fish/docker.fish $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d/docker.fish
+install -p -m 644 cli/contrib/completion/bash/docker $RPM_BUILD_ROOT/usr/share/bash-completion/completions/docker
+install -p -m 644 cli/contrib/completion/zsh/_docker $RPM_BUILD_ROOT/usr/share/zsh/vendor-completions/_docker
+install -p -m 644 cli/contrib/completion/fish/docker.fish $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d/docker.fish
 
 # install manpages
 install -d %{buildroot}%{_mandir}/man1
