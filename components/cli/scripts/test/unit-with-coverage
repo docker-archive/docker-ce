@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-for pkg in $(go list ./... | grep -v /vendor/); do
+# install test dependencies once before running tests for each package. This
+# reduces the runtime from 200s down to 23s
+go test -i $@
+
+for pkg in $@; do
     ./scripts/test/unit \
         -cover \
         -coverprofile=profile.out \

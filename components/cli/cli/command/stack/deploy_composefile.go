@@ -92,7 +92,7 @@ func deployCompose(ctx context.Context, dockerCli command.Cli, opts deployOption
 	if err != nil {
 		return err
 	}
-	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth)
+	return deployServices(ctx, dockerCli, services, namespace, opts.sendRegistryAuth, opts.resolveImage)
 }
 
 func getServicesDeclaredNetworks(serviceConfigs []composetypes.ServiceConfig) map[string]struct{} {
@@ -134,10 +134,7 @@ func getConfigDetails(composefile string) (composetypes.ConfigDetails, error) {
 	// TODO: support multiple files
 	details.ConfigFiles = []composetypes.ConfigFile{*configFile}
 	details.Environment, err = buildEnvironment(os.Environ())
-	if err != nil {
-		return details, err
-	}
-	return details, nil
+	return details, err
 }
 
 func buildEnvironment(env []string) (map[string]string, error) {
@@ -174,7 +171,7 @@ func validateExternalNetworks(
 	externalNetworks []string,
 ) error {
 	for _, networkName := range externalNetworks {
-		network, err := client.NetworkInspect(ctx, networkName, false)
+		network, err := client.NetworkInspect(ctx, networkName, types.NetworkInspectOptions{})
 		switch {
 		case dockerclient.IsErrNotFound(err):
 			return errors.Errorf("network %q is declared as external, but could not be found. You need to create a swarm-scoped network before the stack is deployed", networkName)
@@ -196,17 +193,18 @@ func createSecrets(
 
 	for _, secretSpec := range secrets {
 		secret, _, err := client.SecretInspectWithRaw(ctx, secretSpec.Name)
-		if err == nil {
+		switch {
+		case err == nil:
 			// secret already exists, then we update that
 			if err := client.SecretUpdate(ctx, secret.ID, secret.Meta.Version, secretSpec); err != nil {
-				return err
+				return errors.Wrapf(err, "failed to update secret %s", secretSpec.Name)
 			}
-		} else if apiclient.IsErrSecretNotFound(err) {
+		case apiclient.IsErrSecretNotFound(err):
 			// secret does not exist, then we create a new one.
 			if _, err := client.SecretCreate(ctx, secretSpec); err != nil {
-				return err
+				return errors.Wrapf(err, "failed to create secret %s", secretSpec.Name)
 			}
-		} else {
+		default:
 			return err
 		}
 	}
@@ -222,17 +220,18 @@ func createConfigs(
 
 	for _, configSpec := range configs {
 		config, _, err := client.ConfigInspectWithRaw(ctx, configSpec.Name)
-		if err == nil {
+		switch {
+		case err == nil:
 			// config already exists, then we update that
 			if err := client.ConfigUpdate(ctx, config.ID, config.Meta.Version, configSpec); err != nil {
-				return err
+				errors.Wrapf(err, "failed to update config %s", configSpec.Name)
 			}
-		} else if apiclient.IsErrConfigNotFound(err) {
+		case apiclient.IsErrConfigNotFound(err):
 			// config does not exist, then we create a new one.
 			if _, err := client.ConfigCreate(ctx, configSpec); err != nil {
-				return err
+				errors.Wrapf(err, "failed to create config %s", configSpec.Name)
 			}
-		} else {
+		default:
 			return err
 		}
 	}
@@ -269,10 +268,9 @@ func createNetworks(
 
 		fmt.Fprintf(dockerCli.Out(), "Creating network %s\n", name)
 		if _, err := client.NetworkCreate(ctx, name, createOpts); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to create network %s", internalName)
 		}
 	}
-
 	return nil
 }
 
@@ -282,6 +280,7 @@ func deployServices(
 	services map[string]swarm.ServiceSpec,
 	namespace convert.Namespace,
 	sendAuth bool,
+	resolveImage string,
 ) error {
 	apiClient := dockerCli.Client()
 	out := dockerCli.Out()
@@ -300,9 +299,9 @@ func deployServices(
 		name := namespace.Scope(internalName)
 
 		encodedAuth := ""
+		image := serviceSpec.TaskTemplate.ContainerSpec.Image
 		if sendAuth {
 			// Retrieve encoded auth token from the image reference
-			image := serviceSpec.TaskTemplate.ContainerSpec.Image
 			encodedAuth, err = command.RetrieveAuthTokenFromImage(ctx, dockerCli, image)
 			if err != nil {
 				return err
@@ -312,10 +311,12 @@ func deployServices(
 		if service, exists := existingServiceMap[name]; exists {
 			fmt.Fprintf(out, "Updating service %s (id: %s)\n", name, service.ID)
 
-			updateOpts := types.ServiceUpdateOptions{}
-			if sendAuth {
-				updateOpts.EncodedRegistryAuth = encodedAuth
+			updateOpts := types.ServiceUpdateOptions{EncodedRegistryAuth: encodedAuth}
+
+			if resolveImage == resolveImageAlways || (resolveImage == resolveImageChanged && image != service.Spec.Labels[convert.LabelImage]) {
+				updateOpts.QueryRegistry = true
 			}
+
 			response, err := apiClient.ServiceUpdate(
 				ctx,
 				service.ID,
@@ -324,7 +325,7 @@ func deployServices(
 				updateOpts,
 			)
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "failed to update service %s", name)
 			}
 
 			for _, warning := range response.Warnings {
@@ -333,15 +334,17 @@ func deployServices(
 		} else {
 			fmt.Fprintf(out, "Creating service %s\n", name)
 
-			createOpts := types.ServiceCreateOptions{}
-			if sendAuth {
-				createOpts.EncodedRegistryAuth = encodedAuth
+			createOpts := types.ServiceCreateOptions{EncodedRegistryAuth: encodedAuth}
+
+			// query registry if flag disabling it was not set
+			if resolveImage == resolveImageAlways || resolveImage == resolveImageChanged {
+				createOpts.QueryRegistry = true
 			}
+
 			if _, err := apiClient.ServiceCreate(ctx, serviceSpec, createOpts); err != nil {
-				return err
+				return errors.Wrapf(err, "failed to create service %s", name)
 			}
 		}
 	}
-
 	return nil
 }

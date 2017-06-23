@@ -15,7 +15,6 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/docker/swarmkit/api/defaults"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -504,9 +503,8 @@ func updatePlacementPreferences(flags *pflag.FlagSet, placement *swarm.Placement
 	}
 
 	if flags.Changed(flagPlacementPrefAdd) {
-		for _, addition := range flags.Lookup(flagPlacementPrefAdd).Value.(*placementPrefOpts).prefs {
-			newPrefs = append(newPrefs, addition)
-		}
+		newPrefs = append(newPrefs,
+			flags.Lookup(flagPlacementPrefAdd).Value.(*placementPrefOpts).prefs...)
 	}
 
 	placement.Preferences = newPrefs
@@ -519,7 +517,7 @@ func updateContainerLabels(flags *pflag.FlagSet, field *map[string]string) {
 		}
 
 		values := flags.Lookup(flagContainerLabelAdd).Value.(*opts.ListOpts).GetAll()
-		for key, value := range runconfigopts.ConvertKVStringsToMap(values) {
+		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
 		}
 	}
@@ -539,7 +537,7 @@ func updateLabels(flags *pflag.FlagSet, field *map[string]string) {
 		}
 
 		values := flags.Lookup(flagLabelAdd).Value.(*opts.ListOpts).GetAll()
-		for key, value := range runconfigopts.ConvertKVStringsToMap(values) {
+		for key, value := range opts.ConvertKVStringsToMap(values) {
 			(*field)[key] = value
 		}
 	}
@@ -933,7 +931,7 @@ func updateLogDriver(flags *pflag.FlagSet, taskTemplate *swarm.TaskSpec) error {
 
 	taskTemplate.LogDriver = &swarm.Driver{
 		Name:    name,
-		Options: runconfigopts.ConvertKVStringsToMap(flags.Lookup(flagLogOpt).Value.(*opts.ListOpts).GetAll()),
+		Options: opts.ConvertKVStringsToMap(flags.Lookup(flagLogOpt).Value.(*opts.ListOpts).GetAll()),
 	}
 
 	return nil
@@ -1009,7 +1007,7 @@ func updateNetworks(ctx context.Context, apiClient client.NetworkAPIClient, flag
 	toRemove := buildToRemoveSet(flags, flagNetworkRemove)
 	idsToRemove := make(map[string]struct{})
 	for networkIDOrName := range toRemove {
-		network, err := apiClient.NetworkInspect(ctx, networkIDOrName, false)
+		network, err := apiClient.NetworkInspect(ctx, networkIDOrName, types.NetworkInspectOptions{Scope: "swarm"})
 		if err != nil {
 			return err
 		}

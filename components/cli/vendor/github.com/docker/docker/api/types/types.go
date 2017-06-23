@@ -277,7 +277,7 @@ type Health struct {
 // ContainerState stores container's running state
 // it's part of ContainerJSONBase and will return by "inspect" command
 type ContainerState struct {
-	Status     string
+	Status     string // String representation of the container state. Can be one of "created", "running", "paused", "restarting", "removing", "exited", or "dead"
 	Running    bool
 	Paused     bool
 	Restarting bool
@@ -466,6 +466,12 @@ type NetworkConnect struct {
 type NetworkDisconnect struct {
 	Container string
 	Force     bool
+}
+
+// NetworkInspectOptions holds parameters to inspect network
+type NetworkInspectOptions struct {
+	Scope   string
+	Verbose bool
 }
 
 // Checkpoint represents the details of a checkpoint

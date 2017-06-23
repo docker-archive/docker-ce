@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/docker/cli/cli/compose/convert"
+	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/swarm"
@@ -24,14 +25,24 @@ type fakeClient struct {
 	removedSecrets  []string
 	removedConfigs  []string
 
-	serviceListFunc   func(options types.ServiceListOptions) ([]swarm.Service, error)
-	networkListFunc   func(options types.NetworkListOptions) ([]types.NetworkResource, error)
-	secretListFunc    func(options types.SecretListOptions) ([]swarm.Secret, error)
-	configListFunc    func(options types.ConfigListOptions) ([]swarm.Config, error)
-	serviceRemoveFunc func(serviceID string) error
-	networkRemoveFunc func(networkID string) error
-	secretRemoveFunc  func(secretID string) error
-	configRemoveFunc  func(configID string) error
+	serviceListFunc    func(options types.ServiceListOptions) ([]swarm.Service, error)
+	networkListFunc    func(options types.NetworkListOptions) ([]types.NetworkResource, error)
+	secretListFunc     func(options types.SecretListOptions) ([]swarm.Secret, error)
+	configListFunc     func(options types.ConfigListOptions) ([]swarm.Config, error)
+	nodeListFunc       func(options types.NodeListOptions) ([]swarm.Node, error)
+	taskListFunc       func(options types.TaskListOptions) ([]swarm.Task, error)
+	nodeInspectWithRaw func(ref string) (swarm.Node, []byte, error)
+	serviceRemoveFunc  func(serviceID string) error
+	networkRemoveFunc  func(networkID string) error
+	secretRemoveFunc   func(secretID string) error
+	configRemoveFunc   func(configID string) error
+}
+
+func (cli *fakeClient) ServerVersion(ctx context.Context) (types.Version, error) {
+	return types.Version{
+		Version:    "docker-dev",
+		APIVersion: api.DefaultVersion,
+	}, nil
 }
 
 func (cli *fakeClient) ServiceList(ctx context.Context, options types.ServiceListOptions) ([]swarm.Service, error) {
@@ -92,6 +103,27 @@ func (cli *fakeClient) ConfigList(ctx context.Context, options types.ConfigListO
 		}
 	}
 	return configsList, nil
+}
+
+func (cli *fakeClient) TaskList(ctx context.Context, options types.TaskListOptions) ([]swarm.Task, error) {
+	if cli.taskListFunc != nil {
+		return cli.taskListFunc(options)
+	}
+	return []swarm.Task{}, nil
+}
+
+func (cli *fakeClient) NodeList(ctx context.Context, options types.NodeListOptions) ([]swarm.Node, error) {
+	if cli.nodeListFunc != nil {
+		return cli.nodeListFunc(options)
+	}
+	return []swarm.Node{}, nil
+}
+
+func (cli *fakeClient) NodeInspectWithRaw(ctx context.Context, ref string) (swarm.Node, []byte, error) {
+	if cli.nodeInspectWithRaw != nil {
+		return cli.nodeInspectWithRaw(ref)
+	}
+	return swarm.Node{}, nil, nil
 }
 
 func (cli *fakeClient) ServiceRemove(ctx context.Context, serviceID string) error {

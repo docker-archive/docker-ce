@@ -14,11 +14,14 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/docker/client"
-	runconfigopts "github.com/docker/docker/runconfig/opts"
 	"github.com/pkg/errors"
 )
 
-const defaultNetwork = "default"
+const (
+	defaultNetwork = "default"
+	// LabelImage is the label used to store image name provided in the compose file
+	LabelImage = "com.docker.stack.image"
+)
 
 // Services from compose-file types to engine API types
 func Services(
@@ -42,7 +45,7 @@ func Services(
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
 
-		serviceSpec, err := convertService(client.ClientVersion(), namespace, service, networks, volumes, secrets, configs)
+		serviceSpec, err := Service(client.ClientVersion(), namespace, service, networks, volumes, secrets, configs)
 		if err != nil {
 			return nil, errors.Wrapf(err, "service %s", service.Name)
 		}
@@ -52,7 +55,8 @@ func Services(
 	return result, nil
 }
 
-func convertService(
+// Service converts a ServiceConfig into a swarm ServiceSpec
+func Service(
 	apiVersion string,
 	namespace Namespace,
 	service composetypes.ServiceConfig,
@@ -157,6 +161,9 @@ func convertService(
 		Mode:         mode,
 		UpdateConfig: convertUpdateConfig(service.Deploy.UpdateConfig),
 	}
+
+	// add an image label to serviceSpec
+	serviceSpec.Labels[LabelImage] = service.Image
 
 	// ServiceSpec.Networks is deprecated and should not have been used by
 	// this package. It is possible to update TaskTemplate.Networks, but it
@@ -404,7 +411,7 @@ func convertHealthcheck(healthcheck *composetypes.HealthCheckConfig) (*container
 func convertRestartPolicy(restart string, source *composetypes.RestartPolicy) (*swarm.RestartPolicy, error) {
 	// TODO: log if restart is being ignored
 	if source == nil {
-		policy, err := runconfigopts.ParseRestartPolicy(restart)
+		policy, err := opts.ParseRestartPolicy(restart)
 		if err != nil {
 			return nil, err
 		}
@@ -556,9 +563,6 @@ func convertCredentialSpec(spec composetypes.CredentialSpecConfig) (*swarm.Crede
 	if spec.File != "" && spec.Registry != "" {
 		return nil, errors.New("Invalid credential spec - must provide one of `File` or `Registry`")
 	}
-
-	return &swarm.CredentialSpec{
-		File:     spec.File,
-		Registry: spec.Registry,
-	}, nil
+	swarmCredSpec := swarm.CredentialSpec(spec)
+	return &swarmCredSpec, nil
 }

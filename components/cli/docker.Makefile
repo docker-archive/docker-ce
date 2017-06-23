@@ -7,7 +7,7 @@
 DEV_DOCKER_IMAGE_NAME = docker-cli-dev
 LINTER_IMAGE_NAME = docker-cli-lint
 CROSS_IMAGE_NAME = docker-cli-cross
-MOUNTS = -v `pwd`:/go/src/github.com/docker/cli
+MOUNTS = -v "$(CURDIR)":/go/src/github.com/docker/cli
 VERSION = $(shell cat VERSION)
 ENVVARS = -e VERSION=$(VERSION) -e GITCOMMIT
 
@@ -69,4 +69,14 @@ vendor: build_docker_image vendor.conf
 	docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make vendor
 
 dynbinary: build_cross_image
-	docker run --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make dynbinary
+	docker run -ti --rm $(ENVVARS) $(MOUNTS) $(CROSS_IMAGE_NAME) make dynbinary
+
+## generate man pages from go source and markdown
+.PHONY: manpages
+manpages: build_docker_image
+	docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make manpages
+
+## Generate documentation YAML files consumed by docs repo
+.PHONY: yamldocs
+yamldocs: build_docker_image
+	docker run -ti --rm $(MOUNTS) $(DEV_DOCKER_IMAGE_NAME) make yamldocs
