@@ -13,6 +13,19 @@ keywords: "API, Docker, rcli, REST, documentation"
      will be rejected.
 -->
 
+## v1.31 API changes
+
+[Docker Engine API v1.31](https://docs.docker.com/engine/api/v1.31/) documentation
+
+* `DELETE /secrets/(name)` now returns status code 404 instead of 500 when the secret does not exist.
+* `POST /secrets/create` now returns status code 409 instead of 500 when creating an already existing secret.
+* `POST /secrets/(name)/update` now returns status code 400 instead of 500 when updating a secret's content which is not the labels.
+* `POST /nodes/(name)/update` now returns status code 400 instead of 500 when demoting last node fails.
+* `GET /networks/(id or name)` now takes an optional query parameter `scope` that will filter the network based on the scope (`local`, `swarm`, or `global`).
+* `POST /session` is a new endpoint that can be used for running interactive long-running protocols between client and
+  the daemon. This endpoint is experimental and only available if the daemon is started with experimental features
+  enabled.
+
 ## v1.30 API changes
 
 [Docker Engine API v1.30](https://docs.docker.com/engine/api/v1.30/) documentation

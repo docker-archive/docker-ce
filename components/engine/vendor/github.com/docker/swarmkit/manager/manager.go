@@ -217,7 +217,6 @@ func New(config *Config) (*Manager, error) {
 
 	m := &Manager{
 		config:          *config,
-		collector:       metrics.NewCollector(raftNode.MemoryStore()),
 		caserver:        ca.NewServer(raftNode.MemoryStore(), config.SecurityConfig, config.RootCAPaths),
 		dispatcher:      dispatcher.New(raftNode, dispatcher.DefaultConfig()),
 		logbroker:       logbroker.New(raftNode.MemoryStore()),
@@ -502,12 +501,16 @@ func (m *Manager) Run(parent context.Context) error {
 	healthServer.SetServingStatus("Raft", api.HealthCheckResponse_SERVING)
 
 	if err := m.raftNode.JoinAndStart(ctx); err != nil {
+		// Don't block future calls to Stop.
+		close(m.started)
 		return errors.Wrap(err, "can't initialize raft node")
 	}
 
 	localHealthServer.SetServingStatus("ControlAPI", api.HealthCheckResponse_SERVING)
 
 	// Start metrics collection.
+
+	m.collector = metrics.NewCollector(m.raftNode.MemoryStore())
 	go func(collector *metrics.Collector) {
 		if err := collector.Run(ctx); err != nil {
 			log.G(ctx).WithError(err).Error("collector failed with an error")
@@ -590,7 +593,10 @@ func (m *Manager) Stop(ctx context.Context, clearData bool) {
 
 	m.raftNode.Cancel()
 
-	m.collector.Stop()
+	if m.collector != nil {
+		m.collector.Stop()
+	}
+
 	m.dispatcher.Stop()
 	m.logbroker.Stop()
 	m.caserver.Stop()
@@ -692,7 +698,7 @@ func (m *Manager) updateKEK(ctx context.Context, cluster *api.Cluster) error {
 
 			connBroker := connectionbroker.New(remotes.NewRemotes())
 			connBroker.SetLocalConn(conn)
-			if err := ca.RenewTLSConfigNow(ctx, securityConfig, connBroker); err != nil {
+			if err := ca.RenewTLSConfigNow(ctx, securityConfig, connBroker, m.config.RootCAPaths); err != nil {
 				logger.WithError(err).Error("failed to download new TLS certificate after locking the cluster")
 			}
 		}()
@@ -939,18 +945,19 @@ func (m *Manager) becomeLeader(ctx context.Context) {
 			if err := store.CreateNetwork(tx, newIngressNetwork()); err != nil {
 				log.G(ctx).WithError(err).Error("failed to create default ingress network")
 			}
-			// Create now the static predefined node-local networks which
-			// are known to be present in each cluster node. This is needed
-			// in order to allow running services on the predefined docker
-			// networks like `bridge` and `host`.
-			log.G(ctx).Info("Creating node-local predefined networks")
-			for _, p := range networkallocator.PredefinedNetworks() {
+		}
+		// Create now the static predefined if the store does not contain predefined
+		//networks like bridge/host node-local networks which
+		// are known to be present in each cluster node. This is needed
+		// in order to allow running services on the predefined docker
+		// networks like `bridge` and `host`.
+		for _, p := range allocator.PredefinedNetworks() {
+			if store.GetNetwork(tx, p.Name) == nil {
 				if err := store.CreateNetwork(tx, newPredefinedNetwork(p.Name, p.Driver)); err != nil {
 					log.G(ctx).WithError(err).Error("failed to create predefined network " + p.Name)
 				}
 			}
 		}
-
 		return nil
 	})
 
@@ -1027,7 +1034,7 @@ func (m *Manager) becomeLeader(ctx context.Context) {
 	}(m.constraintEnforcer)
 
 	go func(taskReaper *taskreaper.TaskReaper) {
-		taskReaper.Run()
+		taskReaper.Run(ctx)
 	}(m.taskReaper)
 
 	go func(orchestrator *replicated.Orchestrator) {

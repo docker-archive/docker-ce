@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
@@ -14,9 +16,15 @@ import (
 	"github.com/docker/docker/builder"
 	"github.com/docker/docker/builder/dockerfile/command"
 	"github.com/docker/docker/builder/dockerfile/parser"
+	"github.com/docker/docker/builder/fscache"
 	"github.com/docker/docker/builder/remotecontext"
+	"github.com/docker/docker/client/session"
+	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/chrootarchive"
+	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/streamformatter"
 	"github.com/docker/docker/pkg/stringid"
+	"github.com/docker/docker/pkg/system"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/syncmap"
@@ -35,18 +43,33 @@ var validCommitCommands = map[string]bool{
 	"workdir":     true,
 }
 
+// SessionGetter is object used to get access to a session by uuid
+type SessionGetter interface {
+	Get(ctx context.Context, uuid string) (session.Caller, error)
+}
+
 // BuildManager is shared across all Builder objects
 type BuildManager struct {
+	archiver  *archive.Archiver
 	backend   builder.Backend
 	pathCache pathCache // TODO: make this persistent
+	sg        SessionGetter
+	fsCache   *fscache.FSCache
 }
 
 // NewBuildManager creates a BuildManager
-func NewBuildManager(b builder.Backend) *BuildManager {
-	return &BuildManager{
+func NewBuildManager(b builder.Backend, sg SessionGetter, fsCache *fscache.FSCache, idMappings *idtools.IDMappings) (*BuildManager, error) {
+	bm := &BuildManager{
 		backend:   b,
 		pathCache: &syncmap.Map{},
+		sg:        sg,
+		archiver:  chrootarchive.NewArchiver(idMappings),
+		fsCache:   fsCache,
 	}
+	if err := fsCache.RegisterTransport(remotecontext.ClientSessionRemote, NewClientSessionTransport()); err != nil {
+		return nil, err
+	}
+	return bm, nil
 }
 
 // Build starts a new build from a BuildConfig
@@ -60,12 +83,30 @@ func (bm *BuildManager) Build(ctx context.Context, config backend.BuildConfig) (
 	if err != nil {
 		return nil, err
 	}
-	if source != nil {
-		defer func() {
+	defer func() {
+		if source != nil {
 			if err := source.Close(); err != nil {
 				logrus.Debugf("[BUILDER] failed to remove temporary context: %v", err)
 			}
-		}()
+		}
+	}()
+
+	// TODO @jhowardmsft LCOW support - this will require rework to allow both linux and Windows simultaneously.
+	// This is an interim solution to hardcode to linux if LCOW is turned on.
+	if dockerfile.Platform == "" {
+		dockerfile.Platform = runtime.GOOS
+		if dockerfile.Platform == "windows" && system.LCOWSupported() {
+			dockerfile.Platform = "linux"
+		}
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	if src, err := bm.initializeClientSession(ctx, cancel, config.Options); err != nil {
+		return nil, err
+	} else if src != nil {
+		source = src
 	}
 
 	builderOptions := builderOptions{
@@ -73,8 +114,45 @@ func (bm *BuildManager) Build(ctx context.Context, config backend.BuildConfig) (
 		ProgressWriter: config.ProgressWriter,
 		Backend:        bm.backend,
 		PathCache:      bm.pathCache,
+		Archiver:       bm.archiver,
+		Platform:       dockerfile.Platform,
 	}
+
 	return newBuilder(ctx, builderOptions).build(source, dockerfile)
+}
+
+func (bm *BuildManager) initializeClientSession(ctx context.Context, cancel func(), options *types.ImageBuildOptions) (builder.Source, error) {
+	if options.SessionID == "" || bm.sg == nil {
+		return nil, nil
+	}
+	logrus.Debug("client is session enabled")
+
+	ctx, cancelCtx := context.WithTimeout(ctx, sessionConnectTimeout)
+	defer cancelCtx()
+
+	c, err := bm.sg.Get(ctx, options.SessionID)
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		<-c.Context().Done()
+		cancel()
+	}()
+	if options.RemoteContext == remotecontext.ClientSessionRemote {
+		st := time.Now()
+		csi, err := NewClientSessionSourceIdentifier(ctx, bm.sg,
+			options.SessionID, []string{"/"})
+		if err != nil {
+			return nil, err
+		}
+		src, err := bm.fsCache.SyncFrom(ctx, csi)
+		if err != nil {
+			return nil, err
+		}
+		logrus.Debugf("sync-time: %v", time.Since(st))
+		return src, nil
+	}
+	return nil, nil
 }
 
 // builderOptions are the dependencies required by the builder
@@ -83,6 +161,8 @@ type builderOptions struct {
 	Backend        builder.Backend
 	ProgressWriter backend.ProgressWriter
 	PathCache      pathCache
+	Archiver       *archive.Archiver
+	Platform       string
 }
 
 // Builder is a Dockerfile builder
@@ -98,6 +178,7 @@ type Builder struct {
 	docker    builder.Backend
 	clientCtx context.Context
 
+	archiver         *archive.Archiver
 	buildStages      *buildStages
 	disableCommit    bool
 	buildArgs        *buildArgs
@@ -105,14 +186,32 @@ type Builder struct {
 	pathCache        pathCache
 	containerManager *containerManager
 	imageProber      ImageProber
+
+	// TODO @jhowardmft LCOW Support. This will be moved to options at a later
+	// stage, however that cannot be done now as it affects the public API
+	// if it were.
+	platform string
 }
 
 // newBuilder creates a new Dockerfile builder from an optional dockerfile and a Options.
+// TODO @jhowardmsft LCOW support: Eventually platform can be moved into the builder
+// options, however, that would be an API change as it shares types.ImageBuildOptions.
 func newBuilder(clientCtx context.Context, options builderOptions) *Builder {
 	config := options.Options
 	if config == nil {
 		config = new(types.ImageBuildOptions)
 	}
+
+	// @jhowardmsft LCOW Support. For the time being, this is interim. Eventually
+	// will be moved to types.ImageBuildOptions, but it can't for now as that would
+	// be an API change.
+	if options.Platform == "" {
+		options.Platform = runtime.GOOS
+	}
+	if options.Platform == "windows" && system.LCOWSupported() {
+		options.Platform = "linux"
+	}
+
 	b := &Builder{
 		clientCtx:        clientCtx,
 		options:          config,
@@ -121,13 +220,16 @@ func newBuilder(clientCtx context.Context, options builderOptions) *Builder {
 		Aux:              options.ProgressWriter.AuxFormatter,
 		Output:           options.ProgressWriter.Output,
 		docker:           options.Backend,
+		archiver:         options.Archiver,
 		buildArgs:        newBuildArgs(config.BuildArgs),
 		buildStages:      newBuildStages(),
 		imageSources:     newImageSources(clientCtx, options),
 		pathCache:        options.PathCache,
-		imageProber:      newImageProber(options.Backend, config.CacheFrom, config.NoCache),
+		imageProber:      newImageProber(options.Backend, config.CacheFrom, options.Platform, config.NoCache),
 		containerManager: newContainerManager(options.Backend),
+		platform:         options.Platform,
 	}
+
 	return b
 }
 
@@ -258,6 +360,17 @@ func BuildFromConfig(config *container.Config, changes []string) (*container.Con
 		return nil, err
 	}
 
+	// TODO @jhowardmsft LCOW support. For now, if LCOW enabled, switch to linux.
+	// Also explicitly set the platform. Ultimately this will be in the builder
+	// options, but we can't do that yet as it would change the API.
+	if dockerfile.Platform == "" {
+		dockerfile.Platform = runtime.GOOS
+	}
+	if dockerfile.Platform == "windows" && system.LCOWSupported() {
+		dockerfile.Platform = "linux"
+	}
+	b.platform = dockerfile.Platform
+
 	// ensure that the commands are valid
 	for _, n := range dockerfile.AST.Children {
 		if !validCommitCommands[n.Value] {
@@ -274,7 +387,7 @@ func BuildFromConfig(config *container.Config, changes []string) (*container.Con
 	}
 	dispatchState := newDispatchState()
 	dispatchState.runConfig = config
-	return dispatchFromDockerfile(b, dockerfile, dispatchState)
+	return dispatchFromDockerfile(b, dockerfile, dispatchState, nil)
 }
 
 func checkDispatchDockerfile(dockerfile *parser.Node) error {
@@ -286,7 +399,7 @@ func checkDispatchDockerfile(dockerfile *parser.Node) error {
 	return nil
 }
 
-func dispatchFromDockerfile(b *Builder, result *parser.Result, dispatchState *dispatchState) (*container.Config, error) {
+func dispatchFromDockerfile(b *Builder, result *parser.Result, dispatchState *dispatchState, source builder.Source) (*container.Config, error) {
 	shlex := NewShellLex(result.EscapeToken)
 	ast := result.AST
 	total := len(ast.Children)
@@ -297,6 +410,7 @@ func dispatchFromDockerfile(b *Builder, result *parser.Result, dispatchState *di
 			stepMsg: formatStep(i, total),
 			node:    n,
 			shlex:   shlex,
+			source:  source,
 		}
 		if _, err := b.dispatch(opts); err != nil {
 			return nil, err

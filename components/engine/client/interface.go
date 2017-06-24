@@ -2,6 +2,7 @@ package client
 
 import (
 	"io"
+	"net"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -33,7 +34,9 @@ type CommonAPIClient interface {
 	ClientVersion() string
 	DaemonHost() string
 	ServerVersion(ctx context.Context) (types.Version, error)
-	UpdateClientVersion(v string)
+	NegotiateAPIVersion(ctx context.Context)
+	NegotiateAPIVersionPing(types.Ping)
+	DialSession(ctx context.Context, proto string, meta map[string][]string) (net.Conn, error)
 }
 
 // ContainerAPIClient defines API client methods for the containers
@@ -79,6 +82,7 @@ type DistributionAPIClient interface {
 // ImageAPIClient defines API client methods for the images
 type ImageAPIClient interface {
 	ImageBuild(ctx context.Context, context io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error)
+	BuildCachePrune(ctx context.Context) (*types.BuildCachePruneReport, error)
 	ImageCreate(ctx context.Context, parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
 	ImageHistory(ctx context.Context, image string) ([]image.HistoryResponseItem, error)
 	ImageImport(ctx context.Context, source types.ImageImportSource, ref string, options types.ImageImportOptions) (io.ReadCloser, error)
@@ -99,8 +103,8 @@ type NetworkAPIClient interface {
 	NetworkConnect(ctx context.Context, networkID, container string, config *network.EndpointSettings) error
 	NetworkCreate(ctx context.Context, name string, options types.NetworkCreate) (types.NetworkCreateResponse, error)
 	NetworkDisconnect(ctx context.Context, networkID, container string, force bool) error
-	NetworkInspect(ctx context.Context, networkID string, verbose bool) (types.NetworkResource, error)
-	NetworkInspectWithRaw(ctx context.Context, networkID string, verbose bool) (types.NetworkResource, []byte, error)
+	NetworkInspect(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, error)
+	NetworkInspectWithRaw(ctx context.Context, networkID string, options types.NetworkInspectOptions) (types.NetworkResource, []byte, error)
 	NetworkList(ctx context.Context, options types.NetworkListOptions) ([]types.NetworkResource, error)
 	NetworkRemove(ctx context.Context, networkID string) error
 	NetworksPrune(ctx context.Context, pruneFilter filters.Args) (types.NetworksPruneReport, error)

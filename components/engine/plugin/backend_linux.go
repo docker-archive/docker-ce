@@ -60,14 +60,7 @@ func (pm *Manager) Disable(refOrID string, config *types.PluginDisableConfig) er
 
 	for _, typ := range p.GetTypes() {
 		if typ.Capability == authorization.AuthZApiImplements {
-			authzList := pm.config.AuthzMiddleware.GetAuthzPlugins()
-			for i, authPlugin := range authzList {
-				if authPlugin.Name() == p.Name() {
-					// Remove plugin from authzmiddleware chain
-					authzList = append(authzList[:i], authzList[i+1:]...)
-					pm.config.AuthzMiddleware.SetAuthzPlugins(authzList)
-				}
-			}
+			pm.config.AuthzMiddleware.RemovePlugin(p.Name())
 		}
 	}
 
@@ -152,7 +145,7 @@ func (s *tempConfigStore) Get(d digest.Digest) ([]byte, error) {
 	return s.config, nil
 }
 
-func (s *tempConfigStore) RootFSFromConfig(c []byte) (*image.RootFS, error) {
+func (s *tempConfigStore) RootFSAndPlatformFromConfig(c []byte) (*image.RootFS, layer.Platform, error) {
 	return configToRootFS(c)
 }
 
@@ -532,7 +525,7 @@ func (s *pluginConfigStore) Get(d digest.Digest) ([]byte, error) {
 	return ioutil.ReadAll(rwc)
 }
 
-func (s *pluginConfigStore) RootFSFromConfig(c []byte) (*image.RootFS, error) {
+func (s *pluginConfigStore) RootFSAndPlatformFromConfig(c []byte) (*image.RootFS, layer.Platform, error) {
 	return configToRootFS(c)
 }
 

@@ -80,7 +80,7 @@ func New(stateDir string, options ...RemoteOption) (_ Remote, err error) {
 		}
 	}
 
-	if err := system.MkdirAll(stateDir, 0700); err != nil {
+	if err := system.MkdirAll(stateDir, 0700, ""); err != nil {
 		return nil, err
 	}
 
@@ -96,11 +96,13 @@ func New(stateDir string, options ...RemoteOption) (_ Remote, err error) {
 
 	// don't output the grpc reconnect logging
 	grpclog.SetLogger(log.New(ioutil.Discard, "", log.LstdFlags))
-	dialOpts := append([]grpc.DialOption{grpc.WithInsecure()},
+	dialOpts := []grpc.DialOption{
+		grpc.WithInsecure(),
+		grpc.WithBackoffMaxDelay(2 * time.Second),
 		grpc.WithDialer(func(addr string, timeout time.Duration) (net.Conn, error) {
 			return net.DialTimeout("unix", addr, timeout)
 		}),
-	)
+	}
 	conn, err := grpc.Dial(r.rpcAddr, dialOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to containerd: %v", err)

@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/container"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/layer"
+	"github.com/docker/docker/pkg/fileutils"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/parsers/kernel"
 	"github.com/docker/docker/pkg/sysinfo"
@@ -352,7 +353,7 @@ func configureMaxThreads(config *Config) error {
 }
 
 // configureKernelSecuritySupport configures and validate security support for the kernel
-func configureKernelSecuritySupport(config *Config, driverName string) error {
+func configureKernelSecuritySupport(config *config.Config, driverNames []string) error {
 	return nil
 }
 
@@ -524,4 +525,8 @@ func setupDaemonProcess(config *Config) error {
 
 func (daemon *Daemon) setupSeccompProfile() error {
 	return nil
+}
+
+func getRealPath(path string) (string, error) {
+	return fileutils.ReadSymlinkedDirectory(path)
 }

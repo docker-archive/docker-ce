@@ -1789,7 +1789,7 @@ func (s *DockerDaemonSuite) TestDaemonNoSpaceLeftOnDeviceError(c *check.C) {
 
 	// create a 2MiB image and mount it as graph root
 	// Why in a container? Because `mount` sometimes behaves weirdly and often fails outright on this test in debian:jessie (which is what the test suite runs under if run from the Makefile)
-	dockerCmd(c, "run", "--rm", "-v", testDir+":/test", "busybox", "sh", "-c", "dd of=/test/testfs.img bs=1M seek=2 count=0")
+	dockerCmd(c, "run", "--rm", "-v", testDir+":/test", "busybox", "sh", "-c", "dd of=/test/testfs.img bs=1M seek=3 count=0")
 	icmd.RunCommand("mkfs.ext4", "-F", filepath.Join(testDir, "testfs.img")).Assert(c, icmd.Success)
 
 	result := icmd.RunCommand("losetup", "-f", "--show", filepath.Join(testDir, "testfs.img"))
@@ -2684,7 +2684,7 @@ func (s *DockerDaemonSuite) TestDaemonBackcompatPre17Volumes(c *check.C) {
 	`)
 
 	configPath := filepath.Join(d.Root, "containers", id, "config.v2.json")
-	err = ioutil.WriteFile(configPath, config, 600)
+	c.Assert(ioutil.WriteFile(configPath, config, 600), checker.IsNil)
 	d.Start(c)
 
 	out, err = d.Cmd("inspect", "--type=container", "--format={{ json .Mounts }}", id)

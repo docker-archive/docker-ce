@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/docker/swarmkit/api"
+	"github.com/docker/swarmkit/api/genericresource"
 	"github.com/docker/swarmkit/manager/constraint"
 )
 
@@ -61,9 +62,12 @@ func (f *ResourceFilter) SetTask(t *api.Task) bool {
 	if r == nil || r.Reservations == nil {
 		return false
 	}
-	if r.Reservations.NanoCPUs == 0 && r.Reservations.MemoryBytes == 0 {
+
+	res := r.Reservations
+	if res.NanoCPUs == 0 && res.MemoryBytes == 0 && len(res.Generic) == 0 {
 		return false
 	}
+
 	f.reservations = r.Reservations
 	return true
 }
@@ -76,6 +80,13 @@ func (f *ResourceFilter) Check(n *NodeInfo) bool {
 
 	if f.reservations.MemoryBytes > n.AvailableResources.MemoryBytes {
 		return false
+	}
+
+	for _, v := range f.reservations.Generic {
+		enough, err := genericresource.HasEnough(n.AvailableResources.Generic, v)
+		if err != nil || !enough {
+			return false
+		}
 	}
 
 	return true
@@ -117,7 +128,7 @@ func (f *PluginFilter) SetTask(t *api.Task) bool {
 		}
 	}
 
-	if (c != nil && volumeTemplates) || len(t.Networks) > 0 {
+	if (c != nil && volumeTemplates) || len(t.Networks) > 0 || t.Spec.LogDriver != nil {
 		f.t = t
 		return true
 	}
@@ -128,6 +139,12 @@ func (f *PluginFilter) SetTask(t *api.Task) bool {
 // Check returns true if the task can be scheduled into the given node.
 // TODO(amitshukla): investigate storing Plugins as a map so it can be easily probed
 func (f *PluginFilter) Check(n *NodeInfo) bool {
+	if n.Description == nil || n.Description.Engine == nil {
+		// If the node is not running Engine, plugins are not
+		// supported.
+		return true
+	}
+
 	// Get list of plugins on the node
 	nodePlugins := n.Description.Engine.Plugins
 
@@ -136,7 +153,7 @@ func (f *PluginFilter) Check(n *NodeInfo) bool {
 	if container != nil {
 		for _, mount := range container.Mounts {
 			if referencesVolumePlugin(mount) {
-				if !f.pluginExistsOnNode("Volume", mount.VolumeOptions.DriverConfig.Name, nodePlugins) {
+				if _, exists := f.pluginExistsOnNode("Volume", mount.VolumeOptions.DriverConfig.Name, nodePlugins); !exists {
 					return false
 				}
 			}
@@ -146,22 +163,34 @@ func (f *PluginFilter) Check(n *NodeInfo) bool {
 	// Check if all network plugins required by task are installed on node
 	for _, tn := range f.t.Networks {
 		if tn.Network != nil && tn.Network.DriverState != nil && tn.Network.DriverState.Name != "" {
-			if !f.pluginExistsOnNode("Network", tn.Network.DriverState.Name, nodePlugins) {
+			if _, exists := f.pluginExistsOnNode("Network", tn.Network.DriverState.Name, nodePlugins); !exists {
 				return false
 			}
+		}
+	}
+
+	if f.t.Spec.LogDriver != nil {
+		// If there are no log driver types in the list at all, most likely this is
+		// an older daemon that did not report this information. In this case don't filter
+		if typeFound, exists := f.pluginExistsOnNode("Log", f.t.Spec.LogDriver.Name, nodePlugins); !exists && typeFound {
+			return false
 		}
 	}
 	return true
 }
 
 // pluginExistsOnNode returns true if the (pluginName, pluginType) pair is present in nodePlugins
-func (f *PluginFilter) pluginExistsOnNode(pluginType string, pluginName string, nodePlugins []api.PluginDescription) bool {
+func (f *PluginFilter) pluginExistsOnNode(pluginType string, pluginName string, nodePlugins []api.PluginDescription) (bool, bool) {
+	var typeFound bool
+
 	for _, np := range nodePlugins {
 		if pluginType != np.Type {
 			continue
 		}
+		typeFound = true
+
 		if pluginName == np.Name {
-			return true
+			return true, true
 		}
 		// This does not use the reference package to avoid the
 		// overhead of parsing references as part of the scheduling
@@ -169,10 +198,10 @@ func (f *PluginFilter) pluginExistsOnNode(pluginType string, pluginName string, 
 		// strict subset of the reference grammar that is always
 		// name:tag.
 		if strings.HasPrefix(np.Name, pluginName) && np.Name[len(pluginName):] == ":latest" {
-			return true
+			return true, true
 		}
 	}
-	return false
+	return typeFound, false
 }
 
 // Explain returns an explanation of a failure.

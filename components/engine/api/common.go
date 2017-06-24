@@ -21,7 +21,7 @@ import (
 // Common constants for daemon and client.
 const (
 	// DefaultVersion of Current REST API
-	DefaultVersion string = "1.30"
+	DefaultVersion string = "1.31"
 
 	// NoBaseImageSpecifier is the symbol used by the FROM
 	// command to specify that no base image is to be used.
@@ -126,7 +126,7 @@ func MatchesContentType(contentType, expectedType string) bool {
 // LoadOrCreateTrustKey attempts to load the libtrust key at the given path,
 // otherwise generates a new one
 func LoadOrCreateTrustKey(trustKeyPath string) (libtrust.PrivateKey, error) {
-	err := system.MkdirAll(filepath.Dir(trustKeyPath), 0700)
+	err := system.MkdirAll(filepath.Dir(trustKeyPath), 0700, "")
 	if err != nil {
 		return nil, err
 	}

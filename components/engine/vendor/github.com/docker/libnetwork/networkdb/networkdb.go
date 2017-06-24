@@ -4,6 +4,7 @@ package networkdb
 
 import (
 	"fmt"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -88,6 +89,10 @@ type NetworkDB struct {
 
 	// Reference to the memberlist's keyring to add & remove keys
 	keyring *memberlist.Keyring
+
+	// bootStrapIP is the list of IPs that can be used to bootstrap
+	// the gossip.
+	bootStrapIP []net.IP
 }
 
 // PeerInfo represents the peer (gossip cluster) nodes of a network
@@ -194,6 +199,11 @@ func New(c *Config) (*NetworkDB, error) {
 // Join joins this NetworkDB instance with a list of peer NetworkDB
 // instances passed by the caller in the form of addr:port
 func (nDB *NetworkDB) Join(members []string) error {
+	nDB.Lock()
+	for _, m := range members {
+		nDB.bootStrapIP = append(nDB.bootStrapIP, net.ParseIP(m))
+	}
+	nDB.Unlock()
 	return nDB.clusterJoin(members)
 }
 
@@ -275,7 +285,6 @@ func (nDB *NetworkDB) CreateEntry(tname, nid, key string, value []byte) error {
 	nDB.indexes[byNetwork].Insert(fmt.Sprintf("/%s/%s/%s", nid, tname, key), entry)
 	nDB.Unlock()
 
-	nDB.broadcaster.Write(makeEvent(opCreate, tname, nid, key, value))
 	return nil
 }
 
@@ -303,7 +312,6 @@ func (nDB *NetworkDB) UpdateEntry(tname, nid, key string, value []byte) error {
 	nDB.indexes[byNetwork].Insert(fmt.Sprintf("/%s/%s/%s", nid, tname, key), entry)
 	nDB.Unlock()
 
-	nDB.broadcaster.Write(makeEvent(opUpdate, tname, nid, key, value))
 	return nil
 }
 
@@ -349,7 +357,6 @@ func (nDB *NetworkDB) DeleteEntry(tname, nid, key string) error {
 	nDB.indexes[byNetwork].Insert(fmt.Sprintf("/%s/%s/%s", nid, tname, key), entry)
 	nDB.Unlock()
 
-	nDB.broadcaster.Write(makeEvent(opDelete, tname, nid, key, value))
 	return nil
 }
 

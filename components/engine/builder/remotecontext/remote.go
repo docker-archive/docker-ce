@@ -2,14 +2,14 @@ package remotecontext
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"regexp"
 
 	"github.com/docker/docker/builder"
-	"github.com/docker/docker/pkg/httputils"
+	"github.com/pkg/errors"
 )
 
 // When downloading remote contexts, limit the amount (in bytes)
@@ -28,9 +28,9 @@ var mimeRe = regexp.MustCompile(acceptableRemoteMIME)
 //
 // If a match is found, then the body is sent to the contentType handler and a (potentially compressed) tar stream is expected
 // to be returned. If no match is found, it is assumed the body is a tar stream (compressed or not).
-// In either case, an (assumed) tar stream is passed to MakeTarSumContext whose result is returned.
+// In either case, an (assumed) tar stream is passed to FromArchive whose result is returned.
 func MakeRemoteContext(remoteURL string, contentTypeHandlers map[string]func(io.ReadCloser) (io.ReadCloser, error)) (builder.Source, error) {
-	f, err := httputils.Download(remoteURL)
+	f, err := GetWithStatusError(remoteURL)
 	if err != nil {
 		return nil, fmt.Errorf("error downloading remote context %s: %v", remoteURL, err)
 	}
@@ -63,7 +63,25 @@ func MakeRemoteContext(remoteURL string, contentTypeHandlers map[string]func(io.
 
 	// Pass through - this is a pre-packaged context, presumably
 	// with a Dockerfile with the right name inside it.
-	return MakeTarSumContext(contextReader)
+	return FromArchive(contextReader)
+}
+
+// GetWithStatusError does an http.Get() and returns an error if the
+// status code is 4xx or 5xx.
+func GetWithStatusError(url string) (resp *http.Response, err error) {
+	if resp, err = http.Get(url); err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 400 {
+		return resp, nil
+	}
+	msg := fmt.Sprintf("failed to GET %s with status %s", url, resp.Status)
+	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, errors.Wrapf(err, msg+": error reading body")
+	}
+	return nil, errors.Errorf(msg+": %s", bytes.TrimSpace(body))
 }
 
 // inspectResponse looks into the http response data at r to determine whether its
@@ -94,8 +112,8 @@ func inspectResponse(ct string, r io.ReadCloser, clen int64) (string, io.ReadClo
 	// content type for files without an extension (e.g. 'Dockerfile')
 	// so if we receive this value we better check for text content
 	contentType := ct
-	if len(ct) == 0 || ct == httputils.MimeTypes.OctetStream {
-		contentType, _, err = httputils.DetectContentType(preamble)
+	if len(ct) == 0 || ct == mimeTypes.OctetStream {
+		contentType, _, err = detectContentType(preamble)
 		if err != nil {
 			return contentType, bodyReader, err
 		}

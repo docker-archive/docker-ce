@@ -39,6 +39,9 @@ func (daemon *Daemon) StateChanged(id string, e libcontainerd.StateInfo) error {
 			return errors.New("Received StateOOM from libcontainerd on Windows. This should never happen.")
 		}
 		daemon.updateHealthMonitor(c)
+		if err := c.CheckpointTo(daemon.containersReplica); err != nil {
+			return err
+		}
 		daemon.LogContainerEvent(c, "oom")
 	case libcontainerd.StateExit:
 
@@ -46,7 +49,8 @@ func (daemon *Daemon) StateChanged(id string, e libcontainerd.StateInfo) error {
 		c.StreamConfig.Wait()
 		c.Reset(false)
 
-		restart, wait, err := c.RestartManager().ShouldRestart(e.ExitCode, c.HasBeenManuallyStopped, time.Since(c.StartedAt))
+		// If daemon is being shutdown, don't let the container restart
+		restart, wait, err := c.RestartManager().ShouldRestart(e.ExitCode, daemon.IsShuttingDown() || c.HasBeenManuallyStopped, time.Since(c.StartedAt))
 		if err == nil && restart {
 			c.RestartCount++
 			c.SetRestarting(platformConstructExitStatus(e))
@@ -68,6 +72,10 @@ func (daemon *Daemon) StateChanged(id string, e libcontainerd.StateInfo) error {
 			go func() {
 				err := <-wait
 				if err == nil {
+					// daemon.netController is initialized when daemon is restoring containers.
+					// But containerStart will use daemon.netController segment.
+					// So to avoid panic at startup process, here must wait util daemon restore done.
+					daemon.waitForStartupDone()
 					if err = daemon.containerStart(c, "", "", false); err != nil {
 						logrus.Debugf("failed to restart container: %+v", err)
 					}
@@ -85,7 +93,7 @@ func (daemon *Daemon) StateChanged(id string, e libcontainerd.StateInfo) error {
 		daemon.setStateCounter(c)
 
 		defer c.Unlock()
-		if err := c.ToDisk(); err != nil {
+		if err := c.CheckpointTo(daemon.containersReplica); err != nil {
 			return err
 		}
 		return daemon.postRunProcessing(c, e)
@@ -114,30 +122,30 @@ func (daemon *Daemon) StateChanged(id string, e libcontainerd.StateInfo) error {
 		c.HasBeenStartedBefore = true
 		daemon.setStateCounter(c)
 
-		if err := c.ToDisk(); err != nil {
+		daemon.initHealthMonitor(c)
+		if err := c.CheckpointTo(daemon.containersReplica); err != nil {
 			c.Reset(false)
 			return err
 		}
-		daemon.initHealthMonitor(c)
 
 		daemon.LogContainerEvent(c, "start")
 	case libcontainerd.StatePause:
 		// Container is already locked in this case
 		c.Paused = true
 		daemon.setStateCounter(c)
-		if err := c.ToDisk(); err != nil {
+		daemon.updateHealthMonitor(c)
+		if err := c.CheckpointTo(daemon.containersReplica); err != nil {
 			return err
 		}
-		daemon.updateHealthMonitor(c)
 		daemon.LogContainerEvent(c, "pause")
 	case libcontainerd.StateResume:
 		// Container is already locked in this case
 		c.Paused = false
 		daemon.setStateCounter(c)
-		if err := c.ToDisk(); err != nil {
+		daemon.updateHealthMonitor(c)
+		if err := c.CheckpointTo(daemon.containersReplica); err != nil {
 			return err
 		}
-		daemon.updateHealthMonitor(c)
 		daemon.LogContainerEvent(c, "unpause")
 	}
 	return nil

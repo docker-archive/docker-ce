@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/daemon/initlayer"
 	"github.com/docker/docker/libcontainerd"
+	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/mount"
 	"github.com/docker/docker/pkg/plugins"
 	"github.com/docker/docker/pkg/stringid"
@@ -58,7 +59,7 @@ func (pm *Manager) enable(p *v2.Plugin, c *controller, force bool) error {
 		}
 	}
 
-	if err := initlayer.Setup(filepath.Join(pm.config.Root, p.PluginObj.ID, rootFSFileName), 0, 0); err != nil {
+	if err := initlayer.Setup(filepath.Join(pm.config.Root, p.PluginObj.ID, rootFSFileName), idtools.IDPair{0, 0}); err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -79,7 +80,7 @@ func (pm *Manager) enable(p *v2.Plugin, c *controller, force bool) error {
 
 func (pm *Manager) pluginPostStart(p *v2.Plugin, c *controller) error {
 	sockAddr := filepath.Join(pm.config.ExecRoot, p.GetID(), p.GetSocket())
-	client, err := plugins.NewClientWithTimeout("unix://"+sockAddr, nil, c.timeoutInSecs)
+	client, err := plugins.NewClientWithTimeout("unix://"+sockAddr, nil, time.Duration(c.timeoutInSecs)*time.Second)
 	if err != nil {
 		c.restart = false
 		shutdownPlugin(p, c, pm.containerdClient)

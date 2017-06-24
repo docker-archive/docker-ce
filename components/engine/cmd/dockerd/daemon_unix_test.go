@@ -20,8 +20,8 @@ func TestLoadDaemonCliConfigWithDaemonFlags(t *testing.T) {
 	defer tempFile.Remove()
 
 	opts := defaultOptions(tempFile.Name())
-	opts.common.Debug = true
-	opts.common.LogLevel = "info"
+	opts.Debug = true
+	opts.LogLevel = "info"
 	assert.NoError(t, opts.flags.Set("selinux-enabled", "true"))
 
 	loadedConfig, err := loadDaemonCliConfig(opts)
@@ -102,7 +102,7 @@ func TestLoadDaemonConfigWithTrueDefaultValuesLeaveDefaults(t *testing.T) {
 }
 
 func TestLoadDaemonConfigWithLegacyRegistryOptions(t *testing.T) {
-	content := `{"disable-legacy-registry": true}`
+	content := `{"disable-legacy-registry": false}`
 	tempFile := tempfile.NewTempFile(t, "config", content)
 	defer tempFile.Remove()
 
@@ -110,5 +110,5 @@ func TestLoadDaemonConfigWithLegacyRegistryOptions(t *testing.T) {
 	loadedConfig, err := loadDaemonCliConfig(opts)
 	require.NoError(t, err)
 	require.NotNil(t, loadedConfig)
-	assert.True(t, loadedConfig.V2Only)
+	assert.False(t, loadedConfig.V2Only)
 }

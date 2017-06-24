@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/docker/swarmkit/api"
+	"github.com/docker/swarmkit/api/genericresource"
 	"github.com/docker/swarmkit/log"
 	"github.com/docker/swarmkit/manager/state"
 	"github.com/docker/swarmkit/manager/state/store"
@@ -30,8 +31,11 @@ type schedulingDecision struct {
 type Scheduler struct {
 	store           *store.MemoryStore
 	unassignedTasks map[string]*api.Task
-	// preassignedTasks already have NodeID, need resource validation
-	preassignedTasks map[string]*api.Task
+	// pendingPreassignedTasks already have NodeID, need resource validation
+	pendingPreassignedTasks map[string]*api.Task
+	// preassignedTasks tracks tasks that were preassigned, including those
+	// past the pending state.
+	preassignedTasks map[string]struct{}
 	nodeSet          nodeSet
 	allTasks         map[string]*api.Task
 	pipeline         *Pipeline
@@ -45,13 +49,14 @@ type Scheduler struct {
 // New creates a new scheduler.
 func New(store *store.MemoryStore) *Scheduler {
 	return &Scheduler{
-		store:            store,
-		unassignedTasks:  make(map[string]*api.Task),
-		preassignedTasks: make(map[string]*api.Task),
-		allTasks:         make(map[string]*api.Task),
-		stopChan:         make(chan struct{}),
-		doneChan:         make(chan struct{}),
-		pipeline:         NewPipeline(),
+		store:                   store,
+		unassignedTasks:         make(map[string]*api.Task),
+		pendingPreassignedTasks: make(map[string]*api.Task),
+		preassignedTasks:        make(map[string]struct{}),
+		allTasks:                make(map[string]*api.Task),
+		stopChan:                make(chan struct{}),
+		doneChan:                make(chan struct{}),
+		pipeline:                NewPipeline(),
 	}
 }
 
@@ -76,7 +81,8 @@ func (s *Scheduler) setupTasksList(tx store.ReadTx) error {
 		}
 		// preassigned tasks need to validate resource requirement on corresponding node
 		if t.Status.State == api.TaskStatePending {
-			s.preassignedTasks[t.ID] = t
+			s.preassignedTasks[t.ID] = struct{}{}
+			s.pendingPreassignedTasks[t.ID] = t
 			continue
 		}
 
@@ -128,7 +134,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	tickRequired := false
 
 	schedule := func() {
-		if len(s.preassignedTasks) > 0 {
+		if len(s.pendingPreassignedTasks) > 0 {
 			s.processPreassignedTasks(ctx)
 		}
 		if tickRequired {
@@ -151,7 +157,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 					tickRequired = true
 				}
 			case api.EventDeleteTask:
-				if s.deleteTask(ctx, v.Task) {
+				if s.deleteTask(v.Task) {
 					// deleting tasks may free up node resource, pending tasks should be re-evaluated.
 					tickRequired = true
 				}
@@ -215,7 +221,8 @@ func (s *Scheduler) createTask(ctx context.Context, t *api.Task) bool {
 	}
 
 	if t.Status.State == api.TaskStatePending {
-		s.preassignedTasks[t.ID] = t
+		s.preassignedTasks[t.ID] = struct{}{}
+		s.pendingPreassignedTasks[t.ID] = t
 		// preassigned tasks do not contribute to running tasks count
 		return false
 	}
@@ -243,22 +250,32 @@ func (s *Scheduler) updateTask(ctx context.Context, t *api.Task) bool {
 		if oldTask == nil {
 			return false
 		}
-		s.deleteTask(ctx, oldTask)
+
 		if t.Status.State != oldTask.Status.State &&
 			(t.Status.State == api.TaskStateFailed || t.Status.State == api.TaskStateRejected) {
-			nodeInfo, err := s.nodeSet.nodeInfo(t.NodeID)
-			if err == nil {
-				nodeInfo.taskFailed(ctx, t.ServiceID)
-				s.nodeSet.updateNode(nodeInfo)
+			// Keep track of task failures, so other nodes can be preferred
+			// for scheduling this service if it looks like the service is
+			// failing in a loop on this node. However, skip this for
+			// preassigned tasks, because the scheduler does not choose
+			// which nodes those run on.
+			if _, wasPreassigned := s.preassignedTasks[t.ID]; !wasPreassigned {
+				nodeInfo, err := s.nodeSet.nodeInfo(t.NodeID)
+				if err == nil {
+					nodeInfo.taskFailed(ctx, t.ServiceID)
+					s.nodeSet.updateNode(nodeInfo)
+				}
 			}
 		}
+
+		s.deleteTask(oldTask)
+
 		return true
 	}
 
 	if t.NodeID == "" {
 		// unassigned task
 		if oldTask != nil {
-			s.deleteTask(ctx, oldTask)
+			s.deleteTask(oldTask)
 		}
 		s.allTasks[t.ID] = t
 		s.enqueue(t)
@@ -267,10 +284,11 @@ func (s *Scheduler) updateTask(ctx context.Context, t *api.Task) bool {
 
 	if t.Status.State == api.TaskStatePending {
 		if oldTask != nil {
-			s.deleteTask(ctx, oldTask)
+			s.deleteTask(oldTask)
 		}
+		s.preassignedTasks[t.ID] = struct{}{}
 		s.allTasks[t.ID] = t
-		s.preassignedTasks[t.ID] = t
+		s.pendingPreassignedTasks[t.ID] = t
 		// preassigned tasks do not contribute to running tasks count
 		return false
 	}
@@ -284,9 +302,10 @@ func (s *Scheduler) updateTask(ctx context.Context, t *api.Task) bool {
 	return false
 }
 
-func (s *Scheduler) deleteTask(ctx context.Context, t *api.Task) bool {
+func (s *Scheduler) deleteTask(t *api.Task) bool {
 	delete(s.allTasks, t.ID)
 	delete(s.preassignedTasks, t.ID)
+	delete(s.pendingPreassignedTasks, t.ID)
 	nodeInfo, err := s.nodeSet.nodeInfo(t.NodeID)
 	if err == nil && nodeInfo.removeTask(t) {
 		s.nodeSet.updateNode(nodeInfo)
@@ -296,25 +315,38 @@ func (s *Scheduler) deleteTask(ctx context.Context, t *api.Task) bool {
 }
 
 func (s *Scheduler) createOrUpdateNode(n *api.Node) {
-	nodeInfo, _ := s.nodeSet.nodeInfo(n.ID)
-	var resources api.Resources
+	nodeInfo, nodeInfoErr := s.nodeSet.nodeInfo(n.ID)
+	var resources *api.Resources
 	if n.Description != nil && n.Description.Resources != nil {
-		resources = *n.Description.Resources
+		resources = n.Description.Resources.Copy()
 		// reconcile resources by looping over all tasks in this node
-		for _, task := range nodeInfo.Tasks {
-			reservations := taskReservations(task.Spec)
-			resources.MemoryBytes -= reservations.MemoryBytes
-			resources.NanoCPUs -= reservations.NanoCPUs
+		if nodeInfoErr == nil {
+			for _, task := range nodeInfo.Tasks {
+				reservations := taskReservations(task.Spec)
+
+				resources.MemoryBytes -= reservations.MemoryBytes
+				resources.NanoCPUs -= reservations.NanoCPUs
+
+				genericresource.ConsumeNodeResources(&resources.Generic,
+					task.AssignedGenericResources)
+			}
 		}
+	} else {
+		resources = &api.Resources{}
 	}
-	nodeInfo.Node = n
-	nodeInfo.AvailableResources = resources
+
+	if nodeInfoErr != nil {
+		nodeInfo = newNodeInfo(n, nil, *resources)
+	} else {
+		nodeInfo.Node = n
+		nodeInfo.AvailableResources = resources
+	}
 	s.nodeSet.addOrUpdateNode(nodeInfo)
 }
 
 func (s *Scheduler) processPreassignedTasks(ctx context.Context) {
-	schedulingDecisions := make(map[string]schedulingDecision, len(s.preassignedTasks))
-	for _, t := range s.preassignedTasks {
+	schedulingDecisions := make(map[string]schedulingDecision, len(s.pendingPreassignedTasks))
+	for _, t := range s.pendingPreassignedTasks {
 		newT := s.taskFitNode(ctx, t, t.NodeID)
 		if newT == nil {
 			continue
@@ -326,7 +358,7 @@ func (s *Scheduler) processPreassignedTasks(ctx context.Context) {
 
 	for _, decision := range successful {
 		if decision.new.Status.State == api.TaskStateAssigned {
-			delete(s.preassignedTasks, decision.old.ID)
+			delete(s.pendingPreassignedTasks, decision.old.ID)
 		}
 	}
 	for _, decision := range failed {
@@ -414,12 +446,7 @@ func (s *Scheduler) applySchedulingDecisions(ctx context.Context, schedulingDeci
 					t := store.GetTask(tx, taskID)
 					if t == nil {
 						// Task no longer exists
-						nodeInfo, err := s.nodeSet.nodeInfo(decision.new.NodeID)
-						if err == nil && nodeInfo.removeTask(decision.new) {
-							s.nodeSet.updateNode(nodeInfo)
-						}
-						delete(s.allTasks, decision.old.ID)
-
+						s.deleteTask(decision.new)
 						continue
 					}
 

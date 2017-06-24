@@ -25,7 +25,7 @@ func (daemon *Daemon) setupConfigDir(c *container.Container) (setupErr error) {
 	logrus.Debugf("configs: setting up config dir: %s", localPath)
 
 	// create local config root
-	if err := system.MkdirAllWithACL(localPath, 0); err != nil {
+	if err := system.MkdirAllWithACL(localPath, 0, system.SddlAdministratorsLocalSystem); err != nil {
 		return errors.Wrap(err, "error creating config dir")
 	}
 
@@ -53,9 +53,9 @@ func (daemon *Daemon) setupConfigDir(c *container.Container) (setupErr error) {
 		log := logrus.WithFields(logrus.Fields{"name": configRef.File.Name, "path": fPath})
 
 		log.Debug("injecting config")
-		config := c.DependencyStore.Configs().Get(configRef.ConfigID)
-		if config == nil {
-			return fmt.Errorf("unable to get config from config store")
+		config, err := c.DependencyStore.Configs().Get(configRef.ConfigID)
+		if err != nil {
+			return errors.Wrap(err, "unable to get config from config store")
 		}
 		if err := ioutil.WriteFile(fPath, config.Spec.Data, configRef.File.Mode); err != nil {
 			return errors.Wrap(err, "error injecting config")
@@ -98,7 +98,7 @@ func (daemon *Daemon) setupSecretDir(c *container.Container) (setupErr error) {
 	logrus.Debugf("secrets: setting up secret dir: %s", localMountPath)
 
 	// create local secret root
-	if err := system.MkdirAllWithACL(localMountPath, 0); err != nil {
+	if err := system.MkdirAllWithACL(localMountPath, 0, system.SddlAdministratorsLocalSystem); err != nil {
 		return errors.Wrap(err, "error creating secret local directory")
 	}
 
@@ -128,9 +128,9 @@ func (daemon *Daemon) setupSecretDir(c *container.Container) (setupErr error) {
 			"name": s.File.Name,
 			"path": fPath,
 		}).Debug("injecting secret")
-		secret := c.DependencyStore.Secrets().Get(s.SecretID)
-		if secret == nil {
-			return fmt.Errorf("unable to get secret from secret store")
+		secret, err := c.DependencyStore.Secrets().Get(s.SecretID)
+		if err != nil {
+			return errors.Wrap(err, "unable to get secret from secret store")
 		}
 		if err := ioutil.WriteFile(fPath, secret.Spec.Data, s.File.Mode); err != nil {
 			return errors.Wrap(err, "error injecting secret")

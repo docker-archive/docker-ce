@@ -1,6 +1,9 @@
 package daemon
 
 import (
+	"io"
+	"runtime"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
@@ -8,26 +11,29 @@ import (
 	"github.com/docker/docker/builder"
 	"github.com/docker/docker/image"
 	"github.com/docker/docker/layer"
+	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/stringid"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
-	"io"
 )
 
 type releaseableLayer struct {
+	released   bool
 	layerStore layer.Store
 	roLayer    layer.Layer
 	rwLayer    layer.RWLayer
 }
 
 func (rl *releaseableLayer) Mount() (string, error) {
-	if rl.roLayer == nil {
-		return "", errors.New("can not mount an image with no root FS")
-	}
 	var err error
+	var chainID layer.ChainID
+	if rl.roLayer != nil {
+		chainID = rl.roLayer.ChainID()
+	}
+
 	mountID := stringid.GenerateRandomID()
-	rl.rwLayer, err = rl.layerStore.CreateRWLayer(mountID, rl.roLayer.ChainID(), nil)
+	rl.rwLayer, err = rl.layerStore.CreateRWLayer(mountID, chainID, nil)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create rwlayer")
 	}
@@ -35,7 +41,41 @@ func (rl *releaseableLayer) Mount() (string, error) {
 	return rl.rwLayer.Mount("")
 }
 
+func (rl *releaseableLayer) Commit(platform string) (builder.ReleaseableLayer, error) {
+	var chainID layer.ChainID
+	if rl.roLayer != nil {
+		chainID = rl.roLayer.ChainID()
+	}
+
+	stream, err := rl.rwLayer.TarStream()
+	if err != nil {
+		return nil, err
+	}
+
+	newLayer, err := rl.layerStore.Register(stream, chainID, layer.Platform(platform))
+	if err != nil {
+		return nil, err
+	}
+
+	if layer.IsEmpty(newLayer.DiffID()) {
+		_, err := rl.layerStore.Release(newLayer)
+		return &releaseableLayer{layerStore: rl.layerStore}, err
+	}
+	return &releaseableLayer{layerStore: rl.layerStore, roLayer: newLayer}, nil
+}
+
+func (rl *releaseableLayer) DiffID() layer.DiffID {
+	if rl.roLayer == nil {
+		return layer.DigestSHA256EmptyTar
+	}
+	return rl.roLayer.DiffID()
+}
+
 func (rl *releaseableLayer) Release() error {
+	if rl.released {
+		return nil
+	}
+	rl.released = true
 	rl.releaseRWLayer()
 	return rl.releaseROLayer()
 }
@@ -62,8 +102,8 @@ func (rl *releaseableLayer) releaseROLayer() error {
 }
 
 func newReleasableLayerForImage(img *image.Image, layerStore layer.Store) (builder.ReleaseableLayer, error) {
-	if img.RootFS.ChainID() == "" {
-		return nil, nil
+	if img == nil || img.RootFS.ChainID() == "" {
+		return &releaseableLayer{layerStore: layerStore}, nil
 	}
 	// Hold a reference to the image layer so that it can't be removed before
 	// it is released
@@ -75,7 +115,7 @@ func newReleasableLayerForImage(img *image.Image, layerStore layer.Store) (build
 }
 
 // TODO: could this use the regular daemon PullImage ?
-func (daemon *Daemon) pullForBuilder(ctx context.Context, name string, authConfigs map[string]types.AuthConfig, output io.Writer) (*image.Image, error) {
+func (daemon *Daemon) pullForBuilder(ctx context.Context, name string, authConfigs map[string]types.AuthConfig, output io.Writer, platform string) (*image.Image, error) {
 	ref, err := reference.ParseNormalizedNamed(name)
 	if err != nil {
 		return nil, err
@@ -94,7 +134,7 @@ func (daemon *Daemon) pullForBuilder(ctx context.Context, name string, authConfi
 		pullRegistryAuth = &resolvedConfig
 	}
 
-	if err := daemon.pullImageWithReference(ctx, ref, nil, pullRegistryAuth, output); err != nil {
+	if err := daemon.pullImageWithReference(ctx, ref, platform, nil, pullRegistryAuth, output); err != nil {
 		return nil, err
 	}
 	return daemon.GetImage(name)
@@ -104,19 +144,53 @@ func (daemon *Daemon) pullForBuilder(ctx context.Context, name string, authConfi
 // Every call to GetImageAndReleasableLayer MUST call releasableLayer.Release() to prevent
 // leaking of layers.
 func (daemon *Daemon) GetImageAndReleasableLayer(ctx context.Context, refOrID string, opts backend.GetImageAndLayerOptions) (builder.Image, builder.ReleaseableLayer, error) {
-	if !opts.ForcePull {
-		image, _ := daemon.GetImage(refOrID)
+	if refOrID == "" {
+		layer, err := newReleasableLayerForImage(nil, daemon.stores[opts.Platform].layerStore)
+		return nil, layer, err
+	}
+
+	if opts.PullOption != backend.PullOptionForcePull {
+		image, err := daemon.GetImage(refOrID)
+		if err != nil && opts.PullOption == backend.PullOptionNoPull {
+			return nil, nil, err
+		}
 		// TODO: shouldn't we error out if error is different from "not found" ?
 		if image != nil {
-			layer, err := newReleasableLayerForImage(image, daemon.layerStore)
+			layer, err := newReleasableLayerForImage(image, daemon.stores[opts.Platform].layerStore)
 			return image, layer, err
 		}
 	}
 
-	image, err := daemon.pullForBuilder(ctx, refOrID, opts.AuthConfig, opts.Output)
+	image, err := daemon.pullForBuilder(ctx, refOrID, opts.AuthConfig, opts.Output, opts.Platform)
 	if err != nil {
 		return nil, nil, err
 	}
-	layer, err := newReleasableLayerForImage(image, daemon.layerStore)
+	layer, err := newReleasableLayerForImage(image, daemon.stores[opts.Platform].layerStore)
 	return image, layer, err
+}
+
+// CreateImage creates a new image by adding a config and ID to the image store.
+// This is similar to LoadImage() except that it receives JSON encoded bytes of
+// an image instead of a tar archive.
+func (daemon *Daemon) CreateImage(config []byte, parent string, platform string) (builder.Image, error) {
+	if platform == "" {
+		platform = runtime.GOOS
+	}
+	id, err := daemon.stores[platform].imageStore.Create(config)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create image")
+	}
+
+	if parent != "" {
+		if err := daemon.stores[platform].imageStore.SetParent(id, image.ID(parent)); err != nil {
+			return nil, errors.Wrapf(err, "failed to set parent %s", parent)
+		}
+	}
+
+	return daemon.stores[platform].imageStore.Get(id)
+}
+
+// IDMappings returns uid/gid mappings for the builder
+func (daemon *Daemon) IDMappings() *idtools.IDMappings {
+	return daemon.idMappings
 }

@@ -2,14 +2,17 @@ package image
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/digestset"
 	"github.com/docker/docker/layer"
+	"github.com/docker/docker/pkg/system"
 	"github.com/opencontainers/go-digest"
+	"github.com/pkg/errors"
 )
 
 // Store is an interface for creating and accessing images
@@ -37,20 +40,22 @@ type imageMeta struct {
 }
 
 type store struct {
-	sync.Mutex
+	sync.RWMutex
 	ls        LayerGetReleaser
 	images    map[ID]*imageMeta
 	fs        StoreBackend
 	digestSet *digestset.Set
+	platform  string
 }
 
 // NewImageStore returns new store object for given layer store
-func NewImageStore(fs StoreBackend, ls LayerGetReleaser) (Store, error) {
+func NewImageStore(fs StoreBackend, platform string, ls LayerGetReleaser) (Store, error) {
 	is := &store{
 		ls:        ls,
 		images:    make(map[ID]*imageMeta),
 		fs:        fs,
 		digestSet: digestset.NewSet(),
+		platform:  platform,
 	}
 
 	// load all current images and retain layers
@@ -111,6 +116,13 @@ func (is *store) Create(config []byte) (ID, error) {
 		return "", err
 	}
 
+	// Integrity check - ensure we are creating something for the correct platform
+	if runtime.GOOS == "windows" && system.LCOWSupported() {
+		if strings.ToLower(img.Platform()) != strings.ToLower(is.platform) {
+			return "", fmt.Errorf("cannot create entry for platform %q in image store for platform %q", img.Platform(), is.platform)
+		}
+	}
+
 	// Must reject any config that references diffIDs from the history
 	// which aren't among the rootfs layers.
 	rootFSLayers := make(map[layer.DiffID]struct{})
@@ -147,7 +159,7 @@ func (is *store) Create(config []byte) (ID, error) {
 	if layerID != "" {
 		l, err = is.ls.Get(layerID)
 		if err != nil {
-			return "", err
+			return "", errors.Wrapf(err, "failed to get layer %s", layerID)
 		}
 	}
 
@@ -166,9 +178,6 @@ func (is *store) Create(config []byte) (ID, error) {
 }
 
 func (is *store) Search(term string) (ID, error) {
-	is.Lock()
-	defer is.Unlock()
-
 	dgst, err := is.digestSet.Lookup(term)
 	if err != nil {
 		if err == digestset.ErrDigestNotFound {
@@ -251,8 +260,8 @@ func (is *store) GetParent(id ID) (ID, error) {
 }
 
 func (is *store) Children(id ID) []ID {
-	is.Lock()
-	defer is.Unlock()
+	is.RLock()
+	defer is.RUnlock()
 
 	return is.children(id)
 }
@@ -276,8 +285,8 @@ func (is *store) Map() map[ID]*Image {
 }
 
 func (is *store) imagesMap(all bool) map[ID]*Image {
-	is.Lock()
-	defer is.Unlock()
+	is.RLock()
+	defer is.RUnlock()
 
 	images := make(map[ID]*Image)
 

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/pkg/system"
 )
@@ -17,27 +18,10 @@ const (
 	containerInternalConfigsDirPath  = `C:\ProgramData\Docker\internal\configs`
 )
 
-// Container holds fields specific to the Windows implementation. See
-// CommonContainer for standard fields common to all containers.
-type Container struct {
-	CommonContainer
-
-	// Fields below here are platform specific.
-	NetworkSharedContainerID string
-}
-
 // ExitStatus provides exit reasons for a container.
 type ExitStatus struct {
 	// The exit code with which the container exited.
 	ExitCode int
-}
-
-// CreateDaemonEnvironment creates a new environment variable slice for this container.
-func (container *Container) CreateDaemonEnvironment(_ bool, linkedEnv []string) []string {
-	// because the env on the container can override certain default values
-	// we need to replace the 'env' keys where they match and append anything
-	// else.
-	return ReplaceOrAppendEnvValues(linkedEnv, container.Config.Env)
 }
 
 // UnmountIpcMounts unmounts Ipc related mounts.
@@ -60,7 +44,7 @@ func (container *Container) CreateSecretSymlinks() error {
 		if err != nil {
 			return err
 		}
-		if err := system.MkdirAll(filepath.Dir(resolvedPath), 0); err != nil {
+		if err := system.MkdirAll(filepath.Dir(resolvedPath), 0, ""); err != nil {
 			return err
 		}
 		if err := os.Symlink(filepath.Join(containerInternalSecretMountPath, r.SecretID), resolvedPath); err != nil {
@@ -102,7 +86,7 @@ func (container *Container) CreateConfigSymlinks() error {
 		if err != nil {
 			return err
 		}
-		if err := system.MkdirAll(filepath.Dir(resolvedPath), 0); err != nil {
+		if err := system.MkdirAll(filepath.Dir(resolvedPath), 0, ""); err != nil {
 			return err
 		}
 		if err := os.Symlink(filepath.Join(containerInternalConfigsDirPath, configRef.ConfigID), resolvedPath); err != nil {
@@ -142,11 +126,8 @@ func (container *Container) TmpfsMounts() ([]Mount, error) {
 	return mounts, nil
 }
 
-// UpdateContainer updates configuration of a container
+// UpdateContainer updates configuration of a container. Callers must hold a Lock on the Container.
 func (container *Container) UpdateContainer(hostConfig *containertypes.HostConfig) error {
-	container.Lock()
-	defer container.Unlock()
-
 	resources := hostConfig.Resources
 	if resources.CPUShares != 0 ||
 		resources.Memory != 0 ||
@@ -210,4 +191,20 @@ func (container *Container) BuildHostnameFile() error {
 // EnableServiceDiscoveryOnDefaultNetwork Enable service discovery on default network
 func (container *Container) EnableServiceDiscoveryOnDefaultNetwork() bool {
 	return true
+}
+
+// GetMountPoints gives a platform specific transformation to types.MountPoint. Callers must hold a Container lock.
+func (container *Container) GetMountPoints() []types.MountPoint {
+	mountPoints := make([]types.MountPoint, 0, len(container.MountPoints))
+	for _, m := range container.MountPoints {
+		mountPoints = append(mountPoints, types.MountPoint{
+			Type:        m.Type,
+			Name:        m.Name,
+			Source:      m.Path(),
+			Destination: m.Destination,
+			Driver:      m.Driver,
+			RW:          m.RW,
+		})
+	}
+	return mountPoints
 }

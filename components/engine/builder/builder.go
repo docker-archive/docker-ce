@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types/backend"
 	"github.com/docker/docker/api/types/container"
 	containerpkg "github.com/docker/docker/container"
+	"github.com/docker/docker/layer"
 	"golang.org/x/net/context"
 )
 
@@ -42,11 +43,7 @@ type Backend interface {
 	// ContainerCreateWorkdir creates the workdir
 	ContainerCreateWorkdir(containerID string) error
 
-	// ContainerCopy copies/extracts a source FileInfo to a destination path inside a container
-	// specified by a container object.
-	// TODO: extract in the builder instead of passing `decompress`
-	// TODO: use containerd/fs.changestream instead as a source
-	CopyOnBuild(containerID string, destPath string, srcRoot string, srcPath string, decompress bool) error
+	CreateImage(config []byte, parent string, platform string) (Image, error)
 
 	ImageCacheBuilder
 }
@@ -81,7 +78,7 @@ type Result struct {
 // ImageCacheBuilder represents a generator for stateful image cache.
 type ImageCacheBuilder interface {
 	// MakeImageCache creates a stateful image cache.
-	MakeImageCache(cacheFrom []string) ImageCache
+	MakeImageCache(cacheFrom []string, platform string) ImageCache
 }
 
 // ImageCache abstracts an image cache.
@@ -96,10 +93,13 @@ type ImageCache interface {
 type Image interface {
 	ImageID() string
 	RunConfig() *container.Config
+	MarshalJSON() ([]byte, error)
 }
 
 // ReleaseableLayer is an image layer that can be mounted and released
 type ReleaseableLayer interface {
 	Release() error
 	Mount() (string, error)
+	Commit(platform string) (ReleaseableLayer, error)
+	DiffID() layer.DiffID
 }

@@ -14,11 +14,13 @@ import (
 	"github.com/docker/docker/builder/dockerfile/parser"
 	"github.com/docker/docker/builder/dockerignore"
 	"github.com/docker/docker/pkg/fileutils"
-	"github.com/docker/docker/pkg/httputils"
 	"github.com/docker/docker/pkg/symlink"
 	"github.com/docker/docker/pkg/urlutil"
 	"github.com/pkg/errors"
 )
+
+// ClientSessionRemote is identifier for client-session context transport
+const ClientSessionRemote = "client-session"
 
 // Detect returns a context and dockerfile from remote location or local
 // archive. progressReader is only used if remoteURL is actually a URL
@@ -30,6 +32,12 @@ func Detect(config backend.BuildConfig) (remote builder.Source, dockerfile *pars
 	switch {
 	case remoteURL == "":
 		remote, dockerfile, err = newArchiveRemote(config.Source, dockerfilePath)
+	case remoteURL == ClientSessionRemote:
+		res, err := parser.Parse(config.Source)
+		if err != nil {
+			return nil, nil, err
+		}
+		return nil, res, nil
 	case urlutil.IsGitURL(remoteURL):
 		remote, dockerfile, err = newGitRemote(remoteURL, dockerfilePath)
 	case urlutil.IsURL(remoteURL):
@@ -42,7 +50,7 @@ func Detect(config backend.BuildConfig) (remote builder.Source, dockerfile *pars
 
 func newArchiveRemote(rc io.ReadCloser, dockerfilePath string) (builder.Source, *parser.Result, error) {
 	defer rc.Close()
-	c, err := MakeTarSumContext(rc)
+	c, err := FromArchive(rc)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -82,7 +90,7 @@ func withDockerfileFromContext(c modifiableContext, dockerfilePath string) (buil
 }
 
 func newGitRemote(gitURL string, dockerfilePath string) (builder.Source, *parser.Result, error) {
-	c, err := MakeGitContext(gitURL) // TODO: change this to NewLazyContext
+	c, err := MakeGitContext(gitURL) // TODO: change this to NewLazySource
 	if err != nil {
 		return nil, nil, err
 	}
@@ -93,7 +101,7 @@ func newURLRemote(url string, dockerfilePath string, progressReader func(in io.R
 	var dockerfile io.ReadCloser
 	dockerfileFoundErr := errors.New("found-dockerfile")
 	c, err := MakeRemoteContext(url, map[string]func(io.ReadCloser) (io.ReadCloser, error){
-		httputils.MimeTypes.TextPlain: func(rc io.ReadCloser) (io.ReadCloser, error) {
+		mimeTypes.TextPlain: func(rc io.ReadCloser) (io.ReadCloser, error) {
 			dockerfile = rc
 			return nil, dockerfileFoundErr
 		},

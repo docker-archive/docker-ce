@@ -19,10 +19,10 @@ produces:
 consumes:
   - "application/json"
   - "text/plain"
-basePath: "/v1.30"
+basePath: "/v1.31"
 info:
   title: "Docker Engine API"
-  version: "1.30"
+  version: "1.31"
   x-logo:
     url: "https://docs.docker.com/images/logo-docker-main.png"
   description: |
@@ -52,10 +52,11 @@ info:
 
     The API uses an open schema model, which means server may add extra properties to responses. Likewise, the server will ignore any extra query parameters and request body properties. When you write clients, you need to ignore additional properties in responses to ensure they do not break when talking to newer Docker daemons.
 
-    This documentation is for version 1.30 of the API, which was introduced with Docker 17.06. Use this table to find documentation for previous versions of the API:
+    This documentation is for version 1.31 of the API. Use this table to find documentation for previous versions of the API:
 
     Docker version  | API version | Changes
     ----------------|-------------|---------
+    17.06.x | [1.30](https://docs.docker.com/engine/api/v1.30/) | [API changes](https://docs.docker.com/engine/api/version-history/#v1-30-api-changes)
     17.05.x | [1.29](https://docs.docker.com/engine/api/v1.29/) | [API changes](https://docs.docker.com/engine/api/version-history/#v1-29-api-changes)
     17.04.x | [1.28](https://docs.docker.com/engine/api/v1.28/) | [API changes](https://docs.docker.com/engine/api/version-history/#v1-28-api-changes)
     17.03.1 | [1.27](https://docs.docker.com/engine/api/v1.27/) | [API changes](https://docs.docker.com/engine/api/version-history/#v1-27-api-changes)
@@ -2698,6 +2699,11 @@ paths:
   /containers/json:
     get:
       summary: "List containers"
+      description: |
+        Returns a list of containers. For details on the format, see [the inspect endpoint](#operation/ContainerInspect).
+
+        Note that it uses a different, smaller representation of a container than inspecting a single container. For example,
+        the list of linked containers is not propagated .
       operationId: "ContainerList"
       produces:
         - "application/json"
@@ -4739,6 +4745,27 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
       tags: ["Image"]
+  /build/prune:
+    post:
+      summary: "Delete builder cache"
+      produces:
+        - "application/json"
+      operationId: "BuildPrune"
+      responses:
+        200:
+          description: "No error"
+          schema:
+            type: "object"
+            properties:
+              SpaceReclaimed:
+                description: "Disk space reclaimed in bytes"
+                type: "integer"
+                format: "int64"
+        500:
+          description: "Server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+      tags: ["Image"]
   /images/create:
     post:
       summary: "Create an image"
@@ -6431,6 +6458,10 @@ paths:
           description: "Detailed inspect output for troubleshooting"
           type: "boolean"
           default: false
+        - name: "scope"
+          in: "query"
+          description: "Filter the network by scope (swarm, global, or local)"
+          type: "string"
       tags: ["Network"]
 
     delete:
@@ -8471,3 +8502,46 @@ paths:
           type: "string"
           required: true
       tags: ["Distribution"]
+  /session:
+    post:
+      summary: "Initialize interactive session"
+      description: |
+        Start a new interactive session with a server. Session allows server to call back to the client for advanced capabilities.
+
+        > **Note**: This endpoint is *experimental* and only available if the daemon is started with experimental
+        > features enabled. The specifications for this endpoint may still change in a future version of the API.
+
+        ### Hijacking
+
+        This endpoint hijacks the HTTP connection to HTTP2 transport that allows the client to expose gPRC services on that connection.
+
+        For example, the client sends this request to upgrade the connection:
+
+        ```
+        POST /session HTTP/1.1
+        Upgrade: h2c
+        Connection: Upgrade
+        ```
+
+        The Docker daemon will respond with a `101 UPGRADED` response follow with the raw stream:
+
+        ```
+        HTTP/1.1 101 UPGRADED
+        Connection: Upgrade
+        Upgrade: h2c
+        ```
+      operationId: "Session"
+      produces:
+        - "application/vnd.docker.raw-stream"
+      responses:
+        101:
+          description: "no error, hijacking successful"
+        400:
+          description: "bad parameter"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+      tags: ["Session (experimental)"]
