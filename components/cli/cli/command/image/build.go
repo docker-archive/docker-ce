@@ -77,16 +77,20 @@ func (o buildOptions) contextFromStdin() bool {
 	return o.context == "-"
 }
 
-// NewBuildCommand creates a new `docker build` command
-func NewBuildCommand(dockerCli *command.DockerCli) *cobra.Command {
+func newBuildOptions() buildOptions {
 	ulimits := make(map[string]*units.Ulimit)
-	options := buildOptions{
+	return buildOptions{
 		tags:       opts.NewListOpts(validateTag),
 		buildArgs:  opts.NewListOpts(opts.ValidateEnv),
 		ulimits:    opts.NewUlimitOpt(&ulimits),
 		labels:     opts.NewListOpts(opts.ValidateEnv),
 		extraHosts: opts.NewListOpts(opts.ValidateExtraHost),
 	}
+}
+
+// NewBuildCommand creates a new `docker build` command
+func NewBuildCommand(dockerCli command.Cli) *cobra.Command {
+	options := newBuildOptions()
 
 	cmd := &cobra.Command{
 		Use:   "build [OPTIONS] PATH | URL | -",
@@ -159,7 +163,7 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 }
 
 // nolint: gocyclo
-func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
+func runBuild(dockerCli command.Cli, options buildOptions) error {
 	var (
 		buildCtx      io.ReadCloser
 		dockerfileCtx io.ReadCloser
@@ -237,13 +241,7 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		}
 
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
-
-		compression := archive.Uncompressed
-		if options.compress {
-			compression = archive.Gzip
-		}
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
-			Compression:     compression,
 			ExcludePatterns: excludes,
 		})
 		if err != nil {
@@ -292,6 +290,13 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		}
 	}
 
+	if options.compress {
+		buildCtx, err = build.Compress(buildCtx)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Setup an upload progress bar
 	progressOutput := streamformatter.NewProgressOutput(progBuff)
 	if !dockerCli.Out().IsTerminal() {
@@ -336,7 +341,8 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		body = buildCtx
 	}
 
-	authConfigs, _ := dockerCli.GetAllCredentials()
+	configFile := dockerCli.ConfigFile()
+	authConfigs, _ := configFile.GetAllCredentials()
 	buildOptions := types.ImageBuildOptions{
 		Memory:         options.memory.Value(),
 		MemorySwap:     options.memorySwap.Value(),
@@ -356,7 +362,7 @@ func runBuild(dockerCli *command.DockerCli, options buildOptions) error {
 		Dockerfile:     relDockerfile,
 		ShmSize:        options.shmSize.Value(),
 		Ulimits:        options.ulimits.GetList(),
-		BuildArgs:      dockerCli.ConfigFile().ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
+		BuildArgs:      configFile.ParseProxyConfig(dockerCli.Client().DaemonHost(), options.buildArgs.GetAll()),
 		AuthConfigs:    authConfigs,
 		Labels:         opts.ConvertKVStringsToMap(options.labels.GetAll()),
 		CacheFrom:      options.cacheFrom,

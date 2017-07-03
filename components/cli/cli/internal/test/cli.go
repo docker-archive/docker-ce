@@ -7,7 +7,6 @@ import (
 
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/config/configfile"
-	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/docker/client"
 )
 
@@ -19,16 +18,17 @@ type FakeCli struct {
 	out        *command.OutStream
 	err        io.Writer
 	in         *command.InStream
-	store      credentials.Store
+	server     command.ServerInfo
 }
 
 // NewFakeCli returns a Cli backed by the fakeCli
 func NewFakeCli(client client.APIClient, out io.Writer) *FakeCli {
 	return &FakeCli{
-		client: client,
-		out:    command.NewOutStream(out),
-		err:    ioutil.Discard,
-		in:     command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		client:     client,
+		out:        command.NewOutStream(out),
+		err:        ioutil.Discard,
+		in:         command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		configfile: configfile.New("configfile"),
 	}
 }
 
@@ -72,10 +72,7 @@ func (c *FakeCli) ConfigFile() *configfile.ConfigFile {
 	return c.configfile
 }
 
-// CredentialsStore returns the fake store the cli will use
-func (c *FakeCli) CredentialsStore(serverAddress string) credentials.Store {
-	if c.store == nil {
-		c.store = NewFakeStore()
-	}
-	return c.store
+// ServerInfo returns API server information for the server used by this client
+func (c *FakeCli) ServerInfo() command.ServerInfo {
+	return c.server
 }
