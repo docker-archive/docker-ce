@@ -5,6 +5,8 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
+## 17.06.1-ce (2017-07-XX)
+
 ## 17.06.0-ce (2017-06-19)
 
 **NOTE**: Docker 17.06 by default disables communication with legacy (v1) registries. If you
