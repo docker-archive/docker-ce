@@ -52,6 +52,10 @@ const confirmationTemplate = `WARNING! This will remove:
 Are you sure you want to continue?`
 
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
+	// TODO version this once "until" filter is supported for volumes
+	if options.pruneVolumes && options.filter.Value().Include("until") {
+		return fmt.Errorf(`ERROR: The "until" filter is not supported with "--volumes"`)
+	}
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(options)) {
 		return nil
 	}
