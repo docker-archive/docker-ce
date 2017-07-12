@@ -22,7 +22,7 @@ RPMBUILD_FLAGS=-ba\
 	--define '_experimental $(DOCKER_EXPERIMENTAL)' \
 	SPECS/docker-ce.spec
 
-.PHONY: help clean rpm fedora centos fedora-25 fedora-24 centos-7
+.PHONY: help clean rpm fedora centos fedora-26 fedora-25 fedora-24 centos-7
 
 help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -33,7 +33,7 @@ clean: ## remove build artifacts
 
 rpm: fedora centos ## build all rpm packages
 
-fedora: fedora-25 fedora-24 ## build all fedora rpm packages
+fedora: fedora-26 fedora-25 fedora-24 ## build all fedora rpm packages
 
 centos: centos-7 ## build all centos rpm packages
 
