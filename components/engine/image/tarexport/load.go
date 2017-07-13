@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution"
@@ -75,6 +76,9 @@ func (l *tarexporter) Load(inTar io.ReadCloser, outStream io.Writer, quiet bool)
 		}
 		img, err := image.NewFromJSON(config)
 		if err != nil {
+			return err
+		}
+		if err := checkCompatibleOS(img.OS); err != nil {
 			return err
 		}
 		var rootFS image.RootFS
@@ -275,8 +279,15 @@ func (l *tarexporter) legacyLoadImage(oldID, sourceDir string, loadedMap map[str
 		return err
 	}
 
-	var img struct{ Parent string }
+	var img struct {
+		OS     string
+		Parent string
+	}
 	if err := json.Unmarshal(imageJSON, &img); err != nil {
+		return err
+	}
+
+	if err := checkCompatibleOS(img.OS); err != nil {
 		return err
 	}
 
@@ -384,4 +395,17 @@ func checkValidParent(img, parent *image.Image) bool {
 		}
 	}
 	return true
+}
+
+func checkCompatibleOS(os string) error {
+	platform := runtime.GOOS
+	// always compatible if the OS matches; also match an empty OS
+	if os == platform || os == "" {
+		return nil
+	}
+	// for compatibility, only fail if the image or runtime OS is Windows
+	if os == "windows" || platform == "windows" {
+		return fmt.Errorf("cannot load %s image on %s", os, platform)
+	}
+	return nil
 }
