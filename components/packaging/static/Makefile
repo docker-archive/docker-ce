@@ -14,7 +14,7 @@ help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 clean: ## remove build artifacts
-	$(CHOWN) -R $(shell id -u):$(shell id -g) build
+	[ ! -d build ] || $(CHOWN) -R $(shell id -u):$(shell id -g) build
 	$(RM) -r build
 
 static: static-linux cross-mac cross-win cross-arm ## create all static packages
