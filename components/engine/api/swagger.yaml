@@ -1637,7 +1637,7 @@ definitions:
       may not be applied if the version number has changed from the last read. In other words,
       if two update requests specify the same base version, only one of the requests can succeed.
       As a result, two separate update requests that happen at the same time will not
-      unintentially overwrite each other.
+      unintentionally overwrite each other.
     type: "object"
     properties:
       Index:
@@ -1975,11 +1975,39 @@ definitions:
     description: "User modifiable task configuration."
     type: "object"
     properties:
+      PluginSpec:
+        type: "object"
+        description: "Invalid when specified with `ContainerSpec`."
+        properties:
+          Name:
+            description: "The name or 'alias' to use for the plugin."
+            type: "string"
+          Remote:
+            description: "The plugin image reference to use."
+            type: "string"
+          Disabled:
+            description: "Disable the plugin once scheduled."
+            type: "boolean"
+          PluginPrivilege:
+            type: "array"
+            items:
+              description: "Describes a permission accepted by the user upon installing the plugin."
+              type: "object"
+              properties:
+                Name:
+                  type: "string"
+                Description:
+                  type: "string"
+                Value:
+                  type: "array"
+                  items:
+                    type: "string"
       ContainerSpec:
         type: "object"
+        description: "Invalid when specified with `PluginSpec`."
         properties:
           Image:
-            description: "The image name to use for the container."
+            description: "The image name to use for the container"
             type: "string"
           Labels:
             description: "User-defined key/value data."
@@ -5634,15 +5662,23 @@ paths:
 
         Various objects within Docker report events when something happens to them.
 
-        Containers report these events: `attach, commit, copy, create, destroy, detach, die, exec_create, exec_detach, exec_start, export, health_status, kill, oom, pause, rename, resize, restart, start, stop, top, unpause, update`
+        Containers report these events: `attach`, `commit`, `copy`, `create`, `destroy`, `detach`, `die`, `exec_create`, `exec_detach`, `exec_start`, `export`, `health_status`, `kill`, `oom`, `pause`, `rename`, `resize`, `restart`, `start`, `stop`, `top`, `unpause`, and `update`
 
-        Images report these events: `delete, import, load, pull, push, save, tag, untag`
+        Images report these events: `delete`, `import`, `load`, `pull`, `push`, `save`, `tag`, and `untag`
 
-        Volumes report these events: `create, mount, unmount, destroy`
+        Volumes report these events: `create`, `mount`, `unmount`, and `destroy`
 
-        Networks report these events: `create, connect, disconnect, destroy`
+        Networks report these events: `create`, `connect`, `disconnect`, `destroy`, `update`, and `remove`
 
         The Docker daemon reports these events: `reload`
+
+        Services report these events: `create`, `update`, and `remove`
+
+        Nodes report these events: `create`, `update`, and `remove`
+
+        Secrets report these events: `create`, `update`, and `remove`
+
+        Configs report these events: `create`, `update`, and `remove`
 
       operationId: "SystemEvents"
       produces:
@@ -5717,7 +5753,8 @@ paths:
             - `label=<string>` image or container label
             - `network=<string>` network name or ID
             - `plugin`=<string> plugin name or ID
-            - `type=<string>` object to filter by, one of `container`, `image`, `volume`, `network`, or `daemon`
+            - `scope`＝<string> local or swarm
+            - `type=<string>` object to filter by, one of `container`, `image`, `volume`, `network`, `daemon`, `plugin`, `node`, `service` or `secret`
             - `volume=<string>` volume name or ID
           type: "string"
       tags: ["System"]
@@ -7394,6 +7431,16 @@ paths:
               AdvertiseAddr:
                 description: "Externally reachable address advertised to other nodes. This can either be an address/port combination in the form `192.168.1.1:4567`, or an interface followed by a port number, like `eth0:4567`. If the port number is omitted, the port number from the listen address is used. If `AdvertiseAddr` is not specified, it will be automatically detected when possible."
                 type: "string"
+              DataPathAddr:
+                description: |
+                  Address or interface to use for data path traffic (format: `<ip|interface>`), for example,  `192.168.1.1`,
+                  or an interface, like `eth0`. If `DataPathAddr` is unspecified, the same address as `AdvertiseAddr`
+                  is used.
+
+                  The `DataPathAddr` specifies the address that global scope network drivers will publish towards other
+                  nodes in order to reach the containers running on this node. Using this parameter it is possible to
+                  separate the container data traffic from the management traffic of the cluster.
+                type: "string"
               ForceNewCluster:
                 description: "Force creation of a new swarm."
                 type: "boolean"
@@ -7442,6 +7489,17 @@ paths:
                 type: "string"
               AdvertiseAddr:
                 description: "Externally reachable address advertised to other nodes. This can either be an address/port combination in the form `192.168.1.1:4567`, or an interface followed by a port number, like `eth0:4567`. If the port number is omitted, the port number from the listen address is used. If `AdvertiseAddr` is not specified, it will be automatically detected when possible."
+                type: "string"
+              DataPathAddr:
+                description: |
+                  Address or interface to use for data path traffic (format: `<ip|interface>`), for example,  `192.168.1.1`,
+                  or an interface, like `eth0`. If `DataPathAddr` is unspecified, the same address as `AdvertiseAddr`
+                  is used.
+
+                  The `DataPathAddr` specifies the address that global scope network drivers will publish towards other
+                  nodes in order to reach the containers running on this node. Using this parameter it is possible to
+                  separate the container data traffic from the management traffic of the cluster.
+
                 type: "string"
               RemoteAddrs:
                 description: "Addresses of manager nodes already participating in the swarm."

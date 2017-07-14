@@ -22,6 +22,7 @@ import (
 	"github.com/docker/docker/pkg/authorization"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/mount"
+	"github.com/docker/docker/pkg/pubsub"
 	"github.com/docker/docker/pkg/system"
 	"github.com/docker/docker/plugin/v2"
 	"github.com/docker/docker/registry"
@@ -63,6 +64,7 @@ type Manager struct {
 	cMap             map[*v2.Plugin]*controller
 	containerdClient libcontainerd.Client
 	blobStore        *basicBlobStore
+	publisher        *pubsub.Publisher
 }
 
 // controller represents the manager's control on a plugin.
@@ -117,6 +119,8 @@ func NewManager(config ManagerConfig) (*Manager, error) {
 	if err := manager.reload(); err != nil {
 		return nil, errors.Wrap(err, "failed to restore plugins")
 	}
+
+	manager.publisher = pubsub.NewPublisher(0, 0)
 	return manager, nil
 }
 
@@ -163,6 +167,19 @@ func (pm *Manager) StateChanged(id string, e libcontainerd.StateInfo) error {
 	return nil
 }
 
+func handleLoadError(err error, id string) {
+	if err == nil {
+		return
+	}
+	logger := logrus.WithError(err).WithField("id", id)
+	if os.IsNotExist(errors.Cause(err)) {
+		// Likely some error while removing on an older version of docker
+		logger.Warn("missing plugin config, skipping: this may be caused due to a failed remove and requires manual cleanup.")
+		return
+	}
+	logger.Error("error loading plugin, skipping")
+}
+
 func (pm *Manager) reload() error { // todo: restore
 	dir, err := ioutil.ReadDir(pm.config.Root)
 	if err != nil {
@@ -173,9 +190,17 @@ func (pm *Manager) reload() error { // todo: restore
 		if validFullID.MatchString(v.Name()) {
 			p, err := pm.loadPlugin(v.Name())
 			if err != nil {
-				return err
+				handleLoadError(err, v.Name())
+				continue
 			}
 			plugins[p.GetID()] = p
+		} else {
+			if validFullID.MatchString(strings.TrimSuffix(v.Name(), "-removing")) {
+				// There was likely some error while removing this plugin, let's try to remove again here
+				if err := system.EnsureRemoveAll(v.Name()); err != nil {
+					logrus.WithError(err).WithField("id", v.Name()).Warn("error while attempting to clean up previously removed plugin")
+				}
+			}
 		}
 	}
 
@@ -247,6 +272,11 @@ func (pm *Manager) reload() error { // todo: restore
 	return nil
 }
 
+// Get looks up the requested plugin in the store.
+func (pm *Manager) Get(idOrName string) (*v2.Plugin, error) {
+	return pm.config.Store.GetV2Plugin(idOrName)
+}
+
 func (pm *Manager) loadPlugin(id string) (*v2.Plugin, error) {
 	p := filepath.Join(pm.config.Root, id, configFileName)
 	dt, err := ioutil.ReadFile(p)
@@ -271,7 +301,7 @@ func (pm *Manager) save(p *v2.Plugin) error {
 	return nil
 }
 
-// GC cleans up unrefrenced blobs. This is recommended to run in a goroutine
+// GC cleans up unreferenced blobs. This is recommended to run in a goroutine
 func (pm *Manager) GC() {
 	pm.muGC.Lock()
 	defer pm.muGC.Unlock()

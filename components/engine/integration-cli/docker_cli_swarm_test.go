@@ -4,7 +4,9 @@ package main
 
 import (
 	"bytes"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -992,32 +994,35 @@ func getNodeStatus(c *check.C, d *daemon.Swarm) swarm.LocalNodeState {
 	return info.LocalNodeState
 }
 
-func checkSwarmLockedToUnlocked(c *check.C, d *daemon.Swarm, unlockKey string) {
-	d.Restart(c)
-	status := getNodeStatus(c, d)
-	if status == swarm.LocalNodeStateLocked {
-		// it must not have updated to be unlocked in time - unlock, wait 3 seconds, and try again
-		cmd := d.Command("swarm", "unlock")
-		cmd.Stdin = bytes.NewBufferString(unlockKey)
-		icmd.RunCmd(cmd).Assert(c, icmd.Success)
+func checkKeyIsEncrypted(d *daemon.Swarm) func(*check.C) (interface{}, check.CommentInterface) {
+	return func(c *check.C) (interface{}, check.CommentInterface) {
+		keyBytes, err := ioutil.ReadFile(filepath.Join(d.Folder, "root", "swarm", "certificates", "swarm-node.key"))
+		if err != nil {
+			return fmt.Errorf("error reading key: %v", err), nil
+		}
 
-		c.Assert(getNodeStatus(c, d), checker.Equals, swarm.LocalNodeStateActive)
+		keyBlock, _ := pem.Decode(keyBytes)
+		if keyBlock == nil {
+			return fmt.Errorf("invalid PEM-encoded private key"), nil
+		}
 
-		time.Sleep(3 * time.Second)
-		d.Restart(c)
+		return x509.IsEncryptedPEMBlock(keyBlock), nil
 	}
+}
 
+func checkSwarmLockedToUnlocked(c *check.C, d *daemon.Swarm, unlockKey string) {
+	// Wait for the PEM file to become unencrypted
+	waitAndAssert(c, defaultReconciliationTimeout, checkKeyIsEncrypted(d), checker.Equals, false)
+
+	d.Restart(c)
 	c.Assert(getNodeStatus(c, d), checker.Equals, swarm.LocalNodeStateActive)
 }
 
 func checkSwarmUnlockedToLocked(c *check.C, d *daemon.Swarm) {
+	// Wait for the PEM file to become encrypted
+	waitAndAssert(c, defaultReconciliationTimeout, checkKeyIsEncrypted(d), checker.Equals, true)
+
 	d.Restart(c)
-	status := getNodeStatus(c, d)
-	if status == swarm.LocalNodeStateActive {
-		// it must not have updated to be unlocked in time - wait 3 seconds, and try again
-		time.Sleep(3 * time.Second)
-		d.Restart(c)
-	}
 	c.Assert(getNodeStatus(c, d), checker.Equals, swarm.LocalNodeStateLocked)
 }
 
@@ -1887,7 +1892,7 @@ func (s *DockerSwarmSuite) TestNetworkInspectWithDuplicateNames(c *check.C) {
 	out, err = d.Cmd("network", "rm", n2.ID)
 	c.Assert(err, checker.IsNil, check.Commentf(out))
 
-	// Dupliates with name but with different driver
+	// Duplicates with name but with different driver
 	networkCreateRequest.NetworkCreate.Driver = "overlay"
 
 	status, body, err = d.SockRequest("POST", "/networks/create", networkCreateRequest)
@@ -2202,4 +2207,24 @@ func (s *DockerSwarmSuite) TestSwarmClusterEventsSecret(c *check.C) {
 	d.DeleteSecret(c, id)
 	// filtered by secret
 	waitForEvent(c, d, t1, "-f type=secret", "secret remove "+id, defaultRetryCount)
+}
+
+func (s *DockerSwarmSuite) TestSwarmClusterEventsConfig(c *check.C) {
+	d := s.AddDaemon(c, true, true)
+
+	testName := "test_config"
+	id := d.CreateConfig(c, swarm.ConfigSpec{
+		Annotations: swarm.Annotations{
+			Name: testName,
+		},
+		Data: []byte("TESTINGDATA"),
+	})
+	c.Assert(id, checker.Not(checker.Equals), "", check.Commentf("configs: %s", id))
+
+	waitForEvent(c, d, "0", "-f scope=swarm", "config create "+id, defaultRetryCount)
+
+	t1 := daemonUnixTime(c)
+	d.DeleteConfig(c, id)
+	// filtered by config
+	waitForEvent(c, d, t1, "-f type=config", "config remove "+id, defaultRetryCount)
 }

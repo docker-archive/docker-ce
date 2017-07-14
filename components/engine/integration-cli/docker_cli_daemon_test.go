@@ -5,6 +5,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,13 +19,15 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"crypto/tls"
 	"crypto/x509"
 
 	"github.com/cloudflare/cfssl/helpers"
+	"github.com/docker/docker/api"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/integration-cli/checker"
 	"github.com/docker/docker/integration-cli/cli"
 	"github.com/docker/docker/integration-cli/daemon"
@@ -38,6 +41,7 @@ import (
 	"github.com/docker/libtrust"
 	"github.com/go-check/check"
 	"github.com/kr/pty"
+	"golang.org/x/sys/unix"
 )
 
 // TestLegacyDaemonCommand test starting docker daemon using "deprecated" docker daemon
@@ -965,7 +969,7 @@ func (s *DockerDaemonSuite) TestDaemonUlimitDefaults(c *check.C) {
 		c.Fatalf("expected `ulimit -n` to be `42`, got: %s", nofile)
 	}
 	if nproc != "2048" {
-		c.Fatalf("exepcted `ulimit -p` to be 2048, got: %s", nproc)
+		c.Fatalf("expected `ulimit -p` to be 2048, got: %s", nproc)
 	}
 
 	// Now restart daemon with a new default
@@ -987,7 +991,7 @@ func (s *DockerDaemonSuite) TestDaemonUlimitDefaults(c *check.C) {
 		c.Fatalf("expected `ulimit -n` to be `43`, got: %s", nofile)
 	}
 	if nproc != "2048" {
-		c.Fatalf("exepcted `ulimit -p` to be 2048, got: %s", nproc)
+		c.Fatalf("expected `ulimit -p` to be 2048, got: %s", nproc)
 	}
 }
 
@@ -1408,7 +1412,7 @@ func (s *DockerDaemonSuite) TestDaemonRestartWithSocketAsVolume(c *check.C) {
 }
 
 // os.Kill should kill daemon ungracefully, leaving behind container mounts.
-// A subsequent daemon restart shoud clean up said mounts.
+// A subsequent daemon restart should clean up said mounts.
 func (s *DockerDaemonSuite) TestCleanupMountsAfterDaemonAndContainerKill(c *check.C) {
 	d := daemon.New(c, dockerBinary, dockerdBinary, daemon.Config{
 		Experimental: testEnv.ExperimentalDaemon(),
@@ -2305,8 +2309,8 @@ func (s *DockerDaemonSuite) TestDaemonMaxConcurrencyWithConfigFile(c *check.C) {
 	fmt.Fprintf(configFile, "%s", daemonConfig)
 	configFile.Close()
 
-	c.Assert(s.d.Signal(syscall.SIGHUP), checker.IsNil)
-	// syscall.Kill(s.d.cmd.Process.Pid, syscall.SIGHUP)
+	c.Assert(s.d.Signal(unix.SIGHUP), checker.IsNil)
+	// unix.Kill(s.d.cmd.Process.Pid, unix.SIGHUP)
 
 	time.Sleep(3 * time.Second)
 
@@ -2346,8 +2350,8 @@ func (s *DockerDaemonSuite) TestDaemonMaxConcurrencyWithConfigFileReload(c *chec
 	fmt.Fprintf(configFile, "%s", daemonConfig)
 	configFile.Close()
 
-	c.Assert(s.d.Signal(syscall.SIGHUP), checker.IsNil)
-	// syscall.Kill(s.d.cmd.Process.Pid, syscall.SIGHUP)
+	c.Assert(s.d.Signal(unix.SIGHUP), checker.IsNil)
+	// unix.Kill(s.d.cmd.Process.Pid, unix.SIGHUP)
 
 	time.Sleep(3 * time.Second)
 
@@ -2364,7 +2368,7 @@ func (s *DockerDaemonSuite) TestDaemonMaxConcurrencyWithConfigFileReload(c *chec
 	fmt.Fprintf(configFile, "%s", daemonConfig)
 	configFile.Close()
 
-	c.Assert(s.d.Signal(syscall.SIGHUP), checker.IsNil)
+	c.Assert(s.d.Signal(unix.SIGHUP), checker.IsNil)
 
 	time.Sleep(3 * time.Second)
 
@@ -2451,7 +2455,7 @@ func (s *DockerDaemonSuite) TestRunWithRuntimeFromConfigFile(c *check.C) {
 }
 `
 	ioutil.WriteFile(configName, []byte(config), 0644)
-	c.Assert(s.d.Signal(syscall.SIGHUP), checker.IsNil)
+	c.Assert(s.d.Signal(unix.SIGHUP), checker.IsNil)
 	// Give daemon time to reload config
 	<-time.After(1 * time.Second)
 
@@ -2480,7 +2484,7 @@ func (s *DockerDaemonSuite) TestRunWithRuntimeFromConfigFile(c *check.C) {
 }
 `
 	ioutil.WriteFile(configName, []byte(config), 0644)
-	c.Assert(s.d.Signal(syscall.SIGHUP), checker.IsNil)
+	c.Assert(s.d.Signal(unix.SIGHUP), checker.IsNil)
 	// Give daemon time to reload config
 	<-time.After(1 * time.Second)
 
@@ -2506,7 +2510,7 @@ func (s *DockerDaemonSuite) TestRunWithRuntimeFromConfigFile(c *check.C) {
 }
 `
 	ioutil.WriteFile(configName, []byte(config), 0644)
-	c.Assert(s.d.Signal(syscall.SIGHUP), checker.IsNil)
+	c.Assert(s.d.Signal(unix.SIGHUP), checker.IsNil)
 	// Give daemon time to reload config
 	<-time.After(1 * time.Second)
 
@@ -2758,7 +2762,7 @@ func (s *DockerDaemonSuite) TestDaemonShutdownTimeout(c *check.C) {
 	_, err := s.d.Cmd("run", "-d", "busybox", "top")
 	c.Assert(err, check.IsNil)
 
-	c.Assert(s.d.Signal(syscall.SIGINT), checker.IsNil)
+	c.Assert(s.d.Signal(unix.SIGINT), checker.IsNil)
 
 	select {
 	case <-s.d.Wait:
@@ -2792,7 +2796,7 @@ func (s *DockerDaemonSuite) TestDaemonShutdownTimeoutWithConfigFile(c *check.C) 
 	fmt.Fprintf(configFile, "%s", daemonConfig)
 	configFile.Close()
 
-	c.Assert(s.d.Signal(syscall.SIGHUP), checker.IsNil)
+	c.Assert(s.d.Signal(unix.SIGHUP), checker.IsNil)
 
 	select {
 	case <-s.d.Wait:
@@ -2893,7 +2897,7 @@ func (s *DockerDaemonSuite) TestRestartPolicyWithLiveRestore(c *check.C) {
 	pidint, err := strconv.Atoi(strings.TrimSpace(pid))
 	c.Assert(err, check.IsNil)
 	c.Assert(pidint, checker.GreaterThan, 0)
-	c.Assert(syscall.Kill(pidint, syscall.SIGKILL), check.IsNil)
+	c.Assert(unix.Kill(pidint, unix.SIGKILL), check.IsNil)
 
 	ticker := time.NewTicker(50 * time.Millisecond)
 	timeout := time.After(10 * time.Second)
@@ -2979,4 +2983,46 @@ func (s *DockerDaemonSuite) TestShmSizeReload(c *check.C) {
 	out, err = s.d.Cmd("inspect", "--format", "{{.HostConfig.ShmSize}}", name)
 	c.Assert(err, check.IsNil, check.Commentf("Output: %s", out))
 	c.Assert(strings.TrimSpace(out), check.Equals, fmt.Sprintf("%v", size))
+}
+
+// TestFailedPluginRemove makes sure that a failed plugin remove does not block
+// the daemon from starting
+func (s *DockerDaemonSuite) TestFailedPluginRemove(c *check.C) {
+	testRequires(c, DaemonIsLinux, IsAmd64, SameHostDaemon)
+	d := daemon.New(c, dockerBinary, dockerdBinary, daemon.Config{})
+	d.Start(c)
+	cli, err := client.NewClient(d.Sock(), api.DefaultVersion, nil, nil)
+	c.Assert(err, checker.IsNil)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+
+	name := "test-plugin-rm-fail"
+	out, err := cli.PluginInstall(ctx, name, types.PluginInstallOptions{
+		Disabled:             true,
+		AcceptAllPermissions: true,
+		RemoteRef:            "cpuguy83/docker-logdriver-test",
+	})
+	c.Assert(err, checker.IsNil)
+	defer out.Close()
+	io.Copy(ioutil.Discard, out)
+
+	ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	p, _, err := cli.PluginInspectWithRaw(ctx, name)
+	c.Assert(err, checker.IsNil)
+
+	// simulate a bad/partial removal by removing the plugin config.
+	configPath := filepath.Join(d.Root, "plugins", p.ID, "config.json")
+	c.Assert(os.Remove(configPath), checker.IsNil)
+
+	d.Restart(c)
+	ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	_, err = cli.Ping(ctx)
+	c.Assert(err, checker.IsNil)
+
+	_, _, err = cli.PluginInspectWithRaw(ctx, name)
+	// plugin should be gone since the config.json is gone
+	c.Assert(err, checker.NotNil)
 }

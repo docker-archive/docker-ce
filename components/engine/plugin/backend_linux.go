@@ -13,7 +13,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
@@ -32,6 +31,7 @@ import (
 	"github.com/docker/docker/pkg/mount"
 	"github.com/docker/docker/pkg/pools"
 	"github.com/docker/docker/pkg/progress"
+	"github.com/docker/docker/pkg/system"
 	"github.com/docker/docker/plugin/v2"
 	refstore "github.com/docker/docker/reference"
 	"github.com/opencontainers/go-digest"
@@ -67,6 +67,7 @@ func (pm *Manager) Disable(refOrID string, config *types.PluginDisableConfig) er
 	if err := pm.disable(p, c); err != nil {
 		return err
 	}
+	pm.publisher.Publish(EventDisable{Plugin: p.PluginObj})
 	pm.config.LogPluginEvent(p.GetID(), refOrID, "disable")
 	return nil
 }
@@ -82,6 +83,7 @@ func (pm *Manager) Enable(refOrID string, config *types.PluginEnableConfig) erro
 	if err := pm.enable(p, c, false); err != nil {
 		return err
 	}
+	pm.publisher.Publish(EventEnable{Plugin: p.PluginObj})
 	pm.config.LogPluginEvent(p.GetID(), refOrID, "enable")
 	return nil
 }
@@ -296,7 +298,7 @@ func (pm *Manager) Upgrade(ctx context.Context, ref reference.Named, name string
 }
 
 // Pull pulls a plugin, check if the correct privileges are provided and install the plugin.
-func (pm *Manager) Pull(ctx context.Context, ref reference.Named, name string, metaHeader http.Header, authConfig *types.AuthConfig, privileges types.PluginPrivileges, outStream io.Writer) (err error) {
+func (pm *Manager) Pull(ctx context.Context, ref reference.Named, name string, metaHeader http.Header, authConfig *types.AuthConfig, privileges types.PluginPrivileges, outStream io.Writer, opts ...CreateOpt) (err error) {
 	pm.muGC.RLock()
 	defer pm.muGC.RUnlock()
 
@@ -340,12 +342,19 @@ func (pm *Manager) Pull(ctx context.Context, ref reference.Named, name string, m
 		return err
 	}
 
-	p, err := pm.createPlugin(name, dm.configDigest, dm.blobs, tmpRootFSDir, &privileges)
+	refOpt := func(p *v2.Plugin) {
+		p.PluginObj.PluginReference = ref.String()
+	}
+	optsList := make([]CreateOpt, 0, len(opts)+1)
+	optsList = append(optsList, opts...)
+	optsList = append(optsList, refOpt)
+
+	p, err := pm.createPlugin(name, dm.configDigest, dm.blobs, tmpRootFSDir, &privileges, optsList...)
 	if err != nil {
 		return err
 	}
-	p.PluginObj.PluginReference = ref.String()
 
+	pm.publisher.Publish(EventCreate{Plugin: p.PluginObj})
 	return nil
 }
 
@@ -624,15 +633,23 @@ func (pm *Manager) Remove(name string, config *types.PluginRmConfig) error {
 	}()
 
 	id := p.GetID()
-	pm.config.Store.Remove(p)
 	pluginDir := filepath.Join(pm.config.Root, id)
-	if err := recursiveUnmount(pluginDir); err != nil {
-		logrus.WithField("dir", pluginDir).WithField("id", id).Warn(err)
+
+	if err := mount.RecursiveUnmount(pluginDir); err != nil {
+		return errors.Wrap(err, "error unmounting plugin data")
 	}
-	if err := os.RemoveAll(pluginDir); err != nil {
-		logrus.Warnf("unable to remove %q from plugin remove: %v", pluginDir, err)
+
+	removeDir := pluginDir + "-removing"
+	if err := os.Rename(pluginDir, removeDir); err != nil {
+		return errors.Wrap(err, "error performing atomic remove of plugin dir")
 	}
+
+	if err := system.EnsureRemoveAll(removeDir); err != nil {
+		return errors.Wrap(err, "error removing plugin dir")
+	}
+	pm.config.Store.Remove(p)
 	pm.config.LogPluginEvent(id, name, "remove")
+	pm.publisher.Publish(EventRemove{Plugin: p.PluginObj})
 	return nil
 }
 
@@ -650,27 +667,6 @@ func getMounts(root string) ([]string, error) {
 	}
 
 	return mounts, nil
-}
-
-func recursiveUnmount(root string) error {
-	mounts, err := getMounts(root)
-	if err != nil {
-		return err
-	}
-
-	// sort in reverse-lexicographic order so the root mount will always be last
-	sort.Sort(sort.Reverse(sort.StringSlice(mounts)))
-
-	for i, m := range mounts {
-		if err := mount.Unmount(m); err != nil {
-			if i == len(mounts)-1 {
-				return errors.Wrapf(err, "error performing recursive unmount on %s", root)
-			}
-			logrus.WithError(err).WithField("mountpoint", m).Warn("could not unmount")
-		}
-	}
-
-	return nil
 }
 
 // Set sets plugin args
@@ -785,6 +781,7 @@ func (pm *Manager) CreateFromContext(ctx context.Context, tarCtx io.ReadCloser, 
 	}
 	p.PluginObj.PluginReference = name
 
+	pm.publisher.Publish(EventCreate{Plugin: p.PluginObj})
 	pm.config.LogPluginEvent(p.PluginObj.ID, name, "create")
 
 	return nil

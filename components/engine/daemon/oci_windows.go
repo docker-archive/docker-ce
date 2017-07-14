@@ -1,14 +1,13 @@
 package daemon
 
 import (
-	"syscall"
-
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/container"
 	"github.com/docker/docker/oci"
 	"github.com/docker/docker/pkg/sysinfo"
 	"github.com/docker/docker/pkg/system"
 	"github.com/opencontainers/runtime-spec/specs-go"
+	"golang.org/x/sys/windows"
 )
 
 func (daemon *Daemon) createSpec(c *container.Container) (*specs.Spec, error) {
@@ -55,7 +54,7 @@ func (daemon *Daemon) createSpec(c *container.Container) (*specs.Spec, error) {
 	}
 
 	// If the container has not been started, and has configs or secrets
-	// secrets, create symlinks to each confing and secret. If it has been
+	// secrets, create symlinks to each config and secret. If it has been
 	// started before, the symlinks should have already been created. Also, it
 	// is important to not mount a Hyper-V  container that has been started
 	// before, to protect the host from the container; for example, from
@@ -196,7 +195,7 @@ func (daemon *Daemon) createSpecLinuxFields(c *container.Container, s *specs.Spe
 func escapeArgs(args []string) []string {
 	escapedArgs := make([]string, len(args))
 	for i, a := range args {
-		escapedArgs[i] = syscall.EscapeArg(a)
+		escapedArgs[i] = windows.EscapeArg(a)
 	}
 	return escapedArgs
 }
