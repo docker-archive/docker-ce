@@ -1,12 +1,12 @@
 SHELL:=/bin/bash
-ALPINE:=$(shell $(CURDIR)/../detect_alpine_image)
+ALPINE_IMG:=$(shell $(CURDIR)/../detect_alpine_image)
 ARCH:=$(shell uname -m)
 ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 GITCOMMIT?=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=$(shell cat $(ENGINE_DIR)/VERSION)
 DOCKER_EXPERIMENTAL:=0
-CHOWN:=docker run --rm -i -v $(CURDIR):/v -w /v $(ALPINE) chown
+CHOWN:=docker run --rm -v $(CURDIR):/v -w /v $(ALPINE_IMG) chown
 
 .PHONY: help clean deb ubuntu debian ubuntu-xenial ubuntu-trusty ubuntu-yakkety ubuntu-zesty debian-jessie debian-stretch debian-wheezy
 
