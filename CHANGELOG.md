@@ -5,6 +5,49 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
+## 17.06.1-ce (2017-07-XX)
+
+### Builder
+
+* Fix a regression, where `ADD` from remote URL's extracted archives [#89](https://github.com/docker/docker-ce/pull/89)
+* Fix handling of remote "git@" notation [#100](https://github.com/docker/docker-ce/pull/100)
+
+### Plugins
+
+* Make plugin removes more resilient to failure [#91](https://github.com/docker/docker-ce/pull/91)
+
+### Logging
+
+* Fix stderr logging for journald and syslog [#95](https://github.com/docker/docker-ce/pull/95)
+* Fix log readers can block writes indefinitely [#98](https://github.com/docker/docker-ce/pull/98)
+
+### Runtime
+
+* Prevent a goroutine leak when healthcheck gets stopped [#90](https://github.com/docker/docker-ce/pull/90)
+* Do not error on relabel when relabel not supported [#92](https://github.com/docker/docker-ce/pull/92)
+* Limit max backoff delay to 2 seconds for GRPC connection [#94](https://github.com/docker/docker-ce/pull/94)
+* Fix issue preventing containers to run when memory cgroup was specified due to bug in certain kernels [#102](https://github.com/docker/docker-ce/pull/102)
+* Fix container not responding to SIGKILL when paused [#102](https://github.com/docker/docker-ce/pull/102)
+* Improve error message if an image for an incompatible OS is loaded [#108](https://github.com/docker/docker-ce/pull/108)
+* Fix a handle leak in go-winio [#112](https://github.com/docker/docker-ce/pull/112)
+
+### Client
+
+* Make pruning volumes optional when running `docker system prune`, and add a `--volumes` flag [#109](https://github.com/docker/docker-ce/pull/109)
+* Show progress of replicated tasks before they are assigned [#97](https://github.com/docker/docker-ce/pull/97)
+* Fix `docker wait` hanging if the container does not exist [#106](https://github.com/docker/docker-ce/pull/106)
+* If `docker swarm ca` is called without the `--rotate` flag, warn if other flags are passed [#110](https://github.com/docker/docker-ce/pull/110)
+* Fix API version negotiation not working if the daemon returns an error [#115](https://github.com/docker/docker-ce/pull/115)
+
+### Security
+
+* Redact secret data on "secret create" [#99](https://github.com/docker/docker-ce/pull/99)
+
+### Swarm Mode
+
+* Do not add duplicate platform information to service spec [#107](https://github.com/docker/docker-ce/pull/107)
+* Cluster update and memory issue fixes [#114](https://github.com/docker/docker-ce/pull/114)
+
 ## 17.06.0-ce (2017-06-19)
 
 **NOTE**: Docker 17.06 by default disables communication with legacy (v1) registries. If you
