@@ -7,23 +7,28 @@ import (
 
 	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/command/prune"
+	"github.com/docker/cli/cli/command/container"
+	"github.com/docker/cli/cli/command/image"
+	"github.com/docker/cli/cli/command/network"
+	"github.com/docker/cli/cli/command/volume"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types/versions"
 	units "github.com/docker/go-units"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
 
 type pruneOptions struct {
-	force        bool
-	all          bool
-	pruneVolumes bool
-	filter       opts.FilterOpt
+	force           bool
+	all             bool
+	pruneBuildCache bool
+	pruneVolumes    bool
+	filter          opts.FilterOpt
 }
 
-// NewPruneCommand creates a new cobra.Command for `docker prune`
-func NewPruneCommand(dockerCli command.Cli) *cobra.Command {
-	options := pruneOptions{filter: opts.NewFilterOpt()}
+// newPruneCommand creates a new cobra.Command for `docker prune`
+func newPruneCommand(dockerCli command.Cli) *cobra.Command {
+	options := pruneOptions{filter: opts.NewFilterOpt(), pruneBuildCache: true}
 
 	cmd := &cobra.Command{
 		Use:   "prune [OPTIONS]",
@@ -52,20 +57,38 @@ const confirmationTemplate = `WARNING! This will remove:
 {{- end }}
 Are you sure you want to continue?`
 
+// runBuildCachePrune executes a prune command for build cache
+func runBuildCachePrune(dockerCli command.Cli, _ opts.FilterOpt) (uint64, string, error) {
+	report, err := dockerCli.Client().BuildCachePrune(context.Background())
+	if err != nil {
+		return 0, "", err
+	}
+	return report.SpaceReclaimed, "", nil
+}
+
 func runPrune(dockerCli command.Cli, options pruneOptions) error {
+	if versions.LessThan(dockerCli.Client().ClientVersion(), "1.31") {
+		options.pruneBuildCache = false
+	}
 	if !options.force && !command.PromptForConfirmation(dockerCli.In(), dockerCli.Out(), confirmationMessage(options)) {
 		return nil
 	}
-
-	var spaceReclaimed uint64
+	imagePrune := func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error) {
+		return image.RunPrune(dockerCli, options.all, options.filter)
+	}
 	pruneFuncs := []func(dockerCli command.Cli, filter opts.FilterOpt) (uint64, string, error){
-		prune.RunContainerPrune,
-		prune.RunNetworkPrune,
+		container.RunPrune,
+		network.RunPrune,
 	}
 	if options.pruneVolumes {
-		pruneFuncs = append(pruneFuncs, prune.RunVolumePrune)
+		pruneFuncs = append(pruneFuncs, volume.RunPrune)
+	}
+	pruneFuncs = append(pruneFuncs, imagePrune)
+	if options.pruneBuildCache {
+		pruneFuncs = append(pruneFuncs, runBuildCachePrune)
 	}
 
+	var spaceReclaimed uint64
 	for _, pruneFn := range pruneFuncs {
 		spc, output, err := pruneFn(dockerCli, options.filter)
 		if err != nil {
@@ -76,21 +99,6 @@ func runPrune(dockerCli command.Cli, options pruneOptions) error {
 			fmt.Fprintln(dockerCli.Out(), output)
 		}
 	}
-
-	spc, output, err := prune.RunImagePrune(dockerCli, options.all, options.filter)
-	if err != nil {
-		return err
-	}
-	if spc > 0 {
-		spaceReclaimed += spc
-		fmt.Fprintln(dockerCli.Out(), output)
-	}
-
-	report, err := dockerCli.Client().BuildCachePrune(context.Background())
-	if err != nil {
-		return err
-	}
-	spaceReclaimed += report.SpaceReclaimed
 
 	fmt.Fprintln(dockerCli.Out(), "Total reclaimed space:", units.HumanSize(float64(spaceReclaimed)))
 
@@ -113,7 +121,9 @@ func confirmationMessage(options pruneOptions) string {
 	} else {
 		warnings = append(warnings, "all dangling images")
 	}
-	warnings = append(warnings, "all build cache")
+	if options.pruneBuildCache {
+		warnings = append(warnings, "all build cache")
+	}
 
 	var buffer bytes.Buffer
 	t.Execute(&buffer, &warnings)
