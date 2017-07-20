@@ -9,6 +9,8 @@ elif [ "$arch" = "armv7l" ]; then
     img="armhf/alpine"
 elif [ "$arch" = "s390x" ]; then
     img="s390x/alpine"
+elif [ "$arch" = "aarch64" ]; then
+    img="aarch64/alpine"
 else
     echo "Architecture $(arch) not supported"
     exit 1;
