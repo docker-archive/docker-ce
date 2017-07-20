@@ -6,8 +6,8 @@ ENV GO_VERSION 1.8.3
 RUN curl -fSL "https://golang.org/dl/go${GO_VERSION}.linux-s390x.tar.gz" | tar xzC /usr/local
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
-ENV DOCKER_BUILDTAGS apparmor pkcs11 selinux
-ENV RUNC_BUILDTAGS apparmor selinux
+ENV DOCKER_BUILDTAGS apparmor pkcs11 seccomp selinux
+ENV RUNC_BUILDTAGS apparmor seccomp selinux
 
 COPY common/ /root/build-deb/debian
 COPY build-deb /root/build-deb/build-deb
