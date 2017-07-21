@@ -19,7 +19,7 @@ clean: ## remove build artifacts
 
 deb: ubuntu debian raspbian ## build all deb packages
 
-ubuntu: ubuntu-zesty ubuntu-yakkety ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
+ubuntu: ubuntu-zesty ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
 
 debian: debian-stretch debian-wheezy debian-jessie ## build all debian deb packages
 
@@ -46,21 +46,6 @@ ubuntu-trusty: ## build ubuntu trusty deb packages
 		-v $(ENGINE_DIR):/engine \
 		-v $(CLI_DIR):/cli \
 		-v $(CURDIR)/systemd:/root/build-deb/systemd \
-		debbuild-$@/$(ARCH)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-ubuntu-yakkety: ## build ubuntu yakkety deb packages
-	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm -i \
-		-e VERSION=$(VERSION) \
-		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
-		-e PLUGIN_VERSION=$(PLUGIN_VERSION) \
-		-v $(CURDIR)/debbuild/$@:/build \
-		-v $(ENGINE_DIR):/engine \
-		-v $(PLUGIN_DIR):/plugin \
-		-v $(CLI_DIR):/cli \
-		-v $(CURDIR)/systemd:/root/build-deb/systemd \
-		-v $(COMMON_DIR):/root/build-deb/common \
 		debbuild-$@/$(ARCH)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
