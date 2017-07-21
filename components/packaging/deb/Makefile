@@ -12,7 +12,7 @@ PLUGIN_VERSION?=1.0.0.$(KERNEL)-$(ARCH)-test
 DOCKER_EXPERIMENTAL:=0
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v $(ALPINE_IMG) chown
 
-.PHONY: help clean deb ubuntu debian ubuntu-xenial ubuntu-trusty ubuntu-yakkety ubuntu-zesty debian-jessie debian-stretch debian-wheezy
+.PHONY: help clean deb ubuntu debian ubuntu-xenial ubuntu-trusty ubuntu-zesty debian-jessie debian-stretch debian-wheezy
 
 help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -23,7 +23,7 @@ clean: ## remove build artifacts
 
 deb: ubuntu debian ## build all deb packages
 
-ubuntu: ubuntu-zesty ubuntu-yakkety ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
+ubuntu: ubuntu-zesty ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
 
 debian: debian-stretch debian-wheezy debian-jessie ## build all debian deb packages
 
@@ -54,21 +54,6 @@ ubuntu-trusty: ## build ubuntu trusty deb packages
 		-e VERSION=$(VERSION) \
 		-e PLUGIN_VERSION=$(PLUGIN_VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
-		-v $(CURDIR)/debbuild/$@:/build \
-		-v $(ENGINE_DIR):/engine \
-		-v $(PLUGIN_DIR):/plugin \
-		-v $(CLI_DIR):/cli \
-		-v $(CURDIR)/systemd:/root/build-deb/systemd \
-		-v $(COMMON_DIR):/root/build-deb/common \
-		debbuild-$@/$(ARCH)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-ubuntu-yakkety: ## build ubuntu yakkety deb packages
-	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
-	docker run --rm -i \
-		-e VERSION=$(VERSION) \
-		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
-		-e PLUGIN_VERSION=$(PLUGIN_VERSION) \
 		-v $(CURDIR)/debbuild/$@:/build \
 		-v $(ENGINE_DIR):/engine \
 		-v $(PLUGIN_DIR):/plugin \
