@@ -6,6 +6,7 @@ Group: Tools/Docker
 License: ASL 2.0
 Source0: engine.tgz
 Source1: cli.tgz
+Source2: telemetry_%{_plugin_version}.tgz
 URL: https://www.docker.com
 Vendor: Docker
 Packager: Docker <support@docker.com>
@@ -34,6 +35,12 @@ Requires: device-mapper-libs >= 1.02.90-1
 Conflicts: docker
 Conflicts: docker-io
 Conflicts: docker-engine-cs
+Conflicts: docker-ee
+
+# Obsolete packages
+Obsoletes: docker-ce-selinux
+Obsoletes: docker-engine-selinux
+Obsoletes: docker-engine
 
 %description
 Docker is an open source project to build, ship and run any application as a
@@ -54,14 +61,15 @@ export DOCKER_GITCOMMIT=%{_gitcommit}
 mkdir -p /go/src/github.com/docker
 rm -f /go/src/github.com/docker/cli
 ln -s /root/rpmbuild/BUILD/src/cli /go/src/github.com/docker/cli
-pushd cli
-make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary # cli
+pushd /go/src/github.com/docker/cli
+make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
 popd
 pushd engine
 TMP_GOPATH="/go" hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini
 hack/make.sh dynbinary
 popd
-# ./man/md2man-all.sh runs outside the build container (if at all), since we don't have go-md2man here
+mkdir -p plugin
+printf '{"edition_type":"ce","edition_name":"%s","edition_version":"%s"}\n' "${DISTRO}" "%{_version}" > plugin/.plugin-metadata
 
 %check
 cli/build/docker -v
@@ -95,22 +103,22 @@ install -p -m 644 engine/contrib/udev/80-docker.rules $RPM_BUILD_ROOT/%{_sysconf
 install -d $RPM_BUILD_ROOT/etc/sysconfig
 install -d $RPM_BUILD_ROOT/%{_initddir}
 install -d $RPM_BUILD_ROOT/%{_unitdir}
-install -p -m 644 engine/contrib/init/systemd/docker.service.rpm $RPM_BUILD_ROOT/%{_unitdir}/docker.service
+install -p -m 644 /systemd/docker.service $RPM_BUILD_ROOT/%{_unitdir}/docker.service
 # add bash, zsh, and fish completions
 install -d $RPM_BUILD_ROOT/usr/share/bash-completion/completions
 install -d $RPM_BUILD_ROOT/usr/share/zsh/vendor-completions
 install -d $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d
-install -p -m 644 engine/contrib/completion/bash/docker $RPM_BUILD_ROOT/usr/share/bash-completion/completions/docker
-install -p -m 644 engine/contrib/completion/zsh/_docker $RPM_BUILD_ROOT/usr/share/zsh/vendor-completions/_docker
-install -p -m 644 engine/contrib/completion/fish/docker.fish $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d/docker.fish
+install -p -m 644 cli/contrib/completion/bash/docker $RPM_BUILD_ROOT/usr/share/bash-completion/completions/docker
+install -p -m 644 cli/contrib/completion/zsh/_docker $RPM_BUILD_ROOT/usr/share/zsh/vendor-completions/_docker
+install -p -m 644 cli/contrib/completion/fish/docker.fish $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d/docker.fish
 
 # install manpages
 install -d %{buildroot}%{_mandir}/man1
-#install -p -m 644 man/man1/*.1 $RPM_BUILD_ROOT/%{_mandir}/man1
+install -p -m 644 cli/man/man1/*.1 $RPM_BUILD_ROOT/%{_mandir}/man1
 install -d %{buildroot}%{_mandir}/man5
-#install -p -m 644 man/man5/*.5 $RPM_BUILD_ROOT/%{_mandir}/man5
+install -p -m 644 cli/man/man5/*.5 $RPM_BUILD_ROOT/%{_mandir}/man5
 install -d %{buildroot}%{_mandir}/man8
-#install -p -m 644 man/man8/*.8 $RPM_BUILD_ROOT/%{_mandir}/man8
+install -p -m 644 cli/man/man8/*.8 $RPM_BUILD_ROOT/%{_mandir}/man8
 
 # add vimfiles
 install -d $RPM_BUILD_ROOT/usr/share/vim/vimfiles/doc
@@ -124,9 +132,24 @@ install -p -m 644 engine/contrib/syntax/vim/syntax/dockerfile.vim $RPM_BUILD_ROO
 install -d $RPM_BUILD_ROOT/usr/share/nano
 install -p -m 644 engine/contrib/syntax/nano/Dockerfile.nanorc $RPM_BUILD_ROOT/usr/share/nano/Dockerfile.nanorc
 
+mkdir -p build-docs
+for engine_file in AUTHORS CHANGELOG.md CONTRIBUTING.md LICENSE MAINTAINERS NOTICE README.md; do
+    cp "engine/$engine_file" "build-docs/engine-$engine_file"
+done
+for cli_file in LICENSE MAINTAINERS NOTICE README.md; do
+    cp "cli/$cli_file" "build-docs/cli-$cli_file"
+done
+
+# add telemetry plugin
+install -d $RPM_BUILD_ROOT/var/lib/docker/plugins/tar
+install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT/var/lib/docker/plugins/tar
+install -p -m 644 plugin/.plugin-metadata $RPM_BUILD_ROOT/var/lib/docker/plugins/tar
+install -p -m 755 /common/load-telemetry-plugin $RPM_BUILD_ROOT/%{_bindir}/load-telemetry-plugin
+
 # list files owned by the package here
 %files
-%doc engine/AUTHORS engine/CHANGELOG.md engine/CONTRIBUTING.md engine/LICENSE engine/MAINTAINERS engine/NOTICE engine/README.md
+%doc build-docs/engine-AUTHORS build-docs/engine-CHANGELOG.md build-docs/engine-CONTRIBUTING.md build-docs/engine-LICENSE build-docs/engine-MAINTAINERS build-docs/engine-NOTICE build-docs/engine-README.md
+%doc build-docs/cli-LICENSE build-docs/cli-MAINTAINERS build-docs/cli-NOTICE build-docs/cli-README.md
 /%{_bindir}/docker
 /%{_bindir}/dockerd
 /%{_bindir}/docker-containerd
@@ -141,13 +164,30 @@ install -p -m 644 engine/contrib/syntax/nano/Dockerfile.nanorc $RPM_BUILD_ROOT/u
 /usr/share/zsh/vendor-completions/_docker
 /usr/share/fish/vendor_completions.d/docker.fish
 %doc
-#/%{_mandir}/man1/*
-#/%{_mandir}/man5/*
-#/%{_mandir}/man8/*
+/%{_mandir}/man1/*
+/%{_mandir}/man5/*
+/%{_mandir}/man8/*
 /usr/share/vim/vimfiles/doc/dockerfile.txt
 /usr/share/vim/vimfiles/ftdetect/dockerfile.vim
 /usr/share/vim/vimfiles/syntax/dockerfile.vim
 /usr/share/nano/Dockerfile.nanorc
+/var/lib/docker/plugins/tar/telemetry_%{_plugin_version}.tgz
+/var/lib/docker/plugins/tar/.plugin-metadata
+/usr/bin/load-telemetry-plugin
+
+%pre
+if [ $1 -gt 0 ] ; then
+    # package upgrade scenario, before new files are installed
+
+    # clear any old state
+    rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+
+    # check if docker service is running
+    if systemctl is-active docker > /dev/null 2>&1; then
+        systemctl stop docker > /dev/null 2>&1 || :
+        touch %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+    fi
+fi
 
 %post
 %systemd_post docker
@@ -161,7 +201,33 @@ fi
 %postun
 %systemd_postun_with_restart docker
 
+%posttrans
+if [ $1 -ge 0 ] ; then
+    # package upgrade scenario, after new files are installed
+
+    # check if docker was running before upgrade
+    if [ -f %{_localstatedir}/lib/rpm-state/docker-is-active ]; then
+        systemctl start docker > /dev/null 2>&1 || :
+        rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+    fi
+fi
+
 %changelog
 
-* Wed May 10 2017 <andrewhsu@docker.com> 17.06.0-dev
-- Initial RPM release
+* Wed Jun 21 2017 <eli.uriegas@docker.com> 17.06.0-ce
+- release docker-ce 17.06.0-ce
+
+* Mon Jun 19 2017 <eli.uriegas@docker.com> 17.06.0-ce-rc5
+- release docker-ce 17.06.0-ce-rc5
+
+* Thu Jun 15 2017 <andrewhsu@docker.com> 17.06.0-ce-rc4
+- release docker-ce 17.06.0-ce-rc4
+
+* Tue Jun 13 2017 <andrewhsu@docker.com> 17.06.0-ce-rc3
+- release docker-ce 17.06.0-ce-rc3
+
+* Wed Jun 07 2017 <andrewhsu@docker.com> 17.06.0-ce-rc2
+- release docker-ce 17.06.0-ce-rc2
+
+* Mon May 29 2017 <andrewhsu@docker.com> 17.06.0-ce-rc1
+- release docker-ce 17.06.0-ce-rc1
