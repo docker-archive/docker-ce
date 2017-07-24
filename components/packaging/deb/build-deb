@@ -53,7 +53,7 @@ EOF
 export DOCKER_GITCOMMIT=${DOCKER_GITCOMMIT-$($GIT_COMMAND rev-parse --short HEAD)}
 
 echo VERSION BBB $VERSION
-dpkg-buildpackage -v -uc -us -I.git
+dpkg-buildpackage -uc -us -I.git
 destination="/build"
 mkdir -p "$destination"
 mv -v /root/docker-ce* "$destination"
