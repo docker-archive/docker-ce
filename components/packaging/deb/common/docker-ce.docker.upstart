@@ -69,6 +69,4 @@ post-start script
 		done
 		echo "$DOCKER_SOCKET is up"
 	fi
-	# load metrics plugin (disabled by default)
-	/usr/bin/load-telemetry-plugin
 end script
