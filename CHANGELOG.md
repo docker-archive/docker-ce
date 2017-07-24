@@ -11,15 +11,28 @@ be found.
 
 * Fix a regression, where `ADD` from remote URL's extracted archives [#89](https://github.com/docker/docker-ce/pull/89)
 * Fix handling of remote "git@" notation [#100](https://github.com/docker/docker-ce/pull/100)
+* Fix copy `--from` conflict with force pull [#86](https://github.com/docker/docker-ce/pull/86)
 
-### Plugins
+### Client
 
-* Make plugin removes more resilient to failure [#91](https://github.com/docker/docker-ce/pull/91)
+* Make pruning volumes optional when running `docker system prune`, and add a `--volumes` flag [#109](https://github.com/docker/docker-ce/pull/109)
+* Show progress of replicated tasks before they are assigned [#97](https://github.com/docker/docker-ce/pull/97)
+* Fix `docker wait` hanging if the container does not exist [#106](https://github.com/docker/docker-ce/pull/106)
+* If `docker swarm ca` is called without the `--rotate` flag, warn if other flags are passed [#110](https://github.com/docker/docker-ce/pull/110)
+* Fix API version negotiation not working if the daemon returns an error [#115](https://github.com/docker/docker-ce/pull/115)
 
 ### Logging
 
 * Fix stderr logging for journald and syslog [#95](https://github.com/docker/docker-ce/pull/95)
 * Fix log readers can block writes indefinitely [#98](https://github.com/docker/docker-ce/pull/98)
+
+### Networking
+
+* Fixed issue with driver options not received by network drivers [#127](https://github.com/docker/docker-ce/pull/127)
+
+### Plugins
+
+* Make plugin removes more resilient to failure [#91](https://github.com/docker/docker-ce/pull/91)
 
 ### Runtime
 
@@ -30,14 +43,9 @@ be found.
 * Fix container not responding to SIGKILL when paused [#102](https://github.com/docker/docker-ce/pull/102)
 * Improve error message if an image for an incompatible OS is loaded [#108](https://github.com/docker/docker-ce/pull/108)
 * Fix a handle leak in go-winio [#112](https://github.com/docker/docker-ce/pull/112)
-
-### Client
-
-* Make pruning volumes optional when running `docker system prune`, and add a `--volumes` flag [#109](https://github.com/docker/docker-ce/pull/109)
-* Show progress of replicated tasks before they are assigned [#97](https://github.com/docker/docker-ce/pull/97)
-* Fix `docker wait` hanging if the container does not exist [#106](https://github.com/docker/docker-ce/pull/106)
-* If `docker swarm ca` is called without the `--rotate` flag, warn if other flags are passed [#110](https://github.com/docker/docker-ce/pull/110)
-* Fix API version negotiation not working if the daemon returns an error [#115](https://github.com/docker/docker-ce/pull/115)
+* Fix issue upon upgrade, preventing docker from showing running containers when `--live-restore` is enabled [#117](https://github.com/docker/docker-ce/pull/117)
+* Fix bug where services using secrets would fail to start on daemons using the `userns-remap` feature [#121](https://github.com/docker/docker-ce/pull/121)
+* Fix error handling with not-exist errors on remove [#142](https://github.com/docker/docker-ce/pull/142)
 
 ### Security
 
