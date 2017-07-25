@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -x
+set -e
 # I want to rip this install-binaries script out so badly
 cd engine
 TMP_GOPATH="/go" bash hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini
@@ -21,11 +22,11 @@ tilde='~' # ouch Bash 4.2 vs 4.3, you keel me
 GIT_COMMAND="git --git-dir=/root/build-deb/engine/.git --work-tree=/root/build-deb/engine/"
 debVersion="${VERSION//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
 # if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
-if [[ "$VERSION" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; then
-    gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
-    gitDate="$(date --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
-    gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
-    gitVersion="git${gitDate}.0.${gitCommit}"
+if [[ "$VERSION" == *-dev ]]; then
+    # TODO: Re-introduce git commit time into version number
+    todaysDate="$(date +'%Y%m%d.%H%M%S')"
+    # We're guaranteed to have DOCKER_GITCOMMIT in the env
+    gitVersion="git${todaysDate}.0.${DOCKER_GITCOMMIT}"
     # gitVersion is now something like 'git20150128.112847.0.17e840a'
     debVersion="$debVersion~$gitVersion"
 
@@ -53,7 +54,7 @@ EOF
 export DOCKER_GITCOMMIT=${DOCKER_GITCOMMIT-$($GIT_COMMAND rev-parse --short HEAD)}
 
 echo VERSION BBB $VERSION
-dpkg-buildpackage -v -uc -us -I.git
+dpkg-buildpackage -uc -us -I.git
 destination="/build"
 mkdir -p "$destination"
 mv -v /root/docker-ce* "$destination"
