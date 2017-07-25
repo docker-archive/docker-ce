@@ -31,6 +31,9 @@ keywords: "API, Docker, rcli, REST, documentation"
 * `POST /containers/(name)/wait` now accepts a `condition` query parameter to indicate which state change condition to wait for. Also, response headers are now returned immediately to acknowledge that the server has registered a wait callback for the client.
 * `POST /swarm/init` now accepts a `DataPathAddr` property to set the IP-address or network interface to use for data traffic
 * `POST /swarm/join` now accepts a `DataPathAddr` property to set the IP-address or network interface to use for data traffic
+* `GET /events` now supports service, node and secret events which are emmited when users create, update and remove service, node and secret 
+* `GET /events` now supports network remove event which is emmitted when users remove a swarm scoped network
+* `GET /events` now supports a filter type `scope` in which supported value could be swarm and local
 
 ## v1.29 API changes
 
@@ -43,6 +46,8 @@ keywords: "API, Docker, rcli, REST, documentation"
 * `POST /containers/create`, `POST /service/create` and `POST /services/(id or name)/update` now takes the field `StartPeriod` as a part of the `HealthConfig` allowing for specification of a period during which the container should not be considered unhealthy even if health checks do not pass.
 * `GET /services/(id)` now accepts an `insertDefaults` query-parameter to merge default values into the service inspect output.
 * `POST /containers/prune`, `POST /images/prune`, `POST /volumes/prune`, and `POST /networks/prune` now support a `label` filter to filter containers, images, volumes, or networks based on the label. The format of the label filter could be `label=<key>`/`label=<key>=<value>` to remove those with the specified labels, or `label!=<key>`/`label!=<key>=<value>` to remove those without the specified labels.
+* `POST /services/create` now accepts `Privileges` as part of `ContainerSpec`. Privileges currently include
+  `CredentialSpec` and `SELinuxContext`.
 
 ## v1.28 API changes
 
