@@ -21,7 +21,7 @@ rpm: ## build rpm packages
 		$(MAKE) -C $@ VERSION=$(VERSION) PLUGIN_VERSION=$(PLUGIN_VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
 	done
 
-deb: DOCKER_BUILD_PKGS:=ubuntu-zesty ubuntu-xenial ubuntu-trusty debian-stretch debian-wheezy debian-jessie
+deb: DOCKER_BUILD_PKGS:=ubuntu-zesty ubuntu-xenial ubuntu-trusty debian-stretch debian-wheezy debian-jessie raspbian-stretch raspbian-jessie
 deb: ## build deb packages
 	$(MAKE) -C $@ metrics_plugin
 	for p in $(DOCKER_BUILD_PKGS); do \
