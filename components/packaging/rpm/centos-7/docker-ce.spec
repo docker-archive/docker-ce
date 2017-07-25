@@ -6,7 +6,6 @@ Group: Tools/Docker
 License: ASL 2.0
 Source0: engine.tgz
 Source1: cli.tgz
-Source2: telemetry_%{_plugin_version}.tgz
 URL: https://www.docker.com
 Vendor: Docker
 Packager: Docker <support@docker.com>
@@ -69,8 +68,6 @@ pushd engine
 TMP_GOPATH="/go" hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini
 hack/make.sh dynbinary
 popd
-mkdir -p plugin
-printf '{"edition_type":"ce","edition_name":"%s","edition_version":"%s"}\n' "${DISTRO}" "%{_version}" > plugin/.plugin-metadata
 
 %check
 cli/build/docker -v
@@ -141,12 +138,6 @@ for cli_file in LICENSE MAINTAINERS NOTICE README.md; do
     cp "cli/$cli_file" "build-docs/cli-$cli_file"
 done
 
-# add telemetry plugin
-install -d $RPM_BUILD_ROOT/var/lib/docker/plugins/tar
-install -p -m 644 %{SOURCE2} $RPM_BUILD_ROOT/var/lib/docker/plugins/tar
-install -p -m 644 plugin/.plugin-metadata $RPM_BUILD_ROOT/var/lib/docker/plugins/tar
-install -p -m 755 /common/load-telemetry-plugin $RPM_BUILD_ROOT/%{_bindir}/load-telemetry-plugin
-
 # list files owned by the package here
 %files
 %doc build-docs/engine-AUTHORS build-docs/engine-CHANGELOG.md build-docs/engine-CONTRIBUTING.md build-docs/engine-LICENSE build-docs/engine-MAINTAINERS build-docs/engine-NOTICE build-docs/engine-README.md
@@ -172,9 +163,6 @@ install -p -m 755 /common/load-telemetry-plugin $RPM_BUILD_ROOT/%{_bindir}/load-
 /usr/share/vim/vimfiles/ftdetect/dockerfile.vim
 /usr/share/vim/vimfiles/syntax/dockerfile.vim
 /usr/share/nano/Dockerfile.nanorc
-/var/lib/docker/plugins/tar/telemetry_%{_plugin_version}.tgz
-/var/lib/docker/plugins/tar/.plugin-metadata
-/usr/bin/load-telemetry-plugin
 
 %pre
 if [ $1 -gt 0 ] ; then
