@@ -296,7 +296,7 @@ func (s *DockerSuite) TestUpdateWithNanoCPUs(c *check.C) {
 	c.Assert(strings.TrimSpace(out), checker.Equals, "50000\n100000")
 
 	out = inspectField(c, "top", "HostConfig.NanoCpus")
-	c.Assert(out, checker.Equals, "5e+08", check.Commentf("setting the Nano CPUs failed"))
+	c.Assert(out, checker.Equals, "500000000", check.Commentf("setting the Nano CPUs failed"))
 	out = inspectField(c, "top", "HostConfig.CpuQuota")
 	c.Assert(out, checker.Equals, "0", check.Commentf("CPU CFS quota should be 0"))
 	out = inspectField(c, "top", "HostConfig.CpuPeriod")
