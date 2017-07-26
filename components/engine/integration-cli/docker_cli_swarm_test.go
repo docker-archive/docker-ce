@@ -1730,18 +1730,13 @@ func (s *DockerSwarmSuite) TestSwarmServicePsMultipleServiceIDs(c *check.C) {
 
 	// Name Prefix
 	out, err = d.Cmd("service", "ps", "to")
-	c.Assert(err, checker.IsNil)
-	c.Assert(out, checker.Contains, name1+".1")
-	c.Assert(out, checker.Contains, name1+".2")
-	c.Assert(out, checker.Contains, name1+".3")
-	c.Assert(out, checker.Contains, name2+".1")
-	c.Assert(out, checker.Contains, name2+".2")
-	c.Assert(out, checker.Contains, name2+".3")
+	c.Assert(err, checker.NotNil)
+	c.Assert(out, checker.Contains, "no such service: to")
 
 	// Name Prefix (no hit)
 	out, err = d.Cmd("service", "ps", "noname")
 	c.Assert(err, checker.NotNil)
-	c.Assert(out, checker.Contains, "no such services: noname")
+	c.Assert(out, checker.Contains, "no such service: noname")
 
 	out, err = d.Cmd("service", "ps", id1)
 	c.Assert(err, checker.IsNil)
