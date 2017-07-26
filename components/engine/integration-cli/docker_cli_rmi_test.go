@@ -243,7 +243,7 @@ func (s *DockerSuite) TestRmiContainerImageNotFound(c *check.C) {
 	dockerCmd(c, "rmi", "-f", imageIds[1])
 
 	// Try to remove the image of the running container and see if it fails as expected.
-	out, _, err := dockerCmdWithError("rmi", "-f", imageIds[0])
+	out, _, err := dockerCmdWithError("rmi", imageIds[0])
 	// The image of the running container should not be removed.
 	c.Assert(err, checker.NotNil)
 	c.Assert(out, checker.Contains, "image is being used by running container", check.Commentf("out: %s", out))
