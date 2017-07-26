@@ -5,6 +5,68 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
+## 17.07.0-ce (2017-07-XX)
+
+### API & Client
+
+* Add support for proxy configuration in config.json [docker/cli#93](https://github.com/docker/cli/pull/93)
+* Enable pprof/debug endpoints by default [moby/moby#32453](https://github.com/moby/moby/pull/32453)
+* Passwords can now be passed using `STDIN` using the new  `--password-stdin` flag on `docker login` [docker/cli#271](https://github.com/docker/cli/pull/271)
++ Add `--detach` to docker scale [docker/cli#243](https://github.com/docker/cli/pull/243)
+* Prevent `docker logs --no-stream` from hanging due to non-existing containers [moby/moby#34004](https://github.com/moby/moby/pull/34004)
+- Fix `docker stack ps` printing error to `stdout` instead of `stderr` [docker/cli#298](https://github.com/docker/cli/pull/298)
+* Fix progress bar being stuck on `docker service create` if an error occurs during deploy [docker/cli#259](https://github.com/docker/cli/pull/259)
+* Improve presentation of progress bars in interactive mode [docker/cli#260](https://github.com/docker/cli/pull/260) [docker/cli#237](https://github.com/docker/cli/pull/237)
+* Print a warning if `docker login --password` is used, and recommend `--password-stdin` [docker/cli#270](https://github.com/docker/cli/pull/270)
+* Make API version negotiation more robust [moby/moby#33827](https://github.com/moby/moby/pull/33827)
+* Hide `--detach` when connected to daemons older than Docker 17.05 [docker/cli#219](https://github.com/docker/cli/pull/219)
++ Add `scope` filter in `GET /networks/(id or name)` [moby/moby#33630](https://github.com/moby/moby/pull/33630)
+
+### Builder
+
+* Implement long running interactive session and sending build context incrementally [moby/moby#32677](https://github.com/moby/moby/pull/32677) [docker/cli#231](https://github.com/docker/cli/pull/231) [moby/moby#33859](https://github.com/moby/moby/pull/33859)
+* Warn on empty continuation lines [moby/moby#33719](https://github.com/moby/moby/pull/33719)
+- Fix `.dockerignore` entries with a leading `/` not matching anything [moby/moby#32088](https://github.com/moby/moby/pull/32088)
+
+### Logging
+
+- Fix wrong filemode for rotate log files [moby/moby#33926](https://github.com/moby/moby/pull/33926)
+- Fix stderr logging for journald and syslog [moby/moby#33832](https://github.com/moby/moby/pull/33832)
+
+### Runtime
+
+* Allow stopping of paused container [moby/moby#34027](https://github.com/moby/moby/pull/34027)
++ Add quota support for the overlay2 storage driver [moby/moby#32977](https://github.com/moby/moby/pull/32977)
+* Remove container locks on `docker ps` [moby/moby#31273](https://github.com/moby/moby/pull/31273)
+* Store container names in memdb [moby/moby#33886](https://github.com/moby/moby/pull/33886)
+* Fix race condition between `docker exec` and `docker pause` [moby/moby#32881](https://github.com/moby/moby/pull/32881)
+* Devicemapper: Rework logging and add `--storage-opt dm.libdm_log_level` [moby/moby#33845](https://github.com/moby/moby/pull/33845)
+* Devicemapper: Prevent "device in use" errors if deferred removal is enabled, but not deferred deletion [moby/moby#33877](https://github.com/moby/moby/pull/33877)
+* Devicemapper: Use KeepAlive to prevent tasks being garbage-collected while still in use [moby/moby#33376](https://github.com/moby/moby/pull/33376)
+* Report inetermediate prune results if prune is cancelled [moby/moby#33979](https://github.com/moby/moby/pull/33979)
+- Fix run `docker rename <container-id> new_name` concurrently resulting in the having multiple names [moby/moby#33940](https://github.com/moby/moby/pull/33940)
+* Fix file-descriptor leak and error handling [moby/moby#33713](https://github.com/moby/moby/pull/33713)
+- Fix SIGSEGV when running containers [docker/cli#303](https://github.com/docker/cli/pull/303)
+* Prevent a goroutine leak when healthcheck gets stopped [moby/moby#33781](https://github.com/moby/moby/pull/33781)
+* Image: Improve store locking [moby/moby#33755](https://github.com/moby/moby/pull/33755)
+* Fix Btrfs quota groups not being removed when container is destroyed [moby/moby#29427](https://github.com/moby/moby/pull/29427)
+* Libcontainerd: fix defunct containerd processes not being properly reaped [moby/moby#33419](https://github.com/moby/moby/pull/33419)
+* Preparations for Linux Containers on Windows
+  * LCOW: Dedicated scratch space for service VM utilities [moby/moby#33809](https://github.com/moby/moby/pull/33809)
+  * LCOW: Support most operations excluding remote filesystem [moby/moby#33241](https://github.com/moby/moby/pull/33241) [moby/moby#33826](https://github.com/moby/moby/pull/33826)
+  * LCOW: Change directory from lcow to "Linux Containers" [moby/moby#33835](https://github.com/moby/moby/pull/33835)
+  * LCOW: pass command arguments without extra quoting [moby/moby#33815](https://github.com/moby/moby/pull/33815)
+  * LCOW: Updates necessary due to platform schema change [moby/moby#33785](https://github.com/moby/moby/pull/33785)
+
+### Swarm Mode
+
+* Add support for plugins on swarm [moby/moby#33575](https://github.com/moby/moby/pull/33575)
+* Initial support for plugable secret backends [moby/moby#34157](https://github.com/moby/moby/pull/34157) [moby/moby#34123](https://github.com/moby/moby/pull/34123)
+* Sort swarm stacks and nodes using natural sorting [docker/cli#315](https://github.com/docker/cli/pull/315)
+* Make engine support cluster config event [moby/moby#34032](https://github.com/moby/moby/pull/34032)
+* Only pass a join address when in the process of joining a cluster [moby/moby#33361](https://github.com/moby/moby/pull/33361)
+* Fix error during service creation if a network with the same name exists both as "local" and "swarm" scoped network [docker/cli#184](https://github.com/docker/cli/pull/184)
+
 ## 17.06.0-ce (2017-06-07)
 
 ### Builder
