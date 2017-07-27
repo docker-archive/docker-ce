@@ -278,6 +278,9 @@ func (s *State) SetRunning(pid int, initial bool) {
 	s.ErrorMsg = ""
 	s.Running = true
 	s.Restarting = false
+	if initial {
+		s.Paused = false
+	}
 	s.ExitCodeValue = 0
 	s.Pid = pid
 	if initial {
@@ -304,6 +307,7 @@ func (s *State) SetRestarting(exitStatus *ExitStatus) {
 	// all the checks in docker around rm/stop/etc
 	s.Running = true
 	s.Restarting = true
+	s.Paused = false
 	s.Pid = 0
 	s.FinishedAt = time.Now().UTC()
 	s.setFromExitStatus(exitStatus)
