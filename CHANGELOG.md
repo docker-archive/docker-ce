@@ -20,11 +20,13 @@ be found.
 * Fix `docker wait` hanging if the container does not exist [#106](https://github.com/docker/docker-ce/pull/106)
 * If `docker swarm ca` is called without the `--rotate` flag, warn if other flags are passed [#110](https://github.com/docker/docker-ce/pull/110)
 * Fix API version negotiation not working if the daemon returns an error [#115](https://github.com/docker/docker-ce/pull/115)
+* Print an error if "until" filter is combined with "--volumes" on system prune [#154](https://github.com/docker/docker-ce/pull/154)
 
 ### Logging
 
 * Fix stderr logging for journald and syslog [#95](https://github.com/docker/docker-ce/pull/95)
 * Fix log readers can block writes indefinitely [#98](https://github.com/docker/docker-ce/pull/98)
+* Fix awslogs driver repeating last event [#151](https://github.com/docker/docker-ce/pull/151)
 
 ### Networking
 
@@ -46,6 +48,7 @@ be found.
 * Fix issue upon upgrade, preventing docker from showing running containers when `--live-restore` is enabled [#117](https://github.com/docker/docker-ce/pull/117)
 * Fix bug where services using secrets would fail to start on daemons using the `userns-remap` feature [#121](https://github.com/docker/docker-ce/pull/121)
 * Fix error handling with not-exist errors on remove [#142](https://github.com/docker/docker-ce/pull/142)
+* Fix REST API Swagger representation cannot be loaded with SwaggerUI [#156](https://github.com/docker/docker-ce/pull/156)
 
 ### Security
 
@@ -55,6 +58,7 @@ be found.
 
 * Do not add duplicate platform information to service spec [#107](https://github.com/docker/docker-ce/pull/107)
 * Cluster update and memory issue fixes [#114](https://github.com/docker/docker-ce/pull/114)
+* Changing get network request to return predefined network in swarm [#150](https://github.com/docker/docker-ce/pull/150)
 
 ## 17.06.0-ce (2017-06-19)
 
