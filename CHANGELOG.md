@@ -102,6 +102,7 @@ in Docker 17.12.
 + Pass driver-options to network drivers on service creation [#32981] (https://github.com/moby/moby/pull/33130)
 + Isolate Swarm Control-plane traffic from Application data traffic using --data-path-addr [#32717] (https://github.com/moby/moby/pull/32717)
 * Several improvments to  Service Discovery [#docker/libnetwork/1796](https://github.com/docker/libnetwork/pull/1796)
+* Add DOCKER-USER chain enabling user customization of iptables FORWARD policy [#docker/libnetwork/1675](https://github.com/docker/libnetwork/pull/1675)
 
 ### Packaging
 
