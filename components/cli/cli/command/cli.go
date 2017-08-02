@@ -3,9 +3,11 @@ package command
 import (
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/docker/cli/cli"
 	cliconfig "github.com/docker/cli/cli/config"
@@ -285,6 +287,10 @@ func newHTTPClient(host string, tlsOptions *tlsconfig.Options) (*http.Client, er
 	}
 	tr := &http.Transport{
 		TLSClientConfig: config,
+		DialContext: (&net.Dialer{
+			KeepAlive: 30 * time.Second,
+			Timeout:   30 * time.Second,
+		}).DialContext,
 	}
 	proto, addr, _, err := client.ParseHost(host)
 	if err != nil {
