@@ -25,3 +25,6 @@ clean: ## clean the build artifacts
 	-$(MAKE) -C $(CLI_DIR) clean
 	-$(MAKE) -C $(ENGINE_DIR) clean
 	-$(MAKE) -C $(PACKAGING_DIR) clean
+
+vendor: $(CLI_DIR)/build/docker
+	docker run --rm -it -v $(CLI_DIR):/go/src/github.com/docker/cli -v $(ENGINE_DIR):/go/src/github.com/docker/docker docker-cli-dev sh -c 'cd /go/src/github.com/docker/docker && git init && git add . && git -c user.name=user -c user.email=email@example.com commit -m first && cd /go/src/github.com/docker/cli && vndr; rm -rf /go/src/github.com/docker/docker/.git'
