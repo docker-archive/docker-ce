@@ -39,7 +39,9 @@ func TestRemoveStack(t *testing.T) {
 	}
 	allConfigIDs := buildObjectIDs(allConfigs)
 
+	// Using API 1.24; removes services, networks, but doesn't remove configs and secrets
 	cli := &fakeClient{
+		version:  "1.24",
 		services: allServices,
 		networks: allNetworks,
 		secrets:  allSecrets,
@@ -51,12 +53,47 @@ func TestRemoveStack(t *testing.T) {
 	assert.NoError(t, cmd.Execute())
 	assert.Equal(t, allServiceIDs, cli.removedServices)
 	assert.Equal(t, allNetworkIDs, cli.removedNetworks)
+	assert.Nil(t, cli.removedSecrets)
+	assert.Nil(t, cli.removedConfigs)
+
+	// Using API 1.25; removes services, networks, but doesn't remove configs
+	cli = &fakeClient{
+		version:  "1.25",
+		services: allServices,
+		networks: allNetworks,
+		secrets:  allSecrets,
+		configs:  allConfigs,
+	}
+	cmd = newRemoveCommand(test.NewFakeCli(cli, &bytes.Buffer{}))
+	cmd.SetArgs([]string{"foo", "bar"})
+
+	assert.NoError(t, cmd.Execute())
+	assert.Equal(t, allServiceIDs, cli.removedServices)
+	assert.Equal(t, allNetworkIDs, cli.removedNetworks)
+	assert.Equal(t, allSecretIDs, cli.removedSecrets)
+	assert.Nil(t, cli.removedConfigs)
+
+	// Using API 1.30; removes services, networks, configs, and secrets
+	cli = &fakeClient{
+		version:  "1.30",
+		services: allServices,
+		networks: allNetworks,
+		secrets:  allSecrets,
+		configs:  allConfigs,
+	}
+	cmd = newRemoveCommand(test.NewFakeCli(cli, &bytes.Buffer{}))
+	cmd.SetArgs([]string{"foo", "bar"})
+
+	assert.NoError(t, cmd.Execute())
+	assert.Equal(t, allServiceIDs, cli.removedServices)
+	assert.Equal(t, allNetworkIDs, cli.removedNetworks)
 	assert.Equal(t, allSecretIDs, cli.removedSecrets)
 	assert.Equal(t, allConfigIDs, cli.removedConfigs)
 }
 
-func TestSkipEmptyStack(t *testing.T) {
-	buf := new(bytes.Buffer)
+func TestRemoveStackSkipEmpty(t *testing.T) {
+	out := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
 	allServices := []string{objectName("bar", "service1"), objectName("bar", "service2")}
 	allServiceIDs := buildObjectIDs(allServices)
 
@@ -69,24 +106,28 @@ func TestSkipEmptyStack(t *testing.T) {
 	allConfigs := []string{objectName("bar", "config1")}
 	allConfigIDs := buildObjectIDs(allConfigs)
 
-	cli := &fakeClient{
+	fakeClient := &fakeClient{
+		version:  "1.30",
 		services: allServices,
 		networks: allNetworks,
 		secrets:  allSecrets,
 		configs:  allConfigs,
 	}
-	cmd := newRemoveCommand(test.NewFakeCli(cli, buf))
+	fakeCli := test.NewFakeCli(fakeClient, out)
+	fakeCli.SetErr(stderr)
+	cmd := newRemoveCommand(fakeCli)
 	cmd.SetArgs([]string{"foo", "bar"})
 
 	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, buf.String(), "Nothing found in stack: foo")
-	assert.Equal(t, allServiceIDs, cli.removedServices)
-	assert.Equal(t, allNetworkIDs, cli.removedNetworks)
-	assert.Equal(t, allSecretIDs, cli.removedSecrets)
-	assert.Equal(t, allConfigIDs, cli.removedConfigs)
+	assert.Equal(t, "", out.String())
+	assert.Contains(t, stderr.String(), "Nothing found in stack: foo\n")
+	assert.Equal(t, allServiceIDs, fakeClient.removedServices)
+	assert.Equal(t, allNetworkIDs, fakeClient.removedNetworks)
+	assert.Equal(t, allSecretIDs, fakeClient.removedSecrets)
+	assert.Equal(t, allConfigIDs, fakeClient.removedConfigs)
 }
 
-func TestContinueAfterError(t *testing.T) {
+func TestRemoveContinueAfterError(t *testing.T) {
 	allServices := []string{objectName("foo", "service1"), objectName("bar", "service1")}
 	allServiceIDs := buildObjectIDs(allServices)
 
@@ -101,6 +142,7 @@ func TestContinueAfterError(t *testing.T) {
 
 	removedServices := []string{}
 	cli := &fakeClient{
+		version:  "1.30",
 		services: allServices,
 		networks: allNetworks,
 		secrets:  allSecrets,

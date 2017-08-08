@@ -51,20 +51,16 @@ func runRemove(dockerCli command.Cli, opts removeOptions) error {
 			return err
 		}
 
-		secrets, err := getStackSecrets(ctx, client, namespace)
-		if err != nil {
-			return err
+		var secrets []swarm.Secret
+		if versions.GreaterThanOrEqualTo(client.ClientVersion(), "1.25") {
+			secrets, err = getStackSecrets(ctx, client, namespace)
+			if err != nil {
+				return err
+			}
 		}
 
 		var configs []swarm.Config
-
-		version, err := client.ServerVersion(ctx)
-		if err != nil {
-			return err
-		}
-		if versions.LessThan(version.APIVersion, "1.30") {
-			fmt.Fprintf(dockerCli.Err(), `WARNING: ignoring "configs" (requires API version 1.30, but the Docker daemon API version is %s)`, version.APIVersion)
-		} else {
+		if versions.GreaterThanOrEqualTo(client.ClientVersion(), "1.30") {
 			configs, err = getStackConfigs(ctx, client, namespace)
 			if err != nil {
 				return err
@@ -72,7 +68,7 @@ func runRemove(dockerCli command.Cli, opts removeOptions) error {
 		}
 
 		if len(services)+len(networks)+len(secrets)+len(configs) == 0 {
-			fmt.Fprintf(dockerCli.Out(), "Nothing found in stack: %s\n", namespace)
+			fmt.Fprintf(dockerCli.Err(), "Nothing found in stack: %s\n", namespace)
 			continue
 		}
 
