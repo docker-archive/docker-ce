@@ -56,7 +56,8 @@ func TestValidateExternalNetworks(t *testing.T) {
 			expectedMsg:  "Unexpected",
 		},
 		{
-			network: "host",
+			inspectError: errors.New("host net does not exist on swarm classic"),
+			network:      "host",
 		},
 		{
 			network:     "user",
