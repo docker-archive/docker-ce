@@ -18,17 +18,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	containerd "github.com/containerd/containerd/api/grpc/types"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/container"
 	"github.com/docker/docker/daemon/config"
 	"github.com/docker/docker/daemon/discovery"
 	"github.com/docker/docker/daemon/events"
 	"github.com/docker/docker/daemon/exec"
 	"github.com/docker/docker/daemon/logger"
+	"github.com/docker/docker/opts"
+	"github.com/sirupsen/logrus"
 	// register graph drivers
 	_ "github.com/docker/docker/daemon/graphdriver/register"
 	"github.com/docker/docker/daemon/initlayer"
@@ -109,6 +111,7 @@ type Daemon struct {
 	defaultIsolation      containertypes.Isolation // Default isolation mode on Windows
 	clusterProvider       cluster.Provider
 	cluster               Cluster
+	genericResources      []swarm.GenericResource
 	metricsPluginListener net.Listener
 
 	machineMemory uint64
@@ -566,6 +569,9 @@ func NewDaemon(config *config.Config, registryService registry.Service, containe
 		}
 	}()
 
+	if err := d.setGenericResources(config); err != nil {
+		return nil, err
+	}
 	// set up SIGUSR1 handler on Unix-like systems, or a Win32 global event
 	// on Windows to dump Go routine stacks
 	stackDumpDir := config.Root
@@ -620,6 +626,8 @@ func NewDaemon(config *config.Config, registryService registry.Service, containe
 		driverName := os.Getenv("DOCKER_DRIVER")
 		if driverName == "" {
 			driverName = config.GraphDriver
+		} else {
+			logrus.Infof("Setting the storage driver from the $DOCKER_DRIVER environment variable (%s)", driverName)
 		}
 		d.stores[runtime.GOOS] = daemonStore{graphDriver: driverName} // May still be empty. Layerstore init determines instead.
 	}
@@ -1033,6 +1041,17 @@ func (daemon *Daemon) setupInitLayer(initPath string) error {
 	return initlayer.Setup(initPath, rootIDs)
 }
 
+func (daemon *Daemon) setGenericResources(conf *config.Config) error {
+	genericResources, err := opts.ParseGenericResources(conf.NodeGenericResources)
+	if err != nil {
+		return err
+	}
+
+	daemon.genericResources = genericResources
+
+	return nil
+}
+
 func setDefaultMtu(conf *config.Config) {
 	// do nothing if the config does not have the default 0 value.
 	if conf.Mtu != 0 {
@@ -1129,6 +1148,8 @@ func (daemon *Daemon) networkOptions(dconfig *config.Config, pg plugingetter.Plu
 	if pg != nil {
 		options = append(options, nwconfig.OptionPluginGetter(pg))
 	}
+
+	options = append(options, nwconfig.OptionNetworkControlPlaneMTU(dconfig.NetworkControlPlaneMTU))
 
 	return options, nil
 }

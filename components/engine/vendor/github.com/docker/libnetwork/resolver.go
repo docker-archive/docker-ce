@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/libnetwork/types"
 	"github.com/miekg/dns"
+	"github.com/sirupsen/logrus"
 )
 
 // Resolver represents the embedded DNS server in Docker. It operates
@@ -446,7 +446,7 @@ func (r *resolver) ServeDNS(w dns.ResponseWriter, query *dns.Msg) {
 			defer co.Close()
 
 			// limits the number of outstanding concurrent queries.
-			if r.forwardQueryStart() == false {
+			if !r.forwardQueryStart() {
 				old := r.tStamp
 				r.tStamp = time.Now()
 				if r.tStamp.Sub(old) > logInterval {

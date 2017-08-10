@@ -19,10 +19,10 @@ produces:
 consumes:
   - "application/json"
   - "text/plain"
-basePath: "/v1.31"
+basePath: "/v1.32"
 info:
   title: "Docker Engine API"
-  version: "1.31"
+  version: "1.32"
   x-logo:
     url: "https://docs.docker.com/images/logo-docker-main.png"
   description: |
@@ -44,7 +44,7 @@ info:
 
     The API is usually changed in each release of Docker, so API calls are versioned to ensure that clients don't break.
 
-    For Docker Engine 17.06, the API version is 1.30. To lock to this version, you prefix the URL with `/v1.30`. For example, calling `/info` is the same as calling `/v1.30/info`.
+    For Docker Engine 17.07, the API version is 1.31. To lock to this version, you prefix the URL with `/v1.31`. For example, calling `/info` is the same as calling `/v1.31/info`.
 
     Engine releases in the near future should support this version of the API, so your client will continue to work even if it is talking to a newer Engine.
 
@@ -52,10 +52,11 @@ info:
 
     The API uses an open schema model, which means server may add extra properties to responses. Likewise, the server will ignore any extra query parameters and request body properties. When you write clients, you need to ignore additional properties in responses to ensure they do not break when talking to newer Docker daemons.
 
-    This documentation is for version 1.31 of the API. Use this table to find documentation for previous versions of the API:
+    This documentation is for version 1.32 of the API. Use this table to find documentation for previous versions of the API:
 
     Docker version  | API version | Changes
     ----------------|-------------|---------
+    17.07.x | [1.31](https://docs.docker.com/engine/api/v1.31/) | [API changes](https://docs.docker.com/engine/api/version-history/#v1-31-api-changes)
     17.06.x | [1.30](https://docs.docker.com/engine/api/v1.30/) | [API changes](https://docs.docker.com/engine/api/version-history/#v1-30-api-changes)
     17.05.x | [1.29](https://docs.docker.com/engine/api/v1.29/) | [API changes](https://docs.docker.com/engine/api/version-history/#v1-29-api-changes)
     17.04.x | [1.28](https://docs.docker.com/engine/api/v1.28/) | [API changes](https://docs.docker.com/engine/api/version-history/#v1-28-api-changes)
@@ -322,7 +323,6 @@ definitions:
       MaximumRetryCount:
         type: "integer"
         description: "If `on-failure` is used, the number of times to retry before giving up"
-    default: {}
 
   Resources:
     description: "A container's resources (cgroups config, ulimits, etc)"
@@ -486,6 +486,41 @@ definitions:
         description: "Maximum IO in bytes per second for the container system drive (Windows only)"
         type: "integer"
         format: "int64"
+
+  ResourceObject:
+    description: "An object describing the resources which can be advertised by a node and requested by a task"
+    type: "object"
+    properties:
+      NanoCPUs:
+        type: "integer"
+        format: "int64"
+      MemoryBytes:
+        type: "integer"
+        format: "int64"
+      GenericResources:
+        $ref: "#/definitions/GenericResources"
+
+  GenericResources:
+    description: "User defined Resources, can be either Integer resources (e.g: SSD=3) or String resources (e.g: GPU={UUID1, UUID2})"
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        NamedResourceSpec:
+          type: "object"
+          properties:
+            Kind:
+              type: "string"
+            Value:
+              type: "string"
+        DiscreteResourceSpec:
+          type: "object"
+          properties:
+            Kind:
+              type: "string"
+            Value:
+              type: "integer"
+              format: "int64"
 
   HealthConfig:
     description: "A test to perform to check that the container is healthy."
@@ -1089,17 +1124,27 @@ definitions:
           type: "string"
       UsageData:
         type: "object"
+        x-nullable: true
         required: [Size, RefCount]
+        description: |
+          Usage details about the volume. This information is used by the
+          `GET /system/df` endpoint, and omitted in other endpoints.
         properties:
           Size:
             type: "integer"
-            description: "The disk space used by the volume (local driver only)"
             default: -1
+            description: |
+              Amount of disk space used by the volume (in bytes). This information
+              is only available for volumes created with the `"local"` volume
+              driver. For volumes created with other volume drivers, this field
+              is set to `-1` ("not available")
             x-nullable: false
           RefCount:
             type: "integer"
             default: -1
-            description: "The number of containers referencing this volume."
+            description: |
+              The number of containers referencing this volume. This field
+              is set to `-1` if the reference-count is not available.
             x-nullable: false
 
     example:
@@ -1349,26 +1394,33 @@ definitions:
       Name:
         type: "string"
         x-nullable: false
+        example: "some-mount"
       Description:
         type: "string"
         x-nullable: false
+        example: "This is a mount that's used by the plugin."
       Settable:
         type: "array"
         items:
           type: "string"
       Source:
         type: "string"
+        example: "/var/lib/docker/plugins/"
       Destination:
         type: "string"
         x-nullable: false
+        example: "/mnt/state"
       Type:
         type: "string"
         x-nullable: false
+        example: "bind"
       Options:
         type: "array"
         items:
           type: "string"
-
+        example:
+          - "rbind"
+          - "rw"
   PluginDevice:
     type: "object"
     required: [Name, Description, Settable, Path]
@@ -1386,6 +1438,7 @@ definitions:
           type: "string"
       Path:
         type: "string"
+        example: "/dev/fuse"
 
   PluginEnv:
     type: "object"
@@ -1427,13 +1480,16 @@ definitions:
     properties:
       Id:
         type: "string"
+        example: "5724e2c8652da337ab2eedd19fc6fc0ec908e4bd907c7421bf6a8dfc70c4c078"
       Name:
         type: "string"
         x-nullable: false
+        example: "tiborvass/sample-volume-plugin"
       Enabled:
-        description: "True when the plugin is running. False when the plugin is not running, only installed."
+        description: "True if the plugin is running. False if the plugin is not running, only installed."
         type: "boolean"
         x-nullable: false
+        example: true
       Settings:
         description: "Settings that can be modified by users."
         type: "object"
@@ -1448,6 +1504,8 @@ definitions:
             type: "array"
             items:
               type: "string"
+            example:
+              - "DEBUG=0"
           Args:
             type: "array"
             items:
@@ -1460,6 +1518,7 @@ definitions:
         description: "plugin remote reference used to push/pull the plugin"
         type: "string"
         x-nullable: false
+        example: "localhost:5000/tiborvass/sample-volume-plugin:latest"
       Config:
         description: "The config of a plugin."
         type: "object"
@@ -1483,12 +1542,15 @@ definitions:
             description: "Docker Version used to create the plugin"
             type: "string"
             x-nullable: false
+            example: "17.06.0-ce"
           Description:
             type: "string"
             x-nullable: false
+            example: "A sample volume plugin for Docker"
           Documentation:
             type: "string"
             x-nullable: false
+            example: "https://docs.docker.com/engine/extend/plugins/"
           Interface:
             description: "The interface between Docker and the plugin"
             x-nullable: false
@@ -1499,16 +1561,23 @@ definitions:
                 type: "array"
                 items:
                   $ref: "#/definitions/PluginInterfaceType"
+                example:
+                  - "docker.volumedriver/1.0"
               Socket:
                 type: "string"
                 x-nullable: false
+                example: "plugins.sock"
           Entrypoint:
             type: "array"
             items:
               type: "string"
+            example:
+              - "/usr/bin/sample-volume-plugin"
+              - "/data"
           WorkDir:
             type: "string"
             x-nullable: false
+            example: "/bin/"
           User:
             type: "object"
             x-nullable: false
@@ -1516,9 +1585,11 @@ definitions:
               UID:
                 type: "integer"
                 format: "uint32"
+                example: 1000
               GID:
                 type: "integer"
                 format: "uint32"
+                example: 1000
           Network:
             type: "object"
             x-nullable: false
@@ -1527,6 +1598,7 @@ definitions:
               Type:
                 x-nullable: false
                 type: "string"
+                example: "host"
           Linux:
             type: "object"
             x-nullable: false
@@ -1536,9 +1608,13 @@ definitions:
                 type: "array"
                 items:
                   type: "string"
+                example:
+                  - "CAP_SYS_ADMIN"
+                  - "CAP_SYSLOG"
               AllowAllDevices:
                 type: "boolean"
                 x-nullable: false
+                example: false
               Devices:
                 type: "array"
                 items:
@@ -1546,12 +1622,15 @@ definitions:
           PropagatedMount:
             type: "string"
             x-nullable: false
+            example: "/mnt/volumes"
           IpcHost:
             type: "boolean"
             x-nullable: false
+            example: false
           PidHost:
             type: "boolean"
             x-nullable: false
+            example: false
           Mounts:
             type: "array"
             items:
@@ -1560,6 +1639,11 @@ definitions:
             type: "array"
             items:
               $ref: "#/definitions/PluginEnv"
+            example:
+              - Name: "DEBUG"
+                Description: "If set, prints debug messages"
+                Settable: null
+                Value: "0"
           Args:
             type: "object"
             x-nullable: false
@@ -1568,9 +1652,11 @@ definitions:
               Name:
                 x-nullable: false
                 type: "string"
+                example: "args"
               Description:
                 x-nullable: false
                 type: "string"
+                example: "command line arguments"
               Settable:
                 type: "array"
                 items:
@@ -1584,50 +1670,14 @@ definitions:
             properties:
               type:
                 type: "string"
+                example: "layers"
               diff_ids:
                 type: "array"
                 items:
                   type: "string"
-    example:
-      Id: "5724e2c8652da337ab2eedd19fc6fc0ec908e4bd907c7421bf6a8dfc70c4c078"
-      Name: "tiborvass/sample-volume-plugin"
-      Tag: "latest"
-      Active: true
-      Settings:
-        Env:
-          - "DEBUG=0"
-        Args: null
-        Devices: null
-      Config:
-        Description: "A sample volume plugin for Docker"
-        Documentation: "https://docs.docker.com/engine/extend/plugins/"
-        Interface:
-          Types:
-            - "docker.volumedriver/1.0"
-          Socket: "plugins.sock"
-        Entrypoint:
-          - "/usr/bin/sample-volume-plugin"
-          - "/data"
-        WorkDir: ""
-        User: {}
-        Network:
-          Type: ""
-        Linux:
-          Capabilities: null
-          AllowAllDevices: false
-          Devices: null
-        Mounts: null
-        PropagatedMount: "/data"
-        Env:
-          - Name: "DEBUG"
-            Description: "If set, prints debug messages"
-            Settable: null
-            Value: "0"
-        Args:
-          Name: "args"
-          Description: "command line arguments"
-          Settable: null
-          Value: []
+                example:
+                  - "sha256:675532206fbf3030b8458f88d6e26d4eb1577688a25efec97154c94e8b6b4887"
+                  - "sha256:e216a057b1cb1efc11f8a268f37ef62083e70b1b38323ba252e25ac88904a7e8"
 
   ObjectVersion:
     description: |
@@ -1702,14 +1752,7 @@ definitions:
               OS:
                 type: "string"
           Resources:
-            type: "object"
-            properties:
-              NanoCPUs:
-                type: "integer"
-                format: "int64"
-              MemoryBytes:
-                type: "integer"
-                format: "int64"
+            $ref: "#/definitions/ResourceObject"
           Engine:
             type: "object"
             properties:
@@ -1750,6 +1793,16 @@ definitions:
         Resources:
           NanoCPUs: 4000000000
           MemoryBytes: 8272408576
+          GenericResources:
+            - DiscreteResourceSpec:
+                Kind: "SSD"
+                Value: 3
+            - NamedResourceSpec:
+                Kind: "GPU"
+                Value: "UUID1"
+            - NamedResourceSpec:
+                Kind: "GPU"
+                Value: "UUID2"
         Engine:
           EngineVersion: "17.04.0"
           Labels:
@@ -1977,7 +2030,7 @@ definitions:
     properties:
       PluginSpec:
         type: "object"
-        description: "Invalid when specified with `ContainerSpec`."
+        description: "Invalid when specified with `ContainerSpec`. *(Experimental release only.)*"
         properties:
           Name:
             description: "The name or 'alias' to use for the plugin."
@@ -2214,27 +2267,10 @@ definitions:
         properties:
           Limits:
             description: "Define resources limits."
-            type: "object"
-            properties:
-              NanoCPUs:
-                description: "CPU limit in units of 10<sup>-9</sup> CPU shares."
-                type: "integer"
-                format: "int64"
-              MemoryBytes:
-                description: "Memory limit in Bytes."
-                type: "integer"
-                format: "int64"
+            $ref: "#/definitions/ResourceObject"
           Reservation:
             description: "Define resources reservation."
-            properties:
-              NanoCPUs:
-                description: "CPU reservation in units of 10<sup>-9</sup> CPU shares."
-                type: "integer"
-                format: "int64"
-              MemoryBytes:
-                description: "Memory reservation in Bytes."
-                type: "integer"
-                format: "int64"
+            $ref: "#/definitions/ResourceObject"
       RestartPolicy:
         description: "Specification for the restart policy which applies to containers created as part of this service."
         type: "object"
@@ -2365,6 +2401,8 @@ definitions:
       NodeID:
         description: "The ID of the node that this task is on."
         type: "string"
+      AssignedGenericResources:
+        $ref: "#/definitions/GenericResources"
       Status:
         type: "object"
         properties:
@@ -2444,6 +2482,16 @@ definitions:
                   Gateway: "10.255.0.1"
           Addresses:
             - "10.255.0.10/16"
+      AssignedGenericResources:
+        - DiscreteResourceSpec:
+            Kind: "SSD"
+            Value: 3
+        - NamedResourceSpec:
+            Kind: "GPU"
+            Value: "UUID1"
+        - NamedResourceSpec:
+            Kind: "GPU"
+            Value: "UUID2"
   ServiceSpec:
     description: "User modifiable configuration for a service."
     properties:
@@ -2780,6 +2828,27 @@ definitions:
           type: "array"
           items:
             $ref: "#/definitions/Mount"
+
+  Driver:
+    description: "Driver represents a driver (network, logging, secrets)."
+    type: "object"
+    required: [Name]
+    properties:
+      Name:
+        description: "Name of the driver."
+        type: "string"
+        x-nullable: false
+        example: "some-driver"
+      Options:
+        description: "Key/value map of driver-specific options."
+        type: "object"
+        x-nullable: false
+        additionalProperties:
+          type: "string"
+        example:
+          OptionA: "value for driver-specific option A"
+          OptionB: "value for driver-specific option B"
+
   SecretSpec:
     type: "object"
     properties:
@@ -2791,24 +2860,38 @@ definitions:
         type: "object"
         additionalProperties:
           type: "string"
+        example:
+          com.example.some-label: "some-value"
+          com.example.some-other-label: "some-other-value"
       Data:
-        description: "Base64-url-safe-encoded secret data"
-        type: "array"
-        items:
-          type: "string"
+        description: |
+          Base64-url-safe-encoded ([RFC 4648](https://tools.ietf.org/html/rfc4648#section-3.2))
+          data to store as secret.
+
+          This field is only used to _create_ a secret, and is not returned by
+          other endpoints.
+        type: "string"
+        example: ""
+      Driver:
+        description: "Name of the secrets driver used to fetch the secret's value from an external secret store"
+        $ref: "#/definitions/Driver"
+
   Secret:
     type: "object"
     properties:
       ID:
         type: "string"
+        example: "blt1owaxmitz71s9v5zh81zun"
       Version:
         $ref: "#/definitions/ObjectVersion"
       CreatedAt:
         type: "string"
         format: "dateTime"
+        example: "2017-07-20T13:55:28.678958722Z"
       UpdatedAt:
         type: "string"
         format: "dateTime"
+        example: "2017-07-20T13:55:28.678958722Z"
       Spec:
         $ref: "#/definitions/SecretSpec"
   ConfigSpec:
@@ -2823,10 +2906,10 @@ definitions:
         additionalProperties:
           type: "string"
       Data:
-        description: "Base64-url-safe-encoded config data"
-        type: "array"
-        items:
-          type: "string"
+        description: |
+          Base64-url-safe-encoded ([RFC 4648](https://tools.ietf.org/html/rfc4648#section-3.2))
+          config data.
+        type: "string"
   Config:
     type: "object"
     properties:
@@ -5506,6 +5589,8 @@ paths:
                   type: "string"
               MemTotal:
                 type: "integer"
+              GenericResources:
+                $ref: "#/definitions/GenericResources"
               MemoryLimit:
                 type: "boolean"
               NCPU:
@@ -5949,13 +6034,13 @@ paths:
                 -
                   Name: "my-volume"
                   Driver: "local"
-                  Mountpoint: ""
+                  Mountpoint: "/var/lib/docker/volumes/my-volume/_data"
                   Labels: null
-                  Scope: ""
+                  Scope: "local"
                   Options: null
                   UsageData:
-                    Size: 0
-                    RefCount: 0
+                    Size: 10920104
+                    RefCount: 2
         500:
           description: "server error"
           schema:
@@ -6887,46 +6972,6 @@ paths:
             type: "array"
             items:
               $ref: "#/definitions/Plugin"
-            example:
-              - Id: "5724e2c8652da337ab2eedd19fc6fc0ec908e4bd907c7421bf6a8dfc70c4c078"
-                Name: "tiborvass/sample-volume-plugin"
-                Tag: "latest"
-                Active: true
-                Settings:
-                  Env:
-                    - "DEBUG=0"
-                  Args: null
-                  Devices: null
-                Config:
-                  Description: "A sample volume plugin for Docker"
-                  Documentation: "https://docs.docker.com/engine/extend/plugins/"
-                  Interface:
-                    Types:
-                      - "docker.volumedriver/1.0"
-                    Socket: "plugins.sock"
-                  Entrypoint:
-                    - "/usr/bin/sample-volume-plugin"
-                    - "/data"
-                  WorkDir: ""
-                  User: {}
-                  Network:
-                    Type: ""
-                  Linux:
-                    Capabilities: null
-                    AllowAllDevices: false
-                    Devices: null
-                  Mounts: null
-                  PropagatedMount: "/data"
-                  Env:
-                    - Name: "DEBUG"
-                      Description: "If set, prints debug messages"
-                      Settable: null
-                      Value: "0"
-                  Args:
-                    Name: "args"
-                    Description: "command line arguments"
-                    Settable: null
-                    Value: []
         500:
           description: "Server error"
           schema:
@@ -8416,6 +8461,20 @@ paths:
             items:
               $ref: "#/definitions/Secret"
             example:
+              - ID: "blt1owaxmitz71s9v5zh81zun"
+                Version:
+                  Index: 85
+                CreatedAt: "2017-07-20T13:55:28.678958722Z"
+                UpdatedAt: "2017-07-20T13:55:28.678958722Z"
+                Spec:
+                  Name: "mysql-passwd"
+                  Labels:
+                    some.label: "some.value"
+                  Driver:
+                    Name: "secret-bucket"
+                    Options:
+                      OptionA: "value for driver option A"
+                      OptionB: "value for driver option B"
               - ID: "ktnbjxoalbkvbvedmg1urrz8h"
                 Version:
                   Index: 11
@@ -8423,6 +8482,8 @@ paths:
                 UpdatedAt: "2016-11-05T01:20:17.327670065Z"
                 Spec:
                   Name: "app-dev.crt"
+                  Labels:
+                    foo: "bar"
         500:
           description: "server error"
           schema:
@@ -8486,6 +8547,11 @@ paths:
                   Labels:
                     foo: "bar"
                   Data: "VEhJUyBJUyBOT1QgQSBSRUFMIENFUlRJRklDQVRFCg=="
+                  Driver:
+                    Name: "secret-bucket"
+                    Options:
+                      OptionA: "value for driver option A"
+                      OptionB: "value for driver option B"
       tags: ["Secret"]
   /secrets/{id}:
     get:
@@ -8507,6 +8573,14 @@ paths:
               UpdatedAt: "2016-11-05T01:20:17.327670065Z"
               Spec:
                 Name: "app-dev.crt"
+                Labels:
+                  foo: "bar"
+                Driver:
+                  Name: "secret-bucket"
+                  Options:
+                    OptionA: "value for driver option A"
+                    OptionB: "value for driver option B"
+
         404:
           description: "secret not found"
           schema:

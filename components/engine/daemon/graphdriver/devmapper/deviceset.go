@@ -16,10 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/dockerversion"
 	"github.com/docker/docker/pkg/devicemapper"
@@ -30,6 +28,7 @@ import (
 	units "github.com/docker/go-units"
 	"github.com/opencontainers/selinux/go-selinux/label"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 )
 
@@ -1480,12 +1479,9 @@ func (devices *DeviceSet) closeTransaction() error {
 }
 
 func determineDriverCapabilities(version string) error {
-	/*
-	 * Driver version 4.27.0 and greater support deferred activation
-	 * feature.
-	 */
+	// Kernel driver version >= 4.27.0 support deferred removal
 
-	logrus.Debugf("devicemapper: driver version is %s", version)
+	logrus.Debugf("devicemapper: kernel dm driver version is %s", version)
 
 	versionSplit := strings.Split(version, ".")
 	major, err := strconv.Atoi(versionSplit[0])
@@ -1521,12 +1517,13 @@ func determineDriverCapabilities(version string) error {
 
 // Determine the major and minor number of loopback device
 func getDeviceMajorMinor(file *os.File) (uint64, uint64, error) {
-	stat, err := file.Stat()
+	var stat unix.Stat_t
+	err := unix.Stat(file.Name(), &stat)
 	if err != nil {
 		return 0, 0, err
 	}
 
-	dev := stat.Sys().(*syscall.Stat_t).Rdev
+	dev := stat.Rdev
 	majorNum := major(dev)
 	minorNum := minor(dev)
 
@@ -1725,18 +1722,17 @@ func (devices *DeviceSet) initDevmapper(doInit bool) (retErr error) {
 	}
 
 	// Set the device prefix from the device id and inode of the docker root dir
-	st, err := os.Stat(devices.root)
-	if err != nil {
+	var st unix.Stat_t
+	if err := unix.Stat(devices.root, &st); err != nil {
 		return fmt.Errorf("devmapper: Error looking up dir %s: %s", devices.root, err)
 	}
-	sysSt := st.Sys().(*syscall.Stat_t)
 	// "reg-" stands for "regular file".
 	// In the future we might use "dev-" for "device file", etc.
 	// docker-maj,min[-inode] stands for:
 	//	- Managed by docker
 	//	- The target of this device is at major <maj> and minor <min>
 	//	- If <inode> is defined, use that file inside the device as a loopback image. Otherwise use the device itself.
-	devices.devicePrefix = fmt.Sprintf("docker-%d:%d-%d", major(sysSt.Dev), minor(sysSt.Dev), sysSt.Ino)
+	devices.devicePrefix = fmt.Sprintf("docker-%d:%d-%d", major(st.Dev), minor(st.Dev), st.Ino)
 	logrus.Debugf("devmapper: Generated prefix: %s", devices.devicePrefix)
 
 	// Check for the existence of the thin-pool device
