@@ -15,7 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	containertypes "github.com/docker/docker/api/types/container"
 	mounttypes "github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"
@@ -44,6 +43,7 @@ import (
 	"github.com/docker/libnetwork/options"
 	"github.com/docker/libnetwork/types"
 	agentexec "github.com/docker/swarmkit/agent/exec"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
 
@@ -745,6 +745,9 @@ func (container *Container) BuildCreateEndpointOptions(n libnetwork.Network, epC
 		for _, alias := range epConfig.Aliases {
 			createOptions = append(createOptions, libnetwork.CreateOptionMyAlias(alias))
 		}
+		for k, v := range epConfig.DriverOpts {
+			createOptions = append(createOptions, libnetwork.EndpointOptionGeneric(options.Generic{k: v}))
+		}
 	}
 
 	if container.NetworkSettings.Service != nil {
@@ -789,9 +792,6 @@ func (container *Container) BuildCreateEndpointOptions(n libnetwork.Network, epC
 			}
 
 			createOptions = append(createOptions, libnetwork.EndpointOptionGeneric(genericOption))
-		}
-		for k, v := range epConfig.DriverOpts {
-			createOptions = append(createOptions, libnetwork.EndpointOptionGeneric(options.Generic{k: v}))
 		}
 
 	}

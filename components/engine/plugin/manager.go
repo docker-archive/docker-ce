@@ -13,7 +13,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/distribution/reference"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/image"
@@ -28,6 +27,7 @@ import (
 	"github.com/docker/docker/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const configFileName = "config.json"
@@ -105,6 +105,11 @@ func NewManager(config ManagerConfig) (*Manager, error) {
 	if err := os.MkdirAll(manager.tmpDir(), 0700); err != nil {
 		return nil, errors.Wrapf(err, "failed to mkdir %v", manager.tmpDir())
 	}
+
+	if err := setupRoot(manager.config.Root); err != nil {
+		return nil, err
+	}
+
 	var err error
 	manager.containerdClient, err = config.Executor.Client(manager) // todo: move to another struct
 	if err != nil {

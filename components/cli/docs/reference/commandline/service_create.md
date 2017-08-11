@@ -4,8 +4,8 @@ description: "The service create command description and usage"
 keywords: "service, create"
 ---
 
-<!-- This file is maintained within the docker/docker Github
-     repository at https://github.com/docker/docker/. Make all
+<!-- This file is maintained within the docker/cli Github
+     repository at https://github.com/docker/cli/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
      periodically be overwritten by the definitive file. Pull
@@ -21,9 +21,10 @@ Usage:  docker service create [OPTIONS] IMAGE [COMMAND] [ARG...]
 Create a new service
 
 Options:
+      --config config                      Specify configurations to expose to the service
       --constraint list                    Placement constraints
       --container-label list               Container labels
-      --credential-spec                    Credential spec for managed service account (Windows only)
+      --credential-spec credential-spec    Credential spec for managed service account (Windows only)
   -d, --detach                             Exit immediately instead of waiting for the service to converge (default true)
       --dns list                           Set custom DNS servers
       --dns-option list                    Set DNS options
@@ -49,8 +50,9 @@ Options:
       --mode string                        Service mode (replicated or global) (default "replicated")
       --mount mount                        Attach a filesystem mount to the service
       --name string                        Service name
-      --network list                       Network attachments
+      --network network                    Network attachments
       --no-healthcheck                     Disable any container-specified HEALTHCHECK
+      --no-resolve-image                   Do not query the registry to resolve image digest and supported platforms
       --placement-pref pref                Add a placement preference
   -p, --publish port                       Publish a port as a node port
   -q, --quiet                              Suppress progress output

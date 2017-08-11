@@ -15,9 +15,11 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/Microsoft/hcsshim"
-	"github.com/Sirupsen/logrus"
+	opengcs "github.com/Microsoft/opengcs/client"
 	"github.com/docker/docker/pkg/sysinfo"
+	"github.com/docker/docker/pkg/system"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
+	"github.com/sirupsen/logrus"
 )
 
 type client struct {
@@ -229,20 +231,35 @@ func (clnt *client) createWindows(containerID string, checkpoint string, checkpo
 	}
 
 	// Add the mounts (volumes, bind mounts etc) to the structure
-	mds := make([]hcsshim.MappedDir, len(spec.Mounts))
-	for i, mount := range spec.Mounts {
-		mds[i] = hcsshim.MappedDir{
-			HostPath:      mount.Source,
-			ContainerPath: mount.Destination,
-			ReadOnly:      false,
-		}
-		for _, o := range mount.Options {
-			if strings.ToLower(o) == "ro" {
-				mds[i].ReadOnly = true
+	var mds []hcsshim.MappedDir
+	var mps []hcsshim.MappedPipe
+	for _, mount := range spec.Mounts {
+		const pipePrefix = `\\.\pipe\`
+		if strings.HasPrefix(mount.Destination, pipePrefix) {
+			mp := hcsshim.MappedPipe{
+				HostPath:          mount.Source,
+				ContainerPipeName: mount.Destination[len(pipePrefix):],
 			}
+			mps = append(mps, mp)
+		} else {
+			md := hcsshim.MappedDir{
+				HostPath:      mount.Source,
+				ContainerPath: mount.Destination,
+				ReadOnly:      false,
+			}
+			for _, o := range mount.Options {
+				if strings.ToLower(o) == "ro" {
+					md.ReadOnly = true
+				}
+			}
+			mds = append(mds, md)
 		}
 	}
 	configuration.MappedDirectories = mds
+	if len(mps) > 0 && system.GetOSVersion().Build < 16210 { // replace with Win10 RS3 build number at RTM
+		return errors.New("named pipe mounts are not supported on this version of Windows")
+	}
+	configuration.MappedPipes = mps
 
 	hcsContainer, err := hcsshim.CreateContainer(containerID, configuration)
 	if err != nil {
@@ -289,8 +306,20 @@ func (clnt *client) createWindows(containerID string, checkpoint string, checkpo
 func (clnt *client) createLinux(containerID string, checkpoint string, checkpointDir string, spec specs.Spec, attachStdio StdioCallback, options ...CreateOption) error {
 	logrus.Debugf("libcontainerd: createLinux(): containerId %s ", containerID)
 
-	// TODO @jhowardmsft LCOW Support: This needs to be configurable, not hard-coded.
-	// However, good-enough for the LCOW bring-up.
+	var layerOpt *LayerOption
+	var lcowOpt *LCOWOption
+	for _, option := range options {
+		if layer, ok := option.(*LayerOption); ok {
+			layerOpt = layer
+		}
+		if lcow, ok := option.(*LCOWOption); ok {
+			lcowOpt = lcow
+		}
+	}
+	if lcowOpt == nil || lcowOpt.Config == nil {
+		return fmt.Errorf("lcow option must be supplied to the runtime")
+	}
+
 	configuration := &hcsshim.ContainerConfig{
 		HvPartition:   true,
 		Name:          containerID,
@@ -298,17 +327,18 @@ func (clnt *client) createLinux(containerID string, checkpoint string, checkpoin
 		ContainerType: "linux",
 		Owner:         defaultOwner,
 		TerminateOnLastHandleClosed: true,
-		HvRuntime: &hcsshim.HvRuntime{
-			ImagePath:       `c:\Program Files\Linux Containers`,
-			LinuxKernelFile: `bootx64.efi`,
-			LinuxInitrdFile: `initrd.img`,
-		},
 	}
 
-	var layerOpt *LayerOption
-	for _, option := range options {
-		if l, ok := option.(*LayerOption); ok {
-			layerOpt = l
+	if lcowOpt.Config.ActualMode == opengcs.ModeActualVhdx {
+		configuration.HvRuntime = &hcsshim.HvRuntime{
+			ImagePath: lcowOpt.Config.Vhdx,
+		}
+	} else {
+		configuration.HvRuntime = &hcsshim.HvRuntime{
+			ImagePath:           lcowOpt.Config.KirdPath,
+			LinuxKernelFile:     lcowOpt.Config.KernelFile,
+			LinuxInitrdFile:     lcowOpt.Config.InitrdFile,
+			LinuxBootParameters: lcowOpt.Config.BootParameters,
 		}
 	}
 

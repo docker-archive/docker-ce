@@ -142,6 +142,7 @@ func Service(
 				User:            service.User,
 				Mounts:          mounts,
 				StopGracePeriod: service.StopGracePeriod,
+				StopSignal:      service.StopSignal,
 				TTY:             service.Tty,
 				OpenStdin:       service.StdinOpen,
 				Secrets:         secrets,
@@ -454,6 +455,7 @@ func convertUpdateConfig(source *composetypes.UpdateConfig) *swarm.UpdateConfig 
 		FailureAction:   source.FailureAction,
 		Monitor:         source.Monitor,
 		MaxFailureRatio: source.MaxFailureRatio,
+		Order:           source.Order,
 	}
 }
 
