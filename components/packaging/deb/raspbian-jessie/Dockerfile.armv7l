@@ -1,8 +1,13 @@
-FROM armhf/ubuntu:yakkety
+FROM resin/rpi-raspbian:jessie
 
-RUN apt-get update && apt-get install -y apparmor bash-completion btrfs-tools build-essential cmake curl ca-certificates debhelper dh-apparmor dh-systemd git libapparmor-dev libdevmapper-dev libltdl-dev libseccomp-dev pkg-config vim-common libsystemd-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
+# allow replacing archive mirror
+ARG APT_MIRROR=archive.raspbian.org
+RUN sed -ri "s/archive.raspbian.org/$APT_MIRROR/g" /etc/apt/sources.list
+
+RUN apt-get update && apt-get install -y apparmor bash-completion btrfs-tools build-essential cmake curl ca-certificates debhelper dh-apparmor dh-systemd git libapparmor-dev libdevmapper-dev libltdl-dev  pkg-config vim-common libsystemd-journal-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 ENV GO_VERSION 1.8.3
+ENV GOARM 6
 RUN curl -fSL "https://golang.org/dl/go${GO_VERSION}.linux-armv6l.tar.gz" | tar xzC /usr/local
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
@@ -20,8 +25,8 @@ RUN mkdir -p /go/src/github.com/docker && \
 	ln -snf /root/build-deb/cli /go/src/github.com/docker/cli
 
 
-ENV DISTRO ubuntu
-ENV SUITE yakkety
+ENV DISTRO raspbian
+ENV SUITE jessie
 
 WORKDIR /root/build-deb
 

@@ -12,7 +12,7 @@ override_dh_gencontrol:
 
 override_dh_auto_build:
 	cd engine && ./hack/make.sh dynbinary
-	LDFLAGS='' make -C cli VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
+	cd /go/src/github.com/docker/cli && LDFLAGS='' make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
 
 override_dh_auto_test:
 	./engine/bundles/$(BUNDLE_VERSION)/dynbinary-daemon/dockerd -v
