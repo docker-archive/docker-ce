@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/daemon/initlayer"
 	"github.com/docker/docker/libcontainerd"
@@ -22,6 +21,7 @@ import (
 	"github.com/opencontainers/go-digest"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 )
 
@@ -162,6 +162,13 @@ func shutdownPlugin(p *v2.Plugin, c *controller, containerdClient libcontainerd.
 	}
 }
 
+func setupRoot(root string) error {
+	if err := mount.MakePrivate(root); err != nil {
+		return errors.Wrap(err, "error setting plugin manager root to private")
+	}
+	return nil
+}
+
 func (pm *Manager) disable(p *v2.Plugin, c *controller) error {
 	if !p.IsEnabled() {
 		return fmt.Errorf("plugin %s is already disabled", p.Name())
@@ -190,6 +197,7 @@ func (pm *Manager) Shutdown() {
 			shutdownPlugin(p, c, pm.containerdClient)
 		}
 	}
+	mount.Unmount(pm.config.Root)
 }
 
 func (pm *Manager) upgradePlugin(p *v2.Plugin, configDigest digest.Digest, blobsums []digest.Digest, tmpRootFSDir string, privileges *types.PluginPrivileges) (err error) {

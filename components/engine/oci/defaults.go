@@ -91,7 +91,7 @@ func DefaultLinuxSpec() specs.Spec {
 			Destination: "/dev",
 			Type:        "tmpfs",
 			Source:      "tmpfs",
-			Options:     []string{"nosuid", "strictatime", "mode=755"},
+			Options:     []string{"nosuid", "strictatime", "mode=755", "size=65536k"},
 		},
 		{
 			Destination: "/dev/pts",
@@ -116,6 +116,12 @@ func DefaultLinuxSpec() specs.Spec {
 			Type:        "mqueue",
 			Source:      "mqueue",
 			Options:     []string{"nosuid", "noexec", "nodev"},
+		},
+		{
+			Destination: "/dev/shm",
+			Type:        "tmpfs",
+			Source:      "shm",
+			Options:     []string{"nosuid", "noexec", "nodev", "mode=1777"},
 		},
 	}
 	s.Process.Capabilities = &specs.LinuxCapabilities{

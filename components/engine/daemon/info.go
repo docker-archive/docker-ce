@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/cli/debug"
@@ -22,6 +21,7 @@ import (
 	"github.com/docker/docker/registry"
 	"github.com/docker/docker/volume/drivers"
 	"github.com/docker/go-connections/sockets"
+	"github.com/sirupsen/logrus"
 )
 
 // SystemInfo returns information about the host server the daemon is running on.
@@ -123,6 +123,7 @@ func (daemon *Daemon) SystemInfo() (*types.Info, error) {
 		RegistryConfig:     daemon.RegistryService.ServiceConfig(),
 		NCPU:               sysinfo.NumCPU(),
 		MemTotal:           meminfo.MemTotal,
+		GenericResources:   daemon.genericResources,
 		DockerRootDir:      daemon.configStore.Root,
 		Labels:             daemon.configStore.Labels,
 		ExperimentalBuild:  daemon.configStore.Experimental,

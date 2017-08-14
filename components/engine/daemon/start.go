@@ -10,11 +10,11 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/Sirupsen/logrus"
 	apierrors "github.com/docker/docker/api/errors"
 	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/container"
+	"github.com/sirupsen/logrus"
 )
 
 // ContainerStart starts a container.
@@ -198,7 +198,9 @@ func (daemon *Daemon) containerStart(container *container.Container, checkpoint 
 func (daemon *Daemon) Cleanup(container *container.Container) {
 	daemon.releaseNetwork(container)
 
-	container.UnmountIpcMounts(detachMounted)
+	if err := container.UnmountIpcMount(detachMounted); err != nil {
+		logrus.Warnf("%s cleanup: failed to unmount IPC: %s", container.ID, err)
+	}
 
 	if err := daemon.conditionalUnmountOnCleanup(container); err != nil {
 		// FIXME: remove once reference counting for graphdrivers has been refactored
