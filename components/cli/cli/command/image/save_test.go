@@ -26,7 +26,7 @@ func TestNewSaveCommandErrors(t *testing.T) {
 		{
 			name:          "wrong args",
 			args:          []string{},
-			expectedError: "requires at least 1 argument(s).",
+			expectedError: "requires at least 1 argument.",
 		},
 		{
 			name:          "output to terminal",
@@ -42,6 +42,11 @@ func TestNewSaveCommandErrors(t *testing.T) {
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
 				return ioutil.NopCloser(strings.NewReader("")), errors.Errorf("error saving image")
 			},
+		},
+		{
+			name:          "output directory does not exist",
+			args:          []string{"-o", "fakedir/out.tar", "arg1"},
+			expectedError: "failed to save image: unable to validate output path: directory \"fakedir\" does not exist",
 		},
 	}
 	for _, tc := range testCases {
