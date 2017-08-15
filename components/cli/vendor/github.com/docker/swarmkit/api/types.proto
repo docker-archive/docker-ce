@@ -30,12 +30,42 @@ message Annotations {
 	repeated IndexEntry indices = 4 [(gogoproto.nullable) = false];
 }
 
+// NamedGenericResource represents a "user defined" resource which is defined
+// as a string.
+// "Kind" is used to describe the Kind of a resource (e.g: "GPU", "FPGA", "SSD", ...)
+// Value is used to identify the resource (GPU="UUID-1", FPGA="/dev/sdb5", ...)
+message NamedGenericResource {
+	string kind = 1;
+	string value = 2;
+}
+
+// DiscreteGenericResource represents a "user defined" resource which is defined
+// as an integer
+// "Kind" is used to describe the Kind of a resource (e.g: "GPU", "FPGA", "SSD", ...)
+// Value is used to count the resource (SSD=5, HDD=3, ...)
+message DiscreteGenericResource {
+	string kind = 1;
+	int64 value = 2;
+}
+
+// GenericResource represents a "user defined" resource which can
+// be either an integer (e.g: SSD=3) or a string (e.g: SSD=sda1)
+message GenericResource {
+	oneof resource {
+		NamedGenericResource named_resource_spec = 1;
+		DiscreteGenericResource discrete_resource_spec = 2;
+	}
+}
+
 message Resources {
 	// Amount of CPUs (e.g. 2000000000 = 2 CPU cores)
 	int64 nano_cpus = 1 [(gogoproto.customname) = "NanoCPUs"];
 
 	// Amount of memory in bytes.
 	int64 memory_bytes = 2;
+
+	// User specified resource (e.g: bananas=2;apple={red,yellow,green})
+	repeated GenericResource generic = 3;
 }
 
 message ResourceRequirements {
