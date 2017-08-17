@@ -5,7 +5,7 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
-## 17.06.1-ce (2017-07-XX)
+## 17.06.1-ce (2017-08-17)
 
 ### Builder
 
@@ -31,6 +31,7 @@ be found.
 ### Networking
 
 * Fixed issue with driver options not received by network drivers [#127](https://github.com/docker/docker-ce/pull/127)
+* Fixed issue with overlay network IP address reuse [#197](https://github.com/docker/docker-ce/pull/197)
 
 ### Plugins
 
