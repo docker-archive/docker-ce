@@ -5,6 +5,21 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
+## 17.06.2-ce (2017-08-DD)
+
+### Client
+
+- Enable TCP keepalive in the client to prevent loss of connection [docker/cli#415](https://github.com/docker/cli/pull/415)
+
+### Runtime
+
+- Devmapper: ensure UdevWait is called after calls to setCookie [moby/moby#33732](https://github.com/moby/moby/pull/33732)
+- Aufs: ensure diff layers are correctly removed to prevent leftover files from using up storage [moby/moby#34587](https://github.com/moby/moby/pull/34587)
+
+### Swarm mode
+
+- Ignore PullOptions for running tasks [docker/swarmkit#2351](https://github.com/docker/swarmkit/pull/2351)
+
 ## 17.06.1-ce (2017-08-17)
 
 ### Builder
