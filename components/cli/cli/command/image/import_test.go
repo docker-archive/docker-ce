@@ -1,15 +1,14 @@
 package image
 
 import (
-	"bytes"
 	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/pkg/testutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,8 +35,7 @@ func TestNewImportCommandErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := NewImportCommand(test.NewFakeCliWithOutput(&fakeClient{imageImportFunc: tc.imageImportFunc}, buf))
+		cmd := NewImportCommand(test.NewFakeCli(&fakeClient{imageImportFunc: tc.imageImportFunc}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
@@ -91,8 +89,7 @@ func TestNewImportCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := NewImportCommand(test.NewFakeCliWithOutput(&fakeClient{imageImportFunc: tc.imageImportFunc}, buf))
+		cmd := NewImportCommand(test.NewFakeCli(&fakeClient{imageImportFunc: tc.imageImportFunc}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())

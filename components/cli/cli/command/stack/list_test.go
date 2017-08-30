@@ -1,17 +1,16 @@
 package stack
 
 import (
-	"bytes"
 	"io/ioutil"
 	"testing"
 
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
 	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/cli/internal/test/builders"
+	. "github.com/docker/cli/internal/test/builders"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -61,8 +60,7 @@ func TestListErrors(t *testing.T) {
 }
 
 func TestListWithFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(
@@ -71,17 +69,15 @@ func TestListWithFormat(t *testing.T) {
 					}),
 				)}, nil
 		},
-	}, buf))
+	})
+	cmd := newListCommand(cli)
 	cmd.Flags().Set("format", "{{ .Name }}")
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
-	expected := golden.Get(t, []byte(actual), "stack-list-with-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-list-with-format.golden")
 }
 
 func TestListWithoutFormat(t *testing.T) {
-	buf := new(bytes.Buffer)
-	cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
+	cli := test.NewFakeCli(&fakeClient{
 		serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 			return []swarm.Service{
 				*Service(
@@ -90,11 +86,10 @@ func TestListWithoutFormat(t *testing.T) {
 					}),
 				)}, nil
 		},
-	}, buf))
+	})
+	cmd := newListCommand(cli)
 	assert.NoError(t, cmd.Execute())
-	actual := buf.String()
-	expected := golden.Get(t, []byte(actual), "stack-list-without-format.golden")
-	testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+	golden.Assert(t, cli.OutBuffer().String(), "stack-list-without-format.golden")
 }
 
 func TestListOrder(t *testing.T) {
@@ -140,15 +135,13 @@ func TestListOrder(t *testing.T) {
 	}
 
 	for _, uc := range usecases {
-		buf := new(bytes.Buffer)
-		cmd := newListCommand(test.NewFakeCliWithOutput(&fakeClient{
+		cli := test.NewFakeCli(&fakeClient{
 			serviceListFunc: func(options types.ServiceListOptions) ([]swarm.Service, error) {
 				return uc.swarmServices, nil
 			},
-		}, buf))
+		})
+		cmd := newListCommand(cli)
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), uc.golden)
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), uc.golden)
 	}
 }

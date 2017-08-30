@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/stretchr/testify/assert"
@@ -73,7 +73,7 @@ func TestRunBuildDockerfileFromStdinWithCompress(t *testing.T) {
 // starting with `github.com/` are special-cased, and the build command attempts
 // to clone the remote repo.
 func TestRunBuildFromGitHubSpecialCase(t *testing.T) {
-	cmd := NewBuildCommand(&command.DockerCli{})
+	cmd := NewBuildCommand(test.NewFakeCli(nil))
 	cmd.SetArgs([]string{"github.com/docker/no-such-repository"})
 	cmd.SetOutput(ioutil.Discard)
 	err := cmd.Execute()

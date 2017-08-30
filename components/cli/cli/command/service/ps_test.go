@@ -3,9 +3,7 @@ package service
 import (
 	"testing"
 
-	"bytes"
-
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -82,8 +80,7 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 		},
 	}
 
-	out := new(bytes.Buffer)
-	cli := test.NewFakeCliWithOutput(client, out)
+	cli := test.NewFakeCli(client)
 	options := psOptions{
 		services: []string{"foo", "bar"},
 		filter:   opts.NewFilterOpt(),
@@ -91,4 +88,26 @@ func TestRunPSWarnsOnNotFound(t *testing.T) {
 	}
 	err := runPS(cli, options)
 	assert.EqualError(t, err, "no such service: bar")
+}
+
+func TestUpdateNodeFilter(t *testing.T) {
+	selfNodeID := "foofoo"
+	filter := filters.NewArgs()
+	filter.Add("node", "one")
+	filter.Add("node", "two")
+	filter.Add("node", "self")
+
+	client := &fakeClient{
+		infoFunc: func(_ context.Context) (types.Info, error) {
+			return types.Info{Swarm: swarm.Info{NodeID: selfNodeID}}, nil
+		},
+	}
+
+	updateNodeFilter(context.Background(), client, filter)
+
+	expected := filters.NewArgs()
+	expected.Add("node", "one")
+	expected.Add("node", "two")
+	expected.Add("node", selfNodeID)
+	assert.Equal(t, expected, filter)
 }

@@ -1,20 +1,18 @@
 package node
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"testing"
 	"time"
 
-	"github.com/docker/cli/cli/internal/test"
+	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
-	. "github.com/docker/cli/cli/internal/test/builders"
-	"github.com/docker/docker/pkg/testutil"
-	"github.com/docker/docker/pkg/testutil/golden"
+	. "github.com/docker/cli/internal/test/builders"
+	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,14 +48,13 @@ func TestNodePsErrors(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newPsCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				infoFunc:        tc.infoFunc,
-				nodeInspectFunc: tc.nodeInspectFunc,
-				taskInspectFunc: tc.taskInspectFunc,
-				taskListFunc:    tc.taskListFunc,
-			}, buf))
+		cli := test.NewFakeCli(&fakeClient{
+			infoFunc:        tc.infoFunc,
+			nodeInspectFunc: tc.nodeInspectFunc,
+			taskInspectFunc: tc.taskInspectFunc,
+			taskListFunc:    tc.taskListFunc,
+		})
+		cmd := newPsCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
@@ -114,21 +111,18 @@ func TestNodePs(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		buf := new(bytes.Buffer)
-		cmd := newPsCommand(
-			test.NewFakeCliWithOutput(&fakeClient{
-				infoFunc:        tc.infoFunc,
-				nodeInspectFunc: tc.nodeInspectFunc,
-				taskInspectFunc: tc.taskInspectFunc,
-				taskListFunc:    tc.taskListFunc,
-			}, buf))
+		cli := test.NewFakeCli(&fakeClient{
+			infoFunc:        tc.infoFunc,
+			nodeInspectFunc: tc.nodeInspectFunc,
+			taskInspectFunc: tc.taskInspectFunc,
+			taskListFunc:    tc.taskListFunc,
+		})
+		cmd := newPsCommand(cli)
 		cmd.SetArgs(tc.args)
 		for key, value := range tc.flags {
 			cmd.Flags().Set(key, value)
 		}
 		assert.NoError(t, cmd.Execute())
-		actual := buf.String()
-		expected := golden.Get(t, []byte(actual), fmt.Sprintf("node-ps.%s.golden", tc.name))
-		testutil.EqualNormalizedString(t, testutil.RemoveSpace, actual, string(expected))
+		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("node-ps.%s.golden", tc.name))
 	}
 }

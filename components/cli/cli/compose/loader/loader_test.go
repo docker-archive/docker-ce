@@ -584,6 +584,21 @@ services:
 	assert.Contains(t, forbidden, "extends")
 }
 
+func TestInvalidResource(t *testing.T) {
+	_, err := loadYAML(`
+        version: "3"
+        services:
+          foo:
+            image: busybox
+            deploy:
+              resources:
+                impossible:
+                  x: 1
+`)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Additional property impossible is not allowed")
+}
+
 func TestInvalidExternalAndDriverCombination(t *testing.T) {
 	_, err := loadYAML(`
 version: "3"
@@ -741,10 +756,11 @@ func TestFullExample(t *testing.T) {
 			"somehost":  "162.242.195.82",
 		},
 		HealthCheck: &types.HealthCheckConfig{
-			Test:     types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
-			Interval: "10s",
-			Timeout:  "1s",
-			Retries:  uint64Ptr(5),
+			Test:        types.HealthCheckTest([]string{"CMD-SHELL", "echo \"hello world\""}),
+			Interval:    durationPtr(10 * time.Second),
+			Timeout:     durationPtr(1 * time.Second),
+			Retries:     uint64Ptr(5),
+			StartPeriod: durationPtr(15 * time.Second),
 		},
 		Hostname: "foo",
 		Image:    "redis",

@@ -1,15 +1,14 @@
 package image
 
 import (
-	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/cli/internal/test"
-	"github.com/docker/docker/pkg/testutil"
+	"github.com/docker/cli/internal/test"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -90,11 +89,11 @@ func TestNewSaveCommandSuccess(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		cmd := NewSaveCommand(test.NewFakeCliWithOutput(&fakeClient{
+		cmd := NewSaveCommand(test.NewFakeCli(&fakeClient{
 			imageSaveFunc: func(images []string) (io.ReadCloser, error) {
 				return ioutil.NopCloser(strings.NewReader("")), nil
 			},
-		}, new(bytes.Buffer)))
+		}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		assert.NoError(t, cmd.Execute())

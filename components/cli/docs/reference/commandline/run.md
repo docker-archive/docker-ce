@@ -302,7 +302,7 @@ Contents of file
 ```
 
 The following examples will fail when using Windows-based containers, as the
-destination of a volume or bind-mount inside the container must be one of:
+destination of a volume or bind mount inside the container must be one of:
 a non-existing or empty directory; or a drive other than C:. Further, the source
 of a bind mount must be a local directory, not a file.
 
@@ -318,7 +318,7 @@ docker run -v c:\foo:c:\existing-directory-with-contents ...
 For in-depth information about volumes, refer to [manage data in containers](https://docs.docker.com/engine/tutorials/dockervolumes/)
 
 
-### Add bind-mounts or volumes using the --mount flag
+### Add bind mounts or volumes using the --mount flag
 
 The `--mount` flag allows you to mount volumes, host-directories and `tmpfs`
 mounts in a container.
@@ -753,8 +753,9 @@ is set on the cgroup and applications in a container can query it at `/sys/fs/cg
 On Windows, this will affect containers differently depending on what type of isolation is used.
 
 - With `process` isolation, Windows will report the full memory of the host system, not the limit to applications running inside the container
+
     ```powershell
-    docker run -it -m 2GB --isolation=process microsoft/nanoserver powershell Get-ComputerInfo *memory*
+    PS C:\> docker run -it -m 2GB --isolation=process microsoft/nanoserver powershell Get-ComputerInfo *memory*
 
     CsTotalPhysicalMemory      : 17064509440
     CsPhyicallyInstalledMemory : 16777216
@@ -765,9 +766,11 @@ On Windows, this will affect containers differently depending on what type of is
     OsInUseVirtualMemory       : 1957488
     OsMaxProcessMemorySize     : 137438953344
     ```
+
 - With `hyperv` isolation, Windows will create a utility VM that is big enough to hold the memory limit, plus the minimal OS needed to host the container. That size is reported as "Total Physical Memory."
+
     ```powershell
-    docker run -it -m 2GB --isolation=hyperv microsoft/nanoserver powershell Get-ComputerInfo *memory*
+    PS C:\> docker run -it -m 2GB --isolation=hyperv microsoft/nanoserver powershell Get-ComputerInfo *memory*
 
     CsTotalPhysicalMemory      : 2683355136
     CsPhyicallyInstalledMemory :

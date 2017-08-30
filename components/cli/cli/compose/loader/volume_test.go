@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/docker/cli/cli/compose/types"
-	"github.com/docker/docker/pkg/testutil"
+	"github.com/docker/cli/internal/test/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -199,4 +199,14 @@ func TestParseVolumeSplitCases(t *testing.T) {
 		msg := fmt.Sprintf("Case %d: %s", casenumber, x.input)
 		assert.Equal(t, expected, parsed.Source != "", msg)
 	}
+}
+
+func TestParseVolumeInvalidEmptySpec(t *testing.T) {
+	_, err := ParseVolume("")
+	testutil.ErrorContains(t, err, "invalid empty volume spec")
+}
+
+func TestParseVolumeInvalidSections(t *testing.T) {
+	_, err := ParseVolume("/foo::rw")
+	testutil.ErrorContains(t, err, "invalid spec")
 }
