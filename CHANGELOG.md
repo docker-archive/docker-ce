@@ -12,8 +12,8 @@ be found.
 * Add support for proxy configuration in config.json [docker/cli#93](https://github.com/docker/cli/pull/93)
 * Enable pprof/debug endpoints by default [moby/moby#32453](https://github.com/moby/moby/pull/32453)
 * Passwords can now be passed using `STDIN` using the new  `--password-stdin` flag on `docker login` [docker/cli#271](https://github.com/docker/cli/pull/271)
-+ Add `--detach` to docker scale [docker/cli#243](https://github.com/docker/cli/pull/243)
-* Prevent `docker logs --no-stream` from hanging due to non-existing containers [moby/moby#34004](https://github.com/moby/moby/pull/34004)
++ Add `--detach` to `docker service scale` [docker/cli#243](https://github.com/docker/cli/pull/243)
+* Prevent `docker stats --no-stream` from hanging due to non-existing containers [moby/moby#34004](https://github.com/moby/moby/pull/34004)
 - Fix `docker stack ps` printing error to `stdout` instead of `stderr` [docker/cli#298](https://github.com/docker/cli/pull/298)
 * Fix progress bar being stuck on `docker service create` if an error occurs during deploy [docker/cli#259](https://github.com/docker/cli/pull/259)
 * Improve presentation of progress bars in interactive mode [docker/cli#260](https://github.com/docker/cli/pull/260) [docker/cli#237](https://github.com/docker/cli/pull/237)
@@ -24,7 +24,7 @@ be found.
 
 ### Builder
 
-* Implement long running interactive session and sending build context incrementally [moby/moby#32677](https://github.com/moby/moby/pull/32677) [docker/cli#231](https://github.com/docker/cli/pull/231) [moby/moby#33859](https://github.com/moby/moby/pull/33859)
+* (experimental) Implement long running interactive session and sending build context incrementally [moby/moby#32677](https://github.com/moby/moby/pull/32677) [docker/cli#231](https://github.com/docker/cli/pull/231) [moby/moby#33859](https://github.com/moby/moby/pull/33859)
 * Warn on empty continuation lines [moby/moby#33719](https://github.com/moby/moby/pull/33719)
 - Fix `.dockerignore` entries with a leading `/` not matching anything [moby/moby#32088](https://github.com/moby/moby/pull/32088)
 
