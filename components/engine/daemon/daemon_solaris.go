@@ -22,7 +22,7 @@ import (
 	"github.com/docker/libnetwork/netlabel"
 	"github.com/docker/libnetwork/netutils"
 	lntypes "github.com/docker/libnetwork/types"
-	"github.com/opencontainers/runtime-spec/specs-go"
+	specs "github.com/opencontainers/runtime-spec/specs-go"
 	"github.com/opencontainers/selinux/go-selinux/label"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -32,14 +32,15 @@ import (
 import "C"
 
 const (
-	defaultVirtualSwitch = "Virtual Switch"
-	platformSupported    = true
-	solarisMinCPUShares  = 1
-	solarisMaxCPUShares  = 65535
+	platformSupported   = true
+	solarisMinCPUShares = 1
+	solarisMaxCPUShares = 65535
 )
 
 func getMemoryResources(config containertypes.Resources) specs.CappedMemory {
-	memory := specs.CappedMemory{}
+	memory := specs.CappedMemory{
+		DisableOOMKiller: config.OomKillDisable,
+	}
 
 	if config.Memory > 0 {
 		memory.Physical = strconv.FormatInt(config.Memory, 10)

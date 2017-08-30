@@ -110,7 +110,7 @@ dynbinary: build ## build the linux dynbinaries
 	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary
 
 build: bundles init-go-pkg-cache
-	$(warning The docker client CLI has moved to github.com/docker/cli. By default, it is built from the git sha specified in hack/dockerfile/binaries-commits. For a dev-test cycle involving the CLI, run:${\n} DOCKER_CLI_PATH=/host/path/to/cli/binary make shell ${\n} then change the cli and compile into a binary at the same location.${\n})
+	$(warning The docker client CLI has moved to github.com/docker/cli. For a dev-test cycle involving the CLI, run:${\n} DOCKER_CLI_PATH=/host/path/to/cli/binary make shell ${\n} then change the cli and compile into a binary at the same location.${\n})
 	docker build ${BUILD_APT_MIRROR} ${DOCKER_BUILD_ARGS} -t "$(DOCKER_IMAGE)" -f "$(DOCKERFILE)" .
 
 bundles:
@@ -160,7 +160,7 @@ test-integration: build ## run the integration tests
 	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary test-integration
 
 test-unit: build ## run the unit tests
-	$(DOCKER_RUN_DOCKER) hack/make.sh test-unit
+	$(DOCKER_RUN_DOCKER) hack/test/unit
 
 tgz: build ## build the archives (.zip on windows and .tgz\notherwise) containing the binaries
 	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary binary cross tgz
