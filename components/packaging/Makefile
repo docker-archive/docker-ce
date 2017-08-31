@@ -14,7 +14,7 @@ clean: ## remove build artifacts
 	$(MAKE) -C deb clean
 	$(MAKE) -C static clean
 
-rpm: DOCKER_BUILD_PKGS:=fedora-26 fedora-25 fedora-24 centos-7
+rpm: DOCKER_BUILD_PKGS:=fedora-26 fedora-25 centos-7
 rpm: ## build rpm packages
 	for p in $(DOCKER_BUILD_PKGS); do \
 		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
