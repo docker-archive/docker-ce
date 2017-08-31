@@ -27,11 +27,19 @@ func decodeLogLine(dec *json.Decoder, l *jsonlog.JSONLog) (*logger.Message, erro
 	if err := dec.Decode(l); err != nil {
 		return nil, err
 	}
+
+	var attrs map[string]string
+	if len(l.Attrs) > 0 {
+		attrs = make(map[string]string, len(l.Attrs))
+		for k, v := range l.Attrs {
+			attrs[k] = v
+		}
+	}
 	msg := &logger.Message{
 		Source:    l.Stream,
 		Timestamp: l.Created,
 		Line:      []byte(l.Log),
-		Attrs:     l.Attrs,
+		Attrs:     attrs,
 	}
 	return msg, nil
 }
