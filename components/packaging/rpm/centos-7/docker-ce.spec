@@ -202,21 +202,3 @@ if [ $1 -ge 0 ] ; then
 fi
 
 %changelog
-
-* Wed Jun 21 2017 <eli.uriegas@docker.com> 17.06.0-ce
-- release docker-ce 17.06.0-ce
-
-* Mon Jun 19 2017 <eli.uriegas@docker.com> 17.06.0-ce-rc5
-- release docker-ce 17.06.0-ce-rc5
-
-* Thu Jun 15 2017 <andrewhsu@docker.com> 17.06.0-ce-rc4
-- release docker-ce 17.06.0-ce-rc4
-
-* Tue Jun 13 2017 <andrewhsu@docker.com> 17.06.0-ce-rc3
-- release docker-ce 17.06.0-ce-rc3
-
-* Wed Jun 07 2017 <andrewhsu@docker.com> 17.06.0-ce-rc2
-- release docker-ce 17.06.0-ce-rc2
-
-* Mon May 29 2017 <andrewhsu@docker.com> 17.06.0-ce-rc1
-- release docker-ce 17.06.0-ce-rc1
