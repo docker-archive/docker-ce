@@ -14,6 +14,5 @@ The scripts will build for this list of packages types:
 * DEB packages for Debian 8 Jessie
 * DEB packages for Debian 7 Wheezy
 * RPM packages for Fedora 25
-* RPM packages for Fedora 24
 * RPM packages for CentOS 7
 * TGZ and ZIP files with static binaries
