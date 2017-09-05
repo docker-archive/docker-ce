@@ -5,7 +5,7 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
-## 17.06.2-ce (2017-08-DD)
+## 17.06.2-ce (2017-09-05)
 
 ### Client
 
