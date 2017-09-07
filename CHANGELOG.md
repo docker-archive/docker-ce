@@ -47,3 +47,7 @@ be found.
 
 * Include whether the managers in the swarm are autolocked as part of `docker info` [docker/cli#471](https://github.com/docker/cli/pull/471)
 + Add 'docker service rollback' subcommand [docker/cli#205](https://github.com/docker/cli/pull/205)
+
+### Packaging
+
++ Build scripts for ppc64el on Ubuntu [docker/docker-ce-packaging#43](https://github.com/docker/docker-ce-packaging/pull/43)
