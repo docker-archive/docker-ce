@@ -65,20 +65,20 @@ make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
 popd
 pushd engine
 TMP_GOPATH="/go" hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini
-hack/make.sh dynbinary
+VERSION=%{_origversion} hack/make.sh dynbinary
 popd
 mkdir -p plugin
 printf '{"edition_type":"ce","edition_name":"%s","edition_version":"%s"}\n' "${DISTRO}" "%{_version}" > plugin/.plugin-metadata
 
 %check
 cli/build/docker -v
-engine/bundles/%{_origversion}/dynbinary-daemon/dockerd -v
+engine/bundles/dynbinary-daemon/dockerd -v
 
 %install
 # install binary
 install -d $RPM_BUILD_ROOT/%{_bindir}
 install -p -m 755 cli/build/docker $RPM_BUILD_ROOT/%{_bindir}/docker
-install -p -m 755 engine/bundles/%{_origversion}/dynbinary-daemon/dockerd-%{_origversion} $RPM_BUILD_ROOT/%{_bindir}/dockerd
+install -p -m 755 $(readlink -f engine/bundles/dynbinary-daemon/dockerd) $RPM_BUILD_ROOT/%{_bindir}/dockerd
 
 # install proxy
 install -p -m 755 /usr/local/bin/docker-proxy $RPM_BUILD_ROOT/%{_bindir}/docker-proxy
