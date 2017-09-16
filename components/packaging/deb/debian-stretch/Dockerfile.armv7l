@@ -1,4 +1,4 @@
-FROM armhf/debian:stretch
+FROM arm32v7/debian:stretch
 
 # allow replacing httpredir or deb mirror
 ARG APT_MIRROR=deb.debian.org
