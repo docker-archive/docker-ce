@@ -19,7 +19,6 @@ import (
 	"time"
 
 	containerd "github.com/containerd/containerd/api/grpc/types"
-	"github.com/docker/docker/api"
 	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
@@ -29,6 +28,7 @@ import (
 	"github.com/docker/docker/daemon/events"
 	"github.com/docker/docker/daemon/exec"
 	"github.com/docker/docker/daemon/logger"
+	"github.com/docker/docker/daemon/network"
 	"github.com/sirupsen/logrus"
 	// register graph drivers
 	_ "github.com/docker/docker/daemon/graphdriver/register"
@@ -41,6 +41,7 @@ import (
 	"github.com/docker/docker/layer"
 	"github.com/docker/docker/libcontainerd"
 	"github.com/docker/docker/migrate/v1"
+	"github.com/docker/docker/pkg/containerfs"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/plugingetter"
 	"github.com/docker/docker/pkg/sysinfo"
@@ -122,6 +123,8 @@ type Daemon struct {
 	pruneRunning     int32
 	hosts            map[string]bool // hosts stores the addresses the daemon is listening on
 	startupDone      chan struct{}
+
+	lbAttachmentStore network.LBAttachmentStore
 }
 
 // StoreHosts stores the addresses the daemon is listening on
@@ -489,6 +492,8 @@ func (daemon *Daemon) DaemonLeavesCluster() {
 	} else {
 		logrus.Warnf("failed to initiate ingress network removal: %v", err)
 	}
+
+	daemon.lbAttachmentStore.ClearLBAttachments()
 }
 
 // setClusterProvider sets a component for querying the current cluster state.
@@ -713,7 +718,7 @@ func NewDaemon(config *config.Config, registryService registry.Service, containe
 		return nil, err
 	}
 
-	trustKey, err := api.LoadOrCreateTrustKey(config.TrustKeyPath)
+	trustKey, err := loadOrCreateTrustKey(config.TrustKeyPath)
 	if err != nil {
 		return nil, err
 	}
@@ -860,7 +865,7 @@ func (daemon *Daemon) shutdownContainer(c *container.Container) error {
 
 	// Wait without timeout for the container to exit.
 	// Ignore the result.
-	_ = <-c.Wait(context.Background(), container.WaitConditionNotRunning)
+	<-c.Wait(context.Background(), container.WaitConditionNotRunning)
 	return nil
 }
 
@@ -967,11 +972,11 @@ func (daemon *Daemon) Mount(container *container.Container) error {
 	}
 	logrus.Debugf("container mounted via layerStore: %v", dir)
 
-	if container.BaseFS != dir {
+	if container.BaseFS != nil && container.BaseFS.Path() != dir.Path() {
 		// The mount path reported by the graph driver should always be trusted on Windows, since the
 		// volume path for a given mounted layer may change over time.  This should only be an error
 		// on non-Windows operating systems.
-		if container.BaseFS != "" && runtime.GOOS != "windows" {
+		if runtime.GOOS != "windows" {
 			daemon.Unmount(container)
 			return fmt.Errorf("Error: driver %s is returning inconsistent paths for container %s ('%s' then '%s')",
 				daemon.GraphDriverName(container.Platform), container.ID, container.BaseFS, dir)
@@ -1046,7 +1051,7 @@ func prepareTempDir(rootDir string, rootIDs idtools.IDPair) (string, error) {
 	return tmpDir, idtools.MkdirAllAndChown(tmpDir, 0700, rootIDs)
 }
 
-func (daemon *Daemon) setupInitLayer(initPath string) error {
+func (daemon *Daemon) setupInitLayer(initPath containerfs.ContainerFS) error {
 	rootIDs := daemon.idMappings.RootPair()
 	return initlayer.Setup(initPath, rootIDs)
 }
@@ -1242,4 +1247,9 @@ func fixMemorySwappiness(resources *containertypes.Resources) {
 	if resources.MemorySwappiness != nil && *resources.MemorySwappiness == -1 {
 		resources.MemorySwappiness = nil
 	}
+}
+
+// GetLBAttachmentStore returns current load balancer store associated with the daemon
+func (daemon *Daemon) GetLBAttachmentStore() *network.LBAttachmentStore {
+	return &daemon.lbAttachmentStore
 }
