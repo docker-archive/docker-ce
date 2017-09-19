@@ -286,6 +286,8 @@ func (daemon *Daemon) setupConfigDir(c *container.Container) (setupErr error) {
 		if err := os.Chown(fPath, rootUID+uid, rootGID+gid); err != nil {
 			return errors.Wrap(err, "error setting ownership for config")
 		}
+
+		label.Relabel(fPath, c.MountLabel, false)
 	}
 
 	return nil
