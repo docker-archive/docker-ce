@@ -159,7 +159,7 @@ $ docker service create --name redis --secret secret.json redis:3.0.6
 4cdgfyky7ozwh3htjfw0d12qv
 ```
 
-Create a service specifying the secret, target, user/group ID and mode:
+Create a service specifying the secret, target, user/group ID, and mode:
 
 ```bash
 $ docker service create --name redis \
@@ -398,7 +398,7 @@ For more information about bind propagation, see the
 
 #### Options for Named Volumes
 
-The following options can only be used for named volumes (`type=volume`);
+The following options can only be used for named volumes (`type=volume`):
 
 
 <table>
@@ -419,7 +419,7 @@ The following options can only be used for named volumes (`type=volume`);
     <td>
       One or more custom metadata ("labels") to apply to the volume upon
       creation. For example,
-      `volume-label=mylabel=hello-world,my-other-label=hello-mars`. For more
+      <tt>volume-label=mylabel=hello-world,my-other-label=hello-mars</tt>. For more
       information about labels, refer to
       <a href="https://docs.docker.com/engine/userguide/labels-custom-metadata/">apply custom metadata</a>.
     </td>
@@ -430,8 +430,8 @@ The following options can only be used for named volumes (`type=volume`);
       By default, if you attach an empty volume to a container, and files or
       directories already existed at the mount-path in the container (<tt>dst</tt>),
       the Engine copies those files and directories into the volume, allowing
-      the host to access them. Set `volume-nocopy` to disables copying files
-      from the container's filesystem to the volume and mount the empty volume.
+      the host to access them. Set <tt>volume-nocopy</tt> to disable copying files
+      from the container's filesystem to the volume and mount the empty volume.<br />
 
       A value is optional:
 
@@ -834,6 +834,10 @@ Valid placeholders for the Go template are listed below:
     <td>Node ID</td>
   </tr>
   <tr>
+    <td><tt>.Node.Hostname</tt></td>
+    <td>Node Hostname</td>
+  </tr>
+  <tr>
     <td><tt>.Task.ID</tt></td>
     <td>Task ID</td>
   </tr>
@@ -851,11 +855,11 @@ Valid placeholders for the Go template are listed below:
 #### Template example
 
 In this example, we are going to set the template of the created containers based on the
-service's name and the node's ID where it sits.
+service's name, the node's ID and hostname where it sits.
 
 ```bash
 $ docker service create --name hosttempl \
-                        --hostname="{{.Node.ID}}-{{.Service.Name}}"\
+                        --hostname="{{.Node.Hostname}}-{{.Node.ID}}-{{.Service.Name}}"\
                          busybox top
 
 va8ew30grofhjoychbr6iot8c
@@ -865,7 +869,7 @@ $ docker service ps va8ew30grofhjoychbr6iot8c
 ID            NAME         IMAGE                                                                                   NODE          DESIRED STATE  CURRENT STATE               ERROR  PORTS
 wo41w8hg8qan  hosttempl.1  busybox:latest@sha256:29f5d56d12684887bdfa50dcd29fc31eea4aaf4ad3bec43daf19026a7ce69912  2e7a8a9c4da2  Running        Running about a minute ago
 
-$ docker inspect --format="{{.Config.Hostname}}" hosttempl.1.wo41w8hg8qanxwjwsg4kxpprj
+$ docker inspect --format="{{.Config.Hostname}}" 2e7a8a9c4da2-wo41w8hg8qanxwjwsg4kxpprj-hosttempl
 
 x3ti0erg11rjpg64m75kej2mz-hosttempl
 ```
