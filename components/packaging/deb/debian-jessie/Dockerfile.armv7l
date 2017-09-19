@@ -1,4 +1,4 @@
-FROM armhf/debian:jessie
+FROM arm32v7/debian:jessie
 
 # allow replacing httpredir or deb mirror
 ARG APT_MIRROR=deb.debian.org

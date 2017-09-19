@@ -6,11 +6,11 @@ img="unknown"
 if [ "$arch" = "x86_64" ]; then
     img="alpine"
 elif [ "$arch" = "armv7l" ]; then
-    img="armhf/alpine"
+    img="arm32v6/alpine"
 elif [ "$arch" = "s390x" ]; then
     img="s390x/alpine"
 elif [ "$arch" = "aarch64" ]; then
-    img="aarch64/alpine"
+    img="arm64v8/alpine"
 elif [ "$arch" = "ppc64le" ]; then
     img="ppc64le/alpine"
 else
