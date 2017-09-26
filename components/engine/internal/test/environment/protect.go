@@ -5,6 +5,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	dclient "github.com/docker/docker/client"
 	"github.com/docker/docker/integration-cli/fixtures/load"
 	"github.com/stretchr/testify/require"
 )
@@ -35,7 +36,7 @@ func ProtectAll(t testingT, testEnv *Execution) {
 	ProtectImages(t, testEnv)
 	ProtectNetworks(t, testEnv)
 	ProtectVolumes(t, testEnv)
-	if testEnv.DaemonInfo.OSType == "linux" {
+	if testEnv.OSType == "linux" {
 		ProtectPlugins(t, testEnv)
 	}
 }
@@ -81,7 +82,7 @@ func (e *Execution) ProtectImage(t testingT, images ...string) {
 func ProtectImages(t testingT, testEnv *Execution) {
 	images := getExistingImages(t, testEnv)
 
-	if testEnv.DaemonInfo.OSType == "linux" {
+	if testEnv.OSType == "linux" {
 		images = append(images, ensureFrozenImagesLinux(t, testEnv)...)
 	}
 	testEnv.ProtectImage(t, images...)
@@ -172,6 +173,10 @@ func ProtectPlugins(t testingT, testEnv *Execution) {
 func getExistingPlugins(t require.TestingT, testEnv *Execution) []string {
 	client := testEnv.APIClient()
 	pluginList, err := client.PluginList(context.Background(), filters.Args{})
+	// Docker EE does not allow cluster-wide plugin management.
+	if dclient.IsErrNotImplemented(err) {
+		return []string{}
+	}
 	require.NoError(t, err, "failed to list plugins")
 
 	plugins := []string{}
