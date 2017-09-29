@@ -4213,9 +4213,8 @@ func (s *DockerTrustSuite) TestBuildContextDirIsSymlink(c *check.C) {
 func (s *DockerTrustSuite) TestTrustedBuildTagFromReleasesRole(c *check.C) {
 	testRequires(c, NotaryHosting)
 
-	latestTag := s.setupTrustedImage(c, "trusted-build-releases-role")
-	repoName := strings.TrimSuffix(latestTag, ":latest")
-
+	repoName := fmt.Sprintf("%v/dockercli/build-releases-tag", privateRegistryURL)
+	s.notaryInitRepo(c, repoName)
 	// Now create the releases role
 	s.notaryCreateDelegation(c, repoName, "targets/releases", s.not.keys[0].Public)
 	s.notaryImportKey(c, repoName, "targets/releases", s.not.keys[0].Private)
@@ -4244,8 +4243,8 @@ func (s *DockerTrustSuite) TestTrustedBuildTagFromReleasesRole(c *check.C) {
 func (s *DockerTrustSuite) TestTrustedBuildTagIgnoresOtherDelegationRoles(c *check.C) {
 	testRequires(c, NotaryHosting)
 
-	latestTag := s.setupTrustedImage(c, "trusted-build-releases-role")
-	repoName := strings.TrimSuffix(latestTag, ":latest")
+	repoName := fmt.Sprintf("%v/dockercli/build-ignore-non-releases-delegation-tag", privateRegistryURL)
+	s.notaryInitRepo(c, repoName)
 
 	// Now create a non-releases delegation role
 	s.notaryCreateDelegation(c, repoName, "targets/other", s.not.keys[0].Public)

@@ -294,10 +294,10 @@ func (s *DockerTrustSuite) TestTrustedPush(c *check.C) {
 	})
 
 	// Assert that we rotated the snapshot key to the server by checking our local keystore
-	contents, err := ioutil.ReadDir(filepath.Join(config.Dir(), "trust/private/tuf_keys", privateRegistryURL, "dockerclitrusted/pushtest"))
+	contents, err := ioutil.ReadDir(filepath.Join(config.Dir(), "trust/private"))
 	c.Assert(err, check.IsNil, check.Commentf("Unable to read local tuf key files"))
-	// Check that we only have 1 key (targets key)
-	c.Assert(contents, checker.HasLen, 1)
+	// Check that we only have 2 keys (root, targets key)
+	c.Assert(contents, checker.HasLen, 2)
 }
 
 func (s *DockerTrustSuite) TestTrustedPushWithEnvPasswords(c *check.C) {
@@ -373,8 +373,12 @@ func (s *DockerTrustSuite) TestTrustedPushWithIncorrectPassphraseForNonRoot(c *c
 	// Push with default passphrases
 	cli.Docker(cli.Args("push", repoName), trustedCmd).Assert(c, SuccessSigningAndPushing)
 
+	// Tag a new target and try to push with an invalid passphrase
+	newTagRepoName := fmt.Sprintf("%v/dockercliincorretpwd/trusted:v2", privateRegistryURL)
+	cli.DockerCmd(c, "tag", "busybox", newTagRepoName)
+
 	// Push with wrong passphrases
-	cli.Docker(cli.Args("push", repoName), trustedCmdWithPassphrases("12345678", "87654321")).Assert(c, icmd.Expected{
+	cli.Docker(cli.Args("push", newTagRepoName), trustedCmdWithPassphrases("12345678", "87654321")).Assert(c, icmd.Expected{
 		ExitCode: 1,
 		Err:      "could not find necessary signing keys",
 	})
