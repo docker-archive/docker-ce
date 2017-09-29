@@ -43,7 +43,3 @@ use non-detached move as default, use `--detach=true` to keep the old behaviour.
 
 * Produce an error if `docker swarm init --force-new-cluster` is executed on worker nodes [moby/moby#34881](https://github.com/moby/moby/pull/34881)
 + Add support for `.Node.Hostname` templating in swarm services [moby/moby#34686](https://github.com/moby/moby/pull/34686)
-
-### Deprecation
-
-* Remove deprecated `--enable-api-cors` flag [moby/moby#34821](https://github.com/moby/moby/pull/34821)
