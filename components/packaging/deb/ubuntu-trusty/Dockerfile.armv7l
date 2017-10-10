@@ -1,5 +1,7 @@
 FROM arm32v7/ubuntu:trusty
 
+# Temorary fix until ubuntu trusty package repositories are back up
+RUN sed -i 's|security.ubuntu.com/ubuntu|ports.ubuntu.com/ubuntu-ports|' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y apparmor bash-completion btrfs-tools build-essential cmake curl ca-certificates debhelper dh-apparmor dh-systemd git libapparmor-dev libdevmapper-dev libltdl-dev  pkg-config vim-common libsystemd-journal-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 ENV GO_VERSION 1.8.3
