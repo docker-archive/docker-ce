@@ -7,8 +7,9 @@ be found.
 
 ## 17.10.0-ce (2017-10-DD)
 
-IMPORTANT: Starting with this release, `docker service create` and `docker service update`
-use non-detached move as default, use `--detach=true` to keep the old behaviour.
+IMPORTANT: Starting with this release, `docker service create`, `docker service update`,
+`docker service scale` and `docker service rollback` use non-detached mode as default,
+use `--detach` to keep the old behaviour.
 
 ### Builder
 
