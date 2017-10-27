@@ -4,8 +4,8 @@ description: "Documentation of changes that have been made to Engine API."
 keywords: "API, Docker, rcli, REST, documentation"
 ---
 
-<!-- This file is maintained within the docker/docker Github
-     repository at https://github.com/docker/docker/. Make all
+<!-- This file is maintained within the moby/moby GitHub
+     repository at https://github.com/moby/moby/. Make all
      pull requests against that repo. If you see this file in
      another repository, consider it read-only there, as it will
      periodically be overwritten by the definitive file. Pull
@@ -13,6 +13,9 @@ keywords: "API, Docker, rcli, REST, documentation"
      will be rejected.
 -->
 
+## v1.34 API changes
+
+[Docker Engine API v1.34](https://docs.docker.com/engine/api/v1.34/) documentation
 
 ## v1.33 API changes
 
@@ -28,6 +31,11 @@ keywords: "API, Docker, rcli, REST, documentation"
 * `POST /containers/create` now accepts additional values for the
   `HostConfig.IpcMode` property. New values are `private`, `shareable`,
   and `none`.
+* `DELETE /networks/{id or name}` fixed issue where a `name` equal to another
+  network's name was able to mask that `id`. If both a network with the given
+  _name_ exists, and a network with the given _id_, the network with the given
+  _id_ is now deleted. This change is not versioned, and affects all API versions
+  if the daemon has this patch.
 
 ## v1.31 API changes
 
