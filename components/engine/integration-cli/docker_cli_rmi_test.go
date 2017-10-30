@@ -142,6 +142,7 @@ func (s *DockerSuite) TestRmiImgIDForce(c *check.C) {
 
 // See https://github.com/docker/docker/issues/14116
 func (s *DockerSuite) TestRmiImageIDForceWithRunningContainersAndMultipleTags(c *check.C) {
+	c.Skip("Blacklisting for Docker CE")
 	dockerfile := "FROM busybox\nRUN echo test 14116\n"
 	buildImageSuccessfully(c, "test-14116", build.WithDockerfile(dockerfile))
 	imgID := getIDByName(c, "test-14116")
@@ -225,6 +226,7 @@ func (s *DockerSuite) TestRmiBlank(c *check.C) {
 }
 
 func (s *DockerSuite) TestRmiContainerImageNotFound(c *check.C) {
+	c.Skip("Blacklisting for Docker CE")
 	// Build 2 images for testing.
 	imageNames := []string{"test1", "test2"}
 	imageIds := make([]string, 2)
