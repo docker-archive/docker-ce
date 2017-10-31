@@ -61,6 +61,19 @@ ubuntu-zesty: ## build ubuntu zesty deb packages
 		debbuild-$@/$(ARCH)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
+.PHONY: ubuntu-artful
+ubuntu-artful: ## build ubuntu artful deb packages
+	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
+	docker run --rm -i \
+		-e VERSION=$(VERSION) \
+		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
+		-v $(CURDIR)/debbuild/$@:/build \
+		-v $(ENGINE_DIR):/engine \
+		-v $(CLI_DIR):/cli \
+		-v $(CURDIR)/systemd:/root/build-deb/systemd \
+		debbuild-$@/$(ARCH)
+	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
+
 debian-buster: ## build debian buster deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
