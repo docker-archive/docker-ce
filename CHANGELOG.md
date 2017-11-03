@@ -17,4 +17,4 @@ If you don't, any containers started by Docker versions that predate
 17.11 won't be recognized by Docker after the upgrade and will keep
 running, un-managed, on the system.
 
-NOTE: This is the first release with official support for Ubuntu 17.10 (Artful)
+NOTE: This is the first release with official support for Ubuntu 17.10 (Artful) and Debian Buster
