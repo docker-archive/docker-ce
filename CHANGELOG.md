@@ -5,6 +5,50 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
+## 17.09.1-ce (2017-11-DD)
+
+### Builder
+
+- Fix config leakage on shared parent stage [moby/moby#33753](https://github.com/moby/moby/issues/33753)
+- Warn on empty continuation lines only, not on comment-only lines [moby/moby#35004](https://github.com/moby/moby/pull/35004)
+
+### Client
+
+- Set API version on Client even when Ping fails [docker/cli#546](https://github.com/docker/cli/pull/546)
+ 
+### Networking 
+
+- Overlay fix for transient IP reuse [docker/libnetwork#2016](https://github.com/docker/libnetwork/pull/2016)
+- Fix reapTime logic in NetworkDB and handle DNS cleanup for attachable container [docker/libnetwork#2017](https://github.com/docker/libnetwork/pull/2017)
+- Disable hostname lookup on chain exists check [docker/libnetwork#2019](https://github.com/docker/libnetwork/pull/2019)
+- Fix lint issues [docker/libnetwork#2020](https://github.com/docker/libnetwork/pull/2020)
+- Restore error type in FindNetwork [moby/moby#35634](https://github.com/moby/moby/pull/35634)
+
+### Runtime
+
+- Protect `health monitor` Go channel [moby/moby#35482](https://github.com/moby/moby/pull/35482)
+- Fix test failure on stopped container [moby/moby#34730](https://github.com/moby/moby/pull/34730) 
+- Fix leaking container/exec state [moby/moby#35484](https://github.com/moby/moby/pull/35484)
+- Add /proc/scsi to masked paths (patch to work around [CVE-2017-16539](http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-16539)) [moby/moby/#35399](https://github.com/moby/moby/pull/35399)
+- Vendor tar-split: fix to prevent memory exhaustion issue that could crash Docker daemon [moby/moby/#35424](https://github.com/moby/moby/pull/35424) Fixes [CVE-2017-14992](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-14992)
+- Fix P/Z HubPullSuite tests  [moby/moby#34837](https://github.com/moby/moby/pull/34837)
++ Windows: Add support for version filtering on pull [moby/moby#35090](https://github.com/moby/moby/pull/35090)
+- Windows: Stop filtering Windows manifest lists by version [moby/moby#35117](https://github.com/moby/moby/pull/35117)
+- Use rslave instead of rprivate in chroot archive [moby/moby/#35217](https://github.com/moby/moby/pull/35217)
+- Remove container rootfs mountPath after unmount [moby/moby#34573](https://github.com/moby/moby/pull/34573)
+- Fix honoring tmpfs size of user /dev/shm mount [moby/moby#35316](https://github.com/moby/moby/pull/35316)
+- Don't abort when setting may_detach_mounts (log the error instead)  [moby/moby#35172](https://github.com/moby/moby/pull/35172)
+- Fix version comparison when negotiating the API version [moby/moby#35008](https://github.com/moby/moby/pull/35008)
+
+### Swarm mode
+
+* Increase gRPC request timeout when sending snapshots [docker/swarmkit#2404](https://github.com/docker/swarmkit/pull/2404)
+- Fix node filtering when there is no log driver [docker/swarmkit#2442](https://github.com/docker/swarmkit/pull/2442)
+- Add an error on attempt to change cluster name [docker/swarmkit/#2454](https://github.com/docker/swarmkit/pull/2454)
+- Delete node attachments when node is removed [docker/swarmkit/#2456](https://github.com/docker/swarmkit/pull/2456)
+- Provide custom gRPC dialer to override default proxy dialer [docker/swarmkit/#2457](https://github.com/docker/swarmkit/pull/2457)
+- Avoids recursive readlock on swarm info [moby/moby#35388](https://github.com/moby/moby/pull/35388)
+
 ## 17.09.0-ce (2017-09-26)
 
 ### Builder
