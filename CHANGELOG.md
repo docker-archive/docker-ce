@@ -64,6 +64,8 @@ running, un-managed, on the system.
 - Fix panic on get container pid when live restore containers [moby/moby#35157](https://github.com/moby/moby/pull/35157)
 - Mask `/proc/scsi` path for containers to prevent removal of devices (CVE-2017-16539) [moby/moby#35399](https://github.com/moby/moby/pull/35399)
 * Update to github.com/vbatts/tar-split@v0.10.2 (CVE-2017-14992) [moby/moby#35424](https://github.com/moby/moby/pull/35424)
+- Container: protect health monitor channel [moby/moby#35482](https://github.com/moby/moby/pull/35482)
+- Libcontainerd: fix leaking container/exec state [moby/moby#35484](https://github.com/moby/moby/pull/35484)
 
 ### Swarm Mode
 
