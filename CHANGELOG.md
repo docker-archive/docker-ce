@@ -5,7 +5,7 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
-## 17.11.0-ce (2017-11-DD)
+## 17.11.0-ce (2017-11-20)
 
 IMPORTANT: Docker CE 17.11 is the first Docker release based on
 [containerd 1.0 beta](https://github.com/containerd/containerd/releases/tag/v1.0.0-beta.2).
