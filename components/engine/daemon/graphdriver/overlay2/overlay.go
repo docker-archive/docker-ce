@@ -414,9 +414,6 @@ func (d *Driver) create(id, parent string, opts *graphdriver.CreateOpts) (retErr
 	if err := idtools.MkdirAs(path.Join(dir, "work"), 0700, rootUID, rootGID); err != nil {
 		return err
 	}
-	if err := idtools.MkdirAs(path.Join(dir, "merged"), 0700, rootUID, rootGID); err != nil {
-		return err
-	}
 
 	lower, err := d.getLower(parent)
 	if err != nil {
@@ -545,6 +542,10 @@ func (d *Driver) Get(id string, mountLabel string) (s string, retErr error) {
 				if mntErr := unix.Unmount(mergedDir, 0); mntErr != nil {
 					logrus.Errorf("error unmounting %v: %v", mergedDir, mntErr)
 				}
+				// Cleanup the created merged directory; see the comment in Put's rmdir
+				if rmErr := unix.Rmdir(mergedDir); rmErr != nil && !os.IsNotExist(rmErr) {
+					logrus.Debugf("Failed to remove %s: %v: %v", id, rmErr, err)
+				}
 			}
 		}
 	}()
@@ -559,6 +560,14 @@ func (d *Driver) Get(id string, mountLabel string) (s string, retErr error) {
 	mountData := label.FormatMountLabel(opts, mountLabel)
 	mount := unix.Mount
 	mountTarget := mergedDir
+
+	rootUID, rootGID, err := idtools.GetRootUIDGID(d.uidMaps, d.gidMaps)
+	if err != nil {
+		return "", err
+	}
+	if err := idtools.MkdirAndChown(mergedDir, 0700, idtools.IDPair{rootUID, rootGID}); err != nil {
+		return "", err
+	}
 
 	pageSize := unix.Getpagesize()
 
@@ -594,11 +603,6 @@ func (d *Driver) Get(id string, mountLabel string) (s string, retErr error) {
 
 	// chown "workdir/work" to the remapped root UID/GID. Overlay fs inside a
 	// user namespace requires this to move a directory from lower to upper.
-	rootUID, rootGID, err := idtools.GetRootUIDGID(d.uidMaps, d.gidMaps)
-	if err != nil {
-		return "", err
-	}
-
 	if err := os.Chown(path.Join(workDir, "work"), rootUID, rootGID); err != nil {
 		return "", err
 	}
@@ -607,6 +611,8 @@ func (d *Driver) Get(id string, mountLabel string) (s string, retErr error) {
 }
 
 // Put unmounts the mount path created for the give id.
+// It also removes the 'merged' directory to force the kernel to unmount the
+// overlay mount in other namespaces.
 func (d *Driver) Put(id string) error {
 	d.locker.Lock(id)
 	defer d.locker.Unlock(id)
@@ -626,6 +632,16 @@ func (d *Driver) Put(id string) error {
 	}
 	if err := unix.Unmount(mountpoint, unix.MNT_DETACH); err != nil {
 		logrus.Debugf("Failed to unmount %s overlay: %s - %v", id, mountpoint, err)
+	}
+	// Remove the mountpoint here. Removing the mountpoint (in newer kernels)
+	// will cause all other instances of this mount in other mount namespaces
+	// to be unmounted. This is necessary to avoid cases where an overlay mount
+	// that is present in another namespace will cause subsequent mounts
+	// operations to fail with ebusy.  We ignore any errors here because this may
+	// fail on older kernels which don't have
+	// torvalds/linux@8ed936b5671bfb33d89bc60bdcc7cf0470ba52fe applied.
+	if err := unix.Rmdir(mountpoint); err != nil && !os.IsNotExist(err) {
+		logrus.Debugf("Failed to remove %s overlay: %v", id, err)
 	}
 	return nil
 }
