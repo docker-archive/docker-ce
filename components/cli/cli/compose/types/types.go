@@ -55,6 +55,7 @@ type ConfigFile struct {
 
 // ConfigDetails are the details about a group of ConfigFiles
 type ConfigDetails struct {
+	Version     string
 	WorkingDir  string
 	ConfigFiles []ConfigFile
 	Environment map[string]string
@@ -125,6 +126,7 @@ type ServiceConfig struct {
 	User            string
 	Volumes         []ServiceVolumeConfig
 	WorkingDir      string `mapstructure:"working_dir"`
+	Isolation       string `mapstructure:"isolation"`
 }
 
 // BuildConfig is a type for build
@@ -277,7 +279,8 @@ type ServiceVolumeVolume struct {
 	NoCopy bool `mapstructure:"nocopy"`
 }
 
-type fileReferenceConfig struct {
+// FileReferenceConfig for a reference to a swarm file object
+type FileReferenceConfig struct {
 	Source string
 	Target string
 	UID    string
@@ -286,10 +289,10 @@ type fileReferenceConfig struct {
 }
 
 // ServiceConfigObjConfig is the config obj configuration for a service
-type ServiceConfigObjConfig fileReferenceConfig
+type ServiceConfigObjConfig FileReferenceConfig
 
 // ServiceSecretConfig is the secret configuration for a service
-type ServiceSecretConfig fileReferenceConfig
+type ServiceSecretConfig FileReferenceConfig
 
 // UlimitsConfig the ulimit configuration
 type UlimitsConfig struct {
@@ -343,14 +346,16 @@ type CredentialSpecConfig struct {
 	Registry string
 }
 
-type fileObjectConfig struct {
+// FileObjectConfig is a config type for a file used by a service
+type FileObjectConfig struct {
+	Name     string
 	File     string
 	External External
 	Labels   Labels
 }
 
 // SecretConfig for a secret
-type SecretConfig fileObjectConfig
+type SecretConfig FileObjectConfig
 
 // ConfigObjConfig is the config for the swarm "Config" object
-type ConfigObjConfig fileObjectConfig
+type ConfigObjConfig FileObjectConfig

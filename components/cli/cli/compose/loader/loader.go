@@ -12,6 +12,7 @@ import (
 	"github.com/docker/cli/cli/compose/template"
 	"github.com/docker/cli/cli/compose/types"
 	"github.com/docker/cli/opts"
+	"github.com/docker/docker/api/types/versions"
 	"github.com/docker/go-connections/nat"
 	units "github.com/docker/go-units"
 	shellwords "github.com/mattn/go-shellwords"
@@ -49,6 +50,7 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 	}
 
 	configDict := getConfigDict(configDetails)
+	configDetails.Version = schema.Version(configDict)
 
 	if err := validateForbidden(configDict); err != nil {
 		return nil, err
@@ -60,7 +62,7 @@ func Load(configDetails types.ConfigDetails) (*types.Config, error) {
 		return nil, err
 	}
 
-	if err := schema.Validate(configDict, schema.Version(configDict)); err != nil {
+	if err := schema.Validate(configDict, configDetails.Version); err != nil {
 		return nil, err
 	}
 	return loadSections(configDict, configDetails)
@@ -103,21 +105,21 @@ func loadSections(config map[string]interface{}, configDetails types.ConfigDetai
 		{
 			key: "volumes",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Volumes, err = LoadVolumes(config)
+				cfg.Volumes, err = LoadVolumes(config, configDetails.Version)
 				return err
 			},
 		},
 		{
 			key: "secrets",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Secrets, err = LoadSecrets(config, configDetails.WorkingDir)
+				cfg.Secrets, err = LoadSecrets(config, configDetails)
 				return err
 			},
 		},
 		{
 			key: "configs",
 			fnc: func(config map[string]interface{}) error {
-				cfg.Configs, err = LoadConfigObjs(config, configDetails.WorkingDir)
+				cfg.Configs, err = LoadConfigObjs(config, configDetails)
 				return err
 			},
 		},
@@ -446,74 +448,98 @@ func externalVolumeError(volume, key string) error {
 
 // LoadVolumes produces a VolumeConfig map from a compose file Dict
 // the source Dict is not validated if directly used. Use Load() to enable validation
-func LoadVolumes(source map[string]interface{}) (map[string]types.VolumeConfig, error) {
+func LoadVolumes(source map[string]interface{}, version string) (map[string]types.VolumeConfig, error) {
 	volumes := make(map[string]types.VolumeConfig)
-	err := transform(source, &volumes)
-	if err != nil {
+	if err := transform(source, &volumes); err != nil {
 		return volumes, err
 	}
-	for name, volume := range volumes {
-		if volume.External.External {
-			if volume.Driver != "" {
-				return nil, externalVolumeError(name, "driver")
-			}
-			if len(volume.DriverOpts) > 0 {
-				return nil, externalVolumeError(name, "driver_opts")
-			}
-			if len(volume.Labels) > 0 {
-				return nil, externalVolumeError(name, "labels")
-			}
-			if volume.External.Name == "" {
-				volume.External.Name = name
-				volumes[name] = volume
-			} else {
-				logrus.Warnf("volume %s: volume.external.name is deprecated in favor of volume.name", name)
 
-				if volume.Name != "" {
-					return nil, errors.Errorf("volume %s: volume.external.name and volume.name conflict; only use volume.name", name)
-				}
-			}
+	for name, volume := range volumes {
+		if !volume.External.External {
+			continue
 		}
+		switch {
+		case volume.Driver != "":
+			return nil, externalVolumeError(name, "driver")
+		case len(volume.DriverOpts) > 0:
+			return nil, externalVolumeError(name, "driver_opts")
+		case len(volume.Labels) > 0:
+			return nil, externalVolumeError(name, "labels")
+		case volume.External.Name != "":
+			if volume.Name != "" {
+				return nil, errors.Errorf("volume %s: volume.external.name and volume.name conflict; only use volume.name", name)
+			}
+			if versions.GreaterThanOrEqualTo(version, "3.4") {
+				logrus.Warnf("volume %s: volume.external.name is deprecated in favor of volume.name", name)
+			}
+			volume.Name = volume.External.Name
+			volume.External.Name = ""
+		case volume.Name == "":
+			volume.Name = name
+		}
+		volumes[name] = volume
 	}
 	return volumes, nil
 }
 
 // LoadSecrets produces a SecretConfig map from a compose file Dict
 // the source Dict is not validated if directly used. Use Load() to enable validation
-func LoadSecrets(source map[string]interface{}, workingDir string) (map[string]types.SecretConfig, error) {
+func LoadSecrets(source map[string]interface{}, details types.ConfigDetails) (map[string]types.SecretConfig, error) {
 	secrets := make(map[string]types.SecretConfig)
 	if err := transform(source, &secrets); err != nil {
 		return secrets, err
 	}
 	for name, secret := range secrets {
-		if secret.External.External && secret.External.Name == "" {
-			secret.External.Name = name
-			secrets[name] = secret
+		obj, err := loadFileObjectConfig(name, "secret", types.FileObjectConfig(secret), details)
+		if err != nil {
+			return nil, err
 		}
-		if secret.File != "" {
-			secret.File = absPath(workingDir, secret.File)
-		}
+		secrets[name] = types.SecretConfig(obj)
 	}
 	return secrets, nil
 }
 
 // LoadConfigObjs produces a ConfigObjConfig map from a compose file Dict
 // the source Dict is not validated if directly used. Use Load() to enable validation
-func LoadConfigObjs(source map[string]interface{}, workingDir string) (map[string]types.ConfigObjConfig, error) {
+func LoadConfigObjs(source map[string]interface{}, details types.ConfigDetails) (map[string]types.ConfigObjConfig, error) {
 	configs := make(map[string]types.ConfigObjConfig)
 	if err := transform(source, &configs); err != nil {
 		return configs, err
 	}
 	for name, config := range configs {
-		if config.External.External && config.External.Name == "" {
-			config.External.Name = name
-			configs[name] = config
+		obj, err := loadFileObjectConfig(name, "config", types.FileObjectConfig(config), details)
+		if err != nil {
+			return nil, err
 		}
-		if config.File != "" {
-			config.File = absPath(workingDir, config.File)
-		}
+		configs[name] = types.ConfigObjConfig(obj)
 	}
 	return configs, nil
+}
+
+func loadFileObjectConfig(name string, objType string, obj types.FileObjectConfig, details types.ConfigDetails) (types.FileObjectConfig, error) {
+	// if "external: true"
+	if obj.External.External {
+		// handle deprecated external.name
+		if obj.External.Name != "" {
+			if obj.Name != "" {
+				return obj, errors.Errorf("%[1]s %[2]s: %[1]s.external.name and %[1]s.name conflict; only use %[1]s.name", objType, name)
+			}
+			if versions.GreaterThanOrEqualTo(details.Version, "3.5") {
+				logrus.Warnf("%[1]s %[2]s: %[1]s.external.name is deprecated in favor of %[1]s.name", objType, name)
+			}
+			obj.Name = obj.External.Name
+			obj.External.Name = ""
+		} else {
+			if obj.Name == "" {
+				obj.Name = name
+			}
+		}
+		// if not "external: true"
+	} else {
+		obj.File = absPath(details.WorkingDir, obj.File)
+	}
+
+	return obj, nil
 }
 
 func absPath(workingDir string, filePath string) string {

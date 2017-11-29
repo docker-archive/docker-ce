@@ -12,12 +12,15 @@ import (
 
 type fakeClient struct {
 	client.Client
-	inspectFunc         func(string) (types.ContainerJSON, error)
-	execInspectFunc     func(execID string) (types.ContainerExecInspect, error)
-	execCreateFunc      func(container string, config types.ExecConfig) (types.IDResponse, error)
-	createContainerFunc func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string) (container.ContainerCreateCreatedBody, error)
-	imageCreateFunc     func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
-	infoFunc            func() (types.Info, error)
+	inspectFunc           func(string) (types.ContainerJSON, error)
+	execInspectFunc       func(execID string) (types.ContainerExecInspect, error)
+	execCreateFunc        func(container string, config types.ExecConfig) (types.IDResponse, error)
+	createContainerFunc   func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string) (container.ContainerCreateCreatedBody, error)
+	imageCreateFunc       func(parentReference string, options types.ImageCreateOptions) (io.ReadCloser, error)
+	infoFunc              func() (types.Info, error)
+	containerStatPathFunc func(container, path string) (types.ContainerPathStat, error)
+	containerCopyFromFunc func(container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error)
+	logFunc               func(string, types.ContainerLogsOptions) (io.ReadCloser, error)
 }
 
 func (f *fakeClient) ContainerInspect(_ context.Context, containerID string) (types.ContainerJSON, error) {
@@ -70,4 +73,25 @@ func (f *fakeClient) Info(_ context.Context) (types.Info, error) {
 		return f.infoFunc()
 	}
 	return types.Info{}, nil
+}
+
+func (f *fakeClient) ContainerStatPath(_ context.Context, container, path string) (types.ContainerPathStat, error) {
+	if f.containerStatPathFunc != nil {
+		return f.containerStatPathFunc(container, path)
+	}
+	return types.ContainerPathStat{}, nil
+}
+
+func (f *fakeClient) CopyFromContainer(_ context.Context, container, srcPath string) (io.ReadCloser, types.ContainerPathStat, error) {
+	if f.containerCopyFromFunc != nil {
+		return f.containerCopyFromFunc(container, srcPath)
+	}
+	return nil, types.ContainerPathStat{}, nil
+}
+
+func (f *fakeClient) ContainerLogs(_ context.Context, container string, options types.ContainerLogsOptions) (io.ReadCloser, error) {
+	if f.logFunc != nil {
+		return f.logFunc(container, options)
+	}
+	return nil, nil
 }

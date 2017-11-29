@@ -765,7 +765,7 @@ type of documentation between the person who builds the image and the person who
 runs the container, about which ports are intended to be published. To actually
 publish the port when running the container, use the `-p` flag on `docker run`
 to publish and map one or more ports, or the `-P` flag to publish all exposed
-ports and map them to to high-order ports.
+ports and map them to high-order ports.
 
 To set up port redirection on the host system, see [using the -P
 flag](run.md#expose-incoming-ports). The `docker network` command supports
@@ -1284,7 +1284,7 @@ consider the following Dockerfile snippet:
     RUN echo "hello world" > /myvol/greeting
     VOLUME /myvol
 
-This Dockerfile results in an image that causes `docker run`, to
+This Dockerfile results in an image that causes `docker run` to
 create a new mount point at `/myvol` and copy the  `greeting` file
 into the newly created volume.
 
@@ -1306,8 +1306,8 @@ Keep the following things in mind about volumes in the `Dockerfile`.
 
 - **The host directory is declared at container run-time**: The host directory
   (the mountpoint) is, by its nature, host-dependent. This is to preserve image
-  portability. since a given host directory can't be guaranteed to be available
-  on all hosts.For this reason, you can't mount a host directory from
+  portability, since a given host directory can't be guaranteed to be available
+  on all hosts. For this reason, you can't mount a host directory from
   within the Dockerfile. The `VOLUME` instruction does not support specifying a `host-dir`
   parameter.  You must specify the mountpoint when you create or run the container.
 
@@ -1322,8 +1322,19 @@ group (or GID) to use when running the image and for any `RUN`, `CMD` and
 `ENTRYPOINT` instructions that follow it in the `Dockerfile`.
 
 > **Warning**:
-> When the user does doesn't have a primary group then the image (or the next
+> When the user doesn't have a primary group then the image (or the next
 > instructions) will be run with the `root` group.
+
+> On Windows, the user must be created first if it's not a built-in account.
+> This can be done with the `net user` command called as part of a Dockerfile.
+
+```Dockerfile
+    FROM microsoft/windowsservercore
+    # Create Windows user in the container
+    RUN net user /add patrick
+    # Set it for subsequent commands
+    USER patrick
+```
 
 
 ## WORKDIR

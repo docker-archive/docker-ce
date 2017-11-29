@@ -53,6 +53,7 @@ Options:
       --host-rm list                       Remove a custom host-to-IP mapping (host:ip)
       --hostname string                    Container hostname
       --image string                       Service image tag
+      --isolation string                   Service container isolation mode
       --label-add list                     Add or update a service label
       --label-rm list                      Remove a label by its key
       --limit-cpu decimal                  Limit CPUs
@@ -174,6 +175,21 @@ $ docker service update --mount-rm /somewhere myservice
 myservice
 ```
 
+### Add or remove port mappings
+
+Use the `--port-add` or `--port-rm` flags to add or remove port mappings to or
+from a service. You can use the short or long syntax discussed in the
+[docker service update](service_create/#attach-a-service-to-an-existing-network-network)
+reference.
+
+The following example adds a port mapping to an existing service.
+
+```bash
+$ docker service update \
+  --port-add port=80,target=8080 \
+  myservice
+```
+
 ### Roll back to the previous version of a service
 
 Use the `--rollback` option to roll back to the previous version of the service.
@@ -257,6 +273,12 @@ $ docker service update \
 
 Some flags of `service update` support the use of templating.
 See [`service create`](./service_create.md#templating) for the reference.
+
+
+### Specify isolation mode (Windows)
+
+`service update` supports the same `--isolation` flag as `service create`
+See [`service create`](./service_create.md) for the reference.
 
 ## Related commands
 
