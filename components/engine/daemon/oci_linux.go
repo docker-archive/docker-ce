@@ -18,7 +18,6 @@ import (
 	"github.com/docker/docker/oci"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/mount"
-	"github.com/docker/docker/pkg/stringutils"
 	"github.com/docker/docker/volume"
 	"github.com/opencontainers/runc/libcontainer/apparmor"
 	"github.com/opencontainers/runc/libcontainer/cgroups"
@@ -522,29 +521,52 @@ var (
 	}
 )
 
+// inSlice tests whether a string is contained in a slice of strings or not.
+// Comparison is case sensitive
+func inSlice(slice []string, s string) bool {
+	for _, ss := range slice {
+		if s == ss {
+			return true
+		}
+	}
+	return false
+}
+
 func setMounts(daemon *Daemon, s *specs.Spec, c *container.Container, mounts []container.Mount) error {
 	userMounts := make(map[string]struct{})
 	for _, m := range mounts {
 		userMounts[m.Destination] = struct{}{}
 	}
 
-	// Filter out mounts from spec
-	noIpc := c.HostConfig.IpcMode.IsNone()
-	// Filter out mounts that are overridden by user supplied mounts
+	// Copy all mounts from spec to defaultMounts, except for
+	//  - mounts overriden by a user supplied mount;
+	//  - all mounts under /dev if a user supplied /dev is present;
+	//  - /dev/shm, in case IpcMode is none.
+	// While at it, also
+	//  - set size for /dev/shm from shmsize.
 	var defaultMounts []specs.Mount
 	_, mountDev := userMounts["/dev"]
 	for _, m := range s.Mounts {
-		// filter out /dev/shm mount if case IpcMode is none
-		if noIpc && m.Destination == "/dev/shm" {
+		if _, ok := userMounts[m.Destination]; ok {
+			// filter out mount overridden by a user supplied mount
 			continue
 		}
-		// filter out mount overridden by a user supplied mount
-		if _, ok := userMounts[m.Destination]; !ok {
-			if mountDev && strings.HasPrefix(m.Destination, "/dev/") {
+		if mountDev && strings.HasPrefix(m.Destination, "/dev/") {
+			// filter out everything under /dev if /dev is user-mounted
+			continue
+		}
+
+		if m.Destination == "/dev/shm" {
+			if c.HostConfig.IpcMode.IsNone() {
+				// filter out /dev/shm for "none" IpcMode
 				continue
 			}
-			defaultMounts = append(defaultMounts, m)
+			// set size for /dev/shm mount from spec
+			sizeOpt := "size=" + strconv.FormatInt(c.HostConfig.ShmSize, 10)
+			m.Options = append(m.Options, sizeOpt)
 		}
+
+		defaultMounts = append(defaultMounts, m)
 	}
 
 	s.Mounts = defaultMounts
@@ -628,11 +650,11 @@ func setMounts(daemon *Daemon, s *specs.Spec, c *container.Container, mounts []c
 	if s.Root.Readonly {
 		for i, m := range s.Mounts {
 			switch m.Destination {
-			case "/proc", "/dev/pts", "/dev/mqueue": // /dev is remounted by runc
+			case "/proc", "/dev/pts", "/dev/mqueue", "/dev":
 				continue
 			}
 			if _, ok := userMounts[m.Destination]; !ok {
-				if !stringutils.InSlice(m.Options, "ro") {
+				if !inSlice(m.Options, "ro") {
 					s.Mounts[i].Options = append(s.Mounts[i].Options, "ro")
 				}
 			}
@@ -650,14 +672,6 @@ func setMounts(daemon *Daemon, s *specs.Spec, c *container.Container, mounts []c
 		}
 		s.Linux.ReadonlyPaths = nil
 		s.Linux.MaskedPaths = nil
-	}
-
-	// Set size for /dev/shm mount that comes from spec (IpcMode: private only)
-	for i, m := range s.Mounts {
-		if m.Destination == "/dev/shm" {
-			sizeOpt := "size=" + strconv.FormatInt(c.HostConfig.ShmSize, 10)
-			s.Mounts[i].Options = append(s.Mounts[i].Options, sizeOpt)
-		}
 	}
 
 	// TODO: until a kernel/mount solution exists for handling remount in a user namespace,
@@ -755,7 +769,6 @@ func (daemon *Daemon) createSpec(c *container.Container) (*specs.Spec, error) {
 	if err := setResources(&s, c.HostConfig.Resources); err != nil {
 		return nil, fmt.Errorf("linux runtime spec resources: %v", err)
 	}
-	s.Process.OOMScoreAdj = &c.HostConfig.OomScoreAdj
 	s.Linux.Sysctl = c.HostConfig.Sysctls
 
 	p := s.Linux.CgroupsPath

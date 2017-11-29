@@ -64,7 +64,7 @@ RUN apt-get update && apt-get install -y \
 # Install Go
 # NOTE: official ppc64le go binaries weren't available until go 1.6.4 and 1.7.4
 # IMPORTANT: When updating this please note that stdlib archive/tar pkg is vendored
-ENV GO_VERSION 1.8.5
+ENV GO_VERSION 1.9.2
 RUN curl -fsSL "https://golang.org/dl/go${GO_VERSION}.linux-ppc64le.tar.gz" \
 	| tar -xzC /usr/local
 
@@ -101,7 +101,7 @@ RUN set -x \
 	&& rm -rf "$GOPATH"
 
 # Get the "docker-py" source so we can run their integration tests
-ENV DOCKER_PY_COMMIT a962578e515185cf06506050b2200c0b81aa84ef
+ENV DOCKER_PY_COMMIT 1d6b5b203222ba5df7dedfcd1ee061a452f99c8a
 # To run integration tests docker-pycreds is required.
 RUN git clone https://github.com/docker/docker-py.git /docker-py \
 	&& cd /docker-py \

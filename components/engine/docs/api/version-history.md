@@ -13,6 +13,17 @@ keywords: "API, Docker, rcli, REST, documentation"
      will be rejected.
 -->
 
+## v1.35 API changes
+
+[Docker Engine API v1.35](https://docs.docker.com/engine/api/v1.35/) documentation
+
+* `POST /services/create` and `POST /services/(id)/update` now accepts an
+  `Isolation` field on container spec to set the Isolation technology of the
+  containers running the service (`default`, `process`, or `hyperv`). This
+  configuration is only used for Windows containers.
+* `GET /containers/(name)/logs` now supports an additional query parameter: `until`,
+  which returns log lines that occurred before the specified timestamp.
+
 ## v1.34 API changes
 
 [Docker Engine API v1.34](https://docs.docker.com/engine/api/v1.34/) documentation
@@ -93,7 +104,7 @@ keywords: "API, Docker, rcli, REST, documentation"
 * `POST /containers/(name)/wait` now accepts a `condition` query parameter to indicate which state change condition to wait for. Also, response headers are now returned immediately to acknowledge that the server has registered a wait callback for the client.
 * `POST /swarm/init` now accepts a `DataPathAddr` property to set the IP-address or network interface to use for data traffic
 * `POST /swarm/join` now accepts a `DataPathAddr` property to set the IP-address or network interface to use for data traffic
-* `GET /events` now supports service, node and secret events which are emitted when users create, update and remove service, node and secret 
+* `GET /events` now supports service, node and secret events which are emitted when users create, update and remove service, node and secret
 * `GET /events` now supports network remove event which is emitted when users remove a swarm scoped network
 * `GET /events` now supports a filter type `scope` in which supported value could be swarm and local
 

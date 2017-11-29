@@ -268,7 +268,7 @@ func (devices *DeviceSet) ensureImage(name string, size int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := idtools.MkdirAllAs(dirname, 0700, uid, gid); err != nil && !os.IsExist(err) {
+	if err := idtools.MkdirAllAndChown(dirname, 0700, idtools.IDPair{UID: uid, GID: gid}); err != nil && !os.IsExist(err) {
 		return "", err
 	}
 
@@ -1697,7 +1697,7 @@ func (devices *DeviceSet) initDevmapper(doInit bool) (retErr error) {
 	if err != nil {
 		return err
 	}
-	if err := idtools.MkdirAs(devices.root, 0700, uid, gid); err != nil && !os.IsExist(err) {
+	if err := idtools.MkdirAndChown(devices.root, 0700, idtools.IDPair{UID: uid, GID: gid}); err != nil && !os.IsExist(err) {
 		return err
 	}
 	if err := os.MkdirAll(devices.metadataDir(), 0700); err != nil && !os.IsExist(err) {
@@ -2427,6 +2427,18 @@ func (devices *DeviceSet) UnmountDevice(hash, mountPath string) error {
 		return err
 	}
 	logrus.Debug("devmapper: Unmount done")
+
+	// Remove the mountpoint here. Removing the mountpoint (in newer kernels)
+	// will cause all other instances of this mount in other mount namespaces
+	// to be killed (this is an anti-DoS measure that is necessary for things
+	// like devicemapper). This is necessary to avoid cases where a libdm mount
+	// that is present in another namespace will cause subsequent RemoveDevice
+	// operations to fail. We ignore any errors here because this may fail on
+	// older kernels which don't have
+	// torvalds/linux@8ed936b5671bfb33d89bc60bdcc7cf0470ba52fe applied.
+	if err := os.Remove(mountPath); err != nil {
+		logrus.Debugf("devmapper: error doing a remove on unmounted device %s: %v", mountPath, err)
+	}
 
 	return devices.deactivateDevice(info)
 }

@@ -16,6 +16,13 @@ export DOCKER_GITCOMMIT
 # env vars passed through directly to Docker's build scripts
 # to allow things like `make KEEPBUNDLE=1 binary` easily
 # `project/PACKAGERS.md` have some limited documentation of some of these
+#
+# DOCKER_LDFLAGS can be used to pass additional parameters to -ldflags
+# option of "go build". For example, a built-in graphdriver priority list
+# can be changed during build time like this:
+#
+# make DOCKER_LDFLAGS="-X github.com/docker/docker/daemon/graphdriver.priority=overlay2,devicemapper" dynbinary
+#
 DOCKER_ENVS := \
 	-e DOCKER_CROSSPLATFORMS \
 	-e BUILD_APT_MIRROR \
@@ -31,6 +38,7 @@ DOCKER_ENVS := \
 	-e DOCKER_GITCOMMIT \
 	-e DOCKER_GRAPHDRIVER \
 	-e DOCKER_INCREMENTAL_BINARY \
+	-e DOCKER_LDFLAGS \
 	-e DOCKER_PORT \
 	-e DOCKER_REMAP_ROOT \
 	-e DOCKER_STORAGE_OPTS \
@@ -150,8 +158,8 @@ run: build ## run the docker daemon in a container
 shell: build ## start a shell inside the build env
 	$(DOCKER_RUN_DOCKER) bash
 
-test: build ## run the unit, integration and docker-py tests
-	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary cross test-unit test-integration test-docker-py
+test: build test-unit ## run the unit, integration and docker-py tests
+	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary cross test-integration test-docker-py
 
 test-docker-py: build ## run the docker-py tests
 	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary test-docker-py

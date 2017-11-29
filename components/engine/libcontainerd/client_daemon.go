@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/containerd/containerd"
 	eventsapi "github.com/containerd/containerd/api/services/events/v1"
@@ -28,7 +30,7 @@ import (
 	"github.com/containerd/typeurl"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/opencontainers/runtime-spec/specs-go"
+	specs "github.com/opencontainers/runtime-spec/specs-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -58,6 +60,10 @@ type client struct {
 	backend    Backend
 	eventQ     queue
 	containers map[string]*container
+}
+
+func (c *client) Version(ctx context.Context) (containerd.Version, error) {
+	return c.remote.Version(ctx)
 }
 
 func (c *client) Restore(ctx context.Context, id string, attachStdio StdioCallback) (alive bool, pid int, err error) {
@@ -198,7 +204,8 @@ func (c *client) Start(ctx context.Context, id, checkpointDir string, withStdin 
 	uid, gid := getSpecUser(spec)
 	t, err = ctr.ctr.NewTask(ctx,
 		func(id string) (containerd.IO, error) {
-			cio, err = c.createIO(ctr.bundleDir, id, InitProcessName, stdinCloseSync, withStdin, spec.Process.Terminal, attachStdio)
+			fifos := newFIFOSet(ctr.bundleDir, id, InitProcessName, withStdin, spec.Process.Terminal)
+			cio, err = c.createIO(fifos, id, InitProcessName, stdinCloseSync, attachStdio)
 			return cio, err
 		},
 		func(_ context.Context, _ *containerd.Client, info *containerd.TaskInfo) error {
@@ -256,17 +263,21 @@ func (c *client) Exec(ctx context.Context, containerID, processID string, spec *
 		err            error
 		stdinCloseSync = make(chan struct{})
 	)
+
+	fifos := newFIFOSet(ctr.bundleDir, containerID, processID, withStdin, spec.Terminal)
+
 	defer func() {
 		if err != nil {
 			if cio != nil {
 				cio.Cancel()
 				cio.Close()
 			}
+			rmFIFOSet(fifos)
 		}
 	}()
 
 	p, err = ctr.task.Exec(ctx, processID, spec, func(id string) (containerd.IO, error) {
-		cio, err = c.createIO(ctr.bundleDir, containerID, processID, stdinCloseSync, withStdin, spec.Terminal, attachStdio)
+		cio, err = c.createIO(fifos, containerID, processID, stdinCloseSync, attachStdio)
 		return cio, err
 	})
 	if err != nil {
@@ -437,7 +448,7 @@ func (c *client) Delete(ctx context.Context, containerID string) error {
 		return err
 	}
 
-	if os.Getenv("LIBCONTAINERD_NOCLEAN") == "1" {
+	if os.Getenv("LIBCONTAINERD_NOCLEAN") != "1" {
 		if err := os.RemoveAll(ctr.bundleDir); err != nil {
 			c.logger.WithError(err).WithFields(logrus.Fields{
 				"container": containerID,
@@ -558,8 +569,7 @@ func (c *client) getProcess(containerID, processID string) (containerd.Process, 
 
 // createIO creates the io to be used by a process
 // This needs to get a pointer to interface as upon closure the process may not have yet been registered
-func (c *client) createIO(bundleDir, containerID, processID string, stdinCloseSync chan struct{}, withStdin, withTerminal bool, attachStdio StdioCallback) (containerd.IO, error) {
-	fifos := newFIFOSet(bundleDir, containerID, processID, withStdin, withTerminal)
+func (c *client) createIO(fifos *containerd.FIFOSet, containerID, processID string, stdinCloseSync chan struct{}, attachStdio StdioCallback) (containerd.IO, error) {
 	io, err := newIOPipe(fifos)
 	if err != nil {
 		return nil, err
@@ -635,6 +645,14 @@ func (c *client) processEvent(ctr *container, et EventType, ei EventInfo) {
 			c.Lock()
 			delete(ctr.execs, ei.ProcessID)
 			c.Unlock()
+			ctr := c.getContainer(ei.ContainerID)
+			if ctr == nil {
+				c.logger.WithFields(logrus.Fields{
+					"container": ei.ContainerID,
+				}).Error("failed to find container")
+			} else {
+				rmFIFOSet(newFIFOSet(ctr.bundleDir, ei.ContainerID, ei.ProcessID, true, false))
+			}
 		}
 	})
 }
@@ -671,7 +689,10 @@ func (c *client) processEventStream(ctx context.Context) {
 	for {
 		ev, err = eventStream.Recv()
 		if err != nil {
-			c.logger.WithError(err).Error("failed to get event")
+			errStatus, ok := status.FromError(err)
+			if !ok || errStatus.Code() != codes.Canceled {
+				c.logger.WithError(err).Error("failed to get event")
+			}
 			return
 		}
 
