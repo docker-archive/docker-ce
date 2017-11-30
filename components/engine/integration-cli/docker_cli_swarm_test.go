@@ -1563,7 +1563,7 @@ func (s *DockerTrustedSwarmSuite) TestTrustedServiceCreate(c *check.C) {
 	repoName := s.trustSuite.setupTrustedImage(c, "trusted-pull")
 
 	name := "trusted"
-	cli.Docker(cli.Args("-D", "service", "create", "--no-resolve-image", "--name", name, repoName, "top"), trustedCmd, cli.Daemon(d.Daemon)).Assert(c, icmd.Expected{
+	cli.Docker(cli.Args("-D", "service", "create", "--detach", "--no-resolve-image", "--name", name, repoName, "top"), trustedCmd, cli.Daemon(d.Daemon)).Assert(c, icmd.Expected{
 		Err: "resolved image tag to",
 	})
 
@@ -1580,7 +1580,7 @@ func (s *DockerTrustedSwarmSuite) TestTrustedServiceCreate(c *check.C) {
 	cli.DockerCmd(c, "rmi", repoName)
 
 	name = "untrusted"
-	cli.Docker(cli.Args("service", "create", "--no-resolve-image", "--name", name, repoName, "top"), trustedCmd, cli.Daemon(d.Daemon)).Assert(c, icmd.Expected{
+	cli.Docker(cli.Args("service", "create", "--detach", "--no-resolve-image", "--name", name, repoName, "top"), trustedCmd, cli.Daemon(d.Daemon)).Assert(c, icmd.Expected{
 		ExitCode: 1,
 		Err:      "Error: remote trust data does not exist",
 	})
