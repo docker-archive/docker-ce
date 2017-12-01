@@ -1,9 +1,8 @@
 SHELL:=/bin/bash
-ALPINE_IMG:=$(shell $(CURDIR)/../detect_alpine_image)
 ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 VERSION=$(shell cat $(ENGINE_DIR)/VERSION)
-CHOWN=docker run --rm -v $(CURDIR):/v -w /v $(ALPINE_IMG) chown
+CHOWN=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
 
@@ -39,7 +38,7 @@ cross-win: cross-all-cli cross-win-engine ## create zip file with windows x86_64
 	mkdir -p build/win/docker
 	cp $(CLI_DIR)/build/docker-windows-amd64 build/win/docker/docker.exe
 	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(VERSION).exe build/win/docker/dockerd.exe
-	docker run --rm -v $(CURDIR)/build/win:/v -w /v $(ALPINE_IMG) sh -c 'apk update&&apk add zip&&zip -r docker-$(VERSION).zip docker'
+	docker run --rm -v $(CURDIR)/build/win:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(VERSION).zip docker'
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build
 
 cross-arm: cross-all-cli ## create tgz with linux armhf client only
