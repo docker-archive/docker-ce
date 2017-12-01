@@ -7,7 +7,7 @@ test_steps = [
 				checkout scm
 				sh('git clone https://github.com/docker/cli.git')
 				sh('git clone https://github.com/moby/moby.git')
-				sh('make DOCKER_BUILD_PKGS=ubuntu-xenial ENGINE_DIR=$(pwd)/moby CLI_DIR=$(pwd)/cli deb')
+				sh('make VERSION=0.0.1-dev DOCKER_BUILD_PKGS=ubuntu-xenial ENGINE_DIR=$(pwd)/moby CLI_DIR=$(pwd)/cli deb')
 			}
 		}
 	},
@@ -17,7 +17,7 @@ test_steps = [
 				checkout scm
 				sh('git clone https://github.com/docker/cli.git')
 				sh('git clone https://github.com/moby/moby.git')
-				sh('make DOCKER_BUILD_PKGS=centos-7 ENGINE_DIR=$(pwd)/moby CLI_DIR=$(pwd)/cli rpm')
+				sh('make VERSION=0.0.1-dev DOCKER_BUILD_PKGS=centos-7 ENGINE_DIR=$(pwd)/moby CLI_DIR=$(pwd)/cli rpm')
 			}
 		}
 	},
@@ -27,7 +27,7 @@ test_steps = [
 				checkout scm
 				sh('git clone https://github.com/docker/cli.git')
 				sh('git clone https://github.com/moby/moby.git')
-				sh('make DOCKER_BUILD_PKGS=static-linux ENGINE_DIR=$(pwd)/moby CLI_DIR=$(pwd)/cli static')
+				sh('make VERSION=0.0.1-dev DOCKER_BUILD_PKGS=static-linux ENGINE_DIR=$(pwd)/moby CLI_DIR=$(pwd)/cli static')
 			}
 		}
 	},
