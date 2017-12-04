@@ -3,7 +3,7 @@
 test_steps = [
 	'deb': { ->
 		stage('Ubuntu Xenial Debian Package') {
-			wrappedNode(label: 'docker-edge && x86_64', cleanWorkspace: true) {
+			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				checkout scm
 				sh('git clone https://github.com/docker/cli.git')
 				sh('git clone https://github.com/moby/moby.git')
@@ -13,7 +13,7 @@ test_steps = [
 	},
 	'rpm': { ->
 		stage('Centos 7 RPM Package') {
-			wrappedNode(label: 'docker-edge && x86_64', cleanWorkspace: true) {
+			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				checkout scm
 				sh('git clone https://github.com/docker/cli.git')
 				sh('git clone https://github.com/moby/moby.git')
@@ -23,7 +23,7 @@ test_steps = [
 	},
 	'static': { ->
 		stage('Static Linux Binaries') {
-			wrappedNode(label: 'docker-edge && x86_64', cleanWorkspace: true) {
+			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				checkout scm
 				sh('git clone https://github.com/docker/cli.git')
 				sh('git clone https://github.com/moby/moby.git')
