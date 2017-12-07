@@ -15,6 +15,7 @@ Packager: Docker <support@docker.com>
 %global _dwz_low_mem_die_limit 0
 %global is_systemd 1
 %global with_selinux 1
+%global _missing_build_ids_terminate_build 0
 
 BuildRequires: pkgconfig(systemd)
 
