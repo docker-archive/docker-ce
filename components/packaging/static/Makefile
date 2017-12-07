@@ -1,7 +1,7 @@
 SHELL:=/bin/bash
 ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
-VERSION=$(shell cat $(ENGINE_DIR)/VERSION)
+VERSION?=0.0.0-dev
 CHOWN=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
