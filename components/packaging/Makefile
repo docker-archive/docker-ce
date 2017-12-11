@@ -1,7 +1,7 @@
 SHELL:=/bin/bash
 ENGINE_DIR:=$(CURDIR)/../engine
 CLI_DIR:=$(CURDIR)/../cli
-VERSION=unknown
+VERSION?=0.0.0-dev
 DOCKER_GITCOMMIT:=abcdefg
 
 .PHONY: help clean rpm deb static
