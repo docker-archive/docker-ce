@@ -25,6 +25,10 @@ be found.
 - Fix behaviour of `rmi -f` with unexpected errors [docker/cli#654](https://github.com/docker/cli/pull/654)
 * Integrated Generic resource in service create [docker/cli#429](https://github.com/docker/cli/pull/429)
 
+### Documentation
+
+* Update API version history for 1.35 [moby/moby#35724](https://github.com/moby/moby/pull/35724)
+
 ### Logging
 
 * Logentries driver line-only=true []byte output fix [moby/moby#35612](https://github.com/moby/moby/pull/35612)
@@ -77,3 +81,8 @@ be found.
 ### Swarm Mode
 
 + Added support for swarm service isolation mode [moby/moby#34424](https://github.com/moby/moby/pull/34424)
+
+### Packaging
+
++ Added Packaging for Fedora 27 [docker/docker-ce-packaging#59](https://github.com/docker/docker-ce-packaging/pull/59)
+* Changed default versioning scheme to 0.0.0-dev unless specified for packaging [docker/docker-ce-packaging#67](https://github.com/docker/docker-ce-packaging/pull/67)
