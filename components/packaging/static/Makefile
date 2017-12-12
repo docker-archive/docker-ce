@@ -50,10 +50,10 @@ static-cli:
 	$(MAKE) -C $(CLI_DIR) -f docker.Makefile VERSION=$(VERSION) build
 
 static-engine:
-	$(MAKE) -C $(ENGINE_DIR) binary
+	$(MAKE) -C $(ENGINE_DIR) VERSION=$(VERSION) binary
 
 cross-all-cli:
 	$(MAKE) -C $(CLI_DIR) -f docker.Makefile VERSION=$(VERSION) cross
 
 cross-win-engine:
-	$(MAKE) -C $(ENGINE_DIR) DOCKER_CROSSPLATFORMS=windows/amd64 cross
+	$(MAKE) -C $(ENGINE_DIR) VERSION=$(VERSION) DOCKER_CROSSPLATFORMS=windows/amd64 cross
