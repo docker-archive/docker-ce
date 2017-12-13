@@ -24,6 +24,7 @@ be found.
 * Remove deprecated "daemon" subcommand [docker/cli#689](https://github.com/docker/cli/pull/689)
 - Fix behaviour of `rmi -f` with unexpected errors [docker/cli#654](https://github.com/docker/cli/pull/654)
 * Integrated Generic resource in service create [docker/cli#429](https://github.com/docker/cli/pull/429)
+- Fix external networks in stacks [docker/cli#743](https://github.com/docker/cli/pull/743)
 
 ### Documentation
 
@@ -36,6 +37,7 @@ be found.
 + Add `--until` flag for docker logs [moby/moby#32914](https://github.com/moby/moby/pull/32914)
 + Add gelf log driver plugin to Windows build [moby/moby#35073](https://github.com/moby/moby/pull/35073)
 * Set timeout on splunk batch send [moby/moby#35496](https://github.com/moby/moby/pull/35496)
+* Update Graylog2/go-gelf [moby/moby#35765](https://github.com/moby/moby/pull/35765)
 
 ### Networking
 
@@ -46,6 +48,7 @@ be found.
 + Added support for persisting Windows network driver specific options [moby/moby#35563](https://github.com/moby/moby/pull/35563)
 - Fix timeout on netlink sockets and watchmiss leak [moby/moby#35677](https://github.com/moby/moby/pull/35677)
 + New daemon config for networking diagnosis [moby/moby#35677](https://github.com/moby/moby/pull/35677)
+- Clean up node management logic [docker/libnetwork#2036](https://github.com/docker/libnetwork/pull/2036)
 
 ### Runtime
 
@@ -76,7 +79,8 @@ be found.
 * Container: protect the health status with mutex [moby/moby#35517](https://github.com/moby/moby/pull/35517)
 * Container: update real-time resources [moby/moby#33731](https://github.com/moby/moby/pull/33731)
 * Create labels when volume exists only remotely [moby/moby#34896](https://github.com/moby/moby/pull/34896)
-* Fix leaking container/exec state [moby/moby#35484](https://github.com/moby/moby/pull/35484)
+- Fix leaking container/exec state [moby/moby#35484](https://github.com/moby/moby/pull/35484)
+* Disallow using legacy (v1) registries [moby/moby#35751](https://github.com/moby/moby/pull/35751) and [docker/cli#747](https://github.com/docker/cli/pull/747)
 
 ### Swarm Mode
 
@@ -84,5 +88,6 @@ be found.
 
 ### Packaging
 
-+ Added Packaging for Fedora 27 [docker/docker-ce-packaging#59](https://github.com/docker/docker-ce-packaging/pull/59)
-* Changed default versioning scheme to 0.0.0-dev unless specified for packaging [docker/docker-ce-packaging#67](https://github.com/docker/docker-ce-packaging/pull/67)
++ Add Packaging for Fedora 27 [docker/docker-ce-packaging#59](https://github.com/docker/docker-ce-packaging/pull/59)
+* Change default versioning scheme to 0.0.0-dev unless specified for packaging [docker/docker-ce-packaging#67](https://github.com/docker/docker-ce-packaging/pull/67)
+* Pass Version to engine static builds [docker/docker-ce-packaging#70](https://github.com/docker/docker-ce-packaging/pull/70)
