@@ -5,6 +5,11 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
+IMPORTANT: 
+
+You should stop all containers and plugins **BEFORE** upgrading to Docker CE 17.12.
+See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812) 
+
 ## 17.12.0-ce (2017-12-DD)
 
 
@@ -25,6 +30,8 @@ be found.
 - Fix behaviour of `rmi -f` with unexpected errors [docker/cli#654](https://github.com/docker/cli/pull/654)
 * Integrated Generic resource in service create [docker/cli#429](https://github.com/docker/cli/pull/429)
 - Fix external networks in stacks [docker/cli#743](https://github.com/docker/cli/pull/743)
+* Remove support for referencing images by image shortid [docker/cli#753](https://github.com/docker/cli/pull/753) and [moby/moby#35790](https://github.com/moby/moby/pull/35790)
+* Use commit-sha instead of tag for containerd [moby/moby#35770](https://github.com/moby/moby/pull/35770)
 
 ### Documentation
 
@@ -38,6 +45,7 @@ be found.
 + Add gelf log driver plugin to Windows build [moby/moby#35073](https://github.com/moby/moby/pull/35073)
 * Set timeout on splunk batch send [moby/moby#35496](https://github.com/moby/moby/pull/35496)
 * Update Graylog2/go-gelf [moby/moby#35765](https://github.com/moby/moby/pull/35765)
+- Fix aws logs batch size calculation [moby/moby#35726](https://github.com/moby/moby/pull/35726)
 
 ### Networking
 
@@ -49,6 +57,7 @@ be found.
 - Fix timeout on netlink sockets and watchmiss leak [moby/moby#35677](https://github.com/moby/moby/pull/35677)
 + New daemon config for networking diagnosis [moby/moby#35677](https://github.com/moby/moby/pull/35677)
 - Clean up node management logic [docker/libnetwork#2036](https://github.com/docker/libnetwork/pull/2036)
+- Allocate VIPs when endpoints are restored [docker/swarmkit#2474](https://github.com/docker/swarmkit/pull/2474)
 
 ### Runtime
 
@@ -81,10 +90,15 @@ be found.
 * Create labels when volume exists only remotely [moby/moby#34896](https://github.com/moby/moby/pull/34896)
 - Fix leaking container/exec state [moby/moby#35484](https://github.com/moby/moby/pull/35484)
 * Disallow using legacy (v1) registries [moby/moby#35751](https://github.com/moby/moby/pull/35751) and [docker/cli#747](https://github.com/docker/cli/pull/747)
+- Windows: Fix case insensitive filename matching against builder cache [moby/moby#35793](https://github.com/moby/moby/pull/35793)
+- Fix race conditions around process handling and error checks [moby/moby#35809](https://github.com/moby/moby/pull/35809)
+* Ensure containers are stopped on daemon startup [moby/moby#35805](https://github.com/moby/moby/pull/35805)
+* Follow containerd namespace conventions [moby/moby#35812](https://github.com/moby/moby/pull/35812)
 
 ### Swarm Mode
 
 + Added support for swarm service isolation mode [moby/moby#34424](https://github.com/moby/moby/pull/34424)
+- Fix task clean up for tasks that are complete [docker/swarmkit#2477](https://github.com/docker/swarmkit/pull/2477)
 
 ### Packaging
 
