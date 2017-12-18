@@ -46,5 +46,5 @@ if [[ "$rpmVersion" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; 
 fi
 
 # Replace any other dashes with periods
-rpmVersion="${rpmVersion/-/.}"
+rpmVersion="${rpmVersion//-/.}"
 echo $rpmVersion $rpmRelease $DOCKER_GITCOMMIT
