@@ -27,7 +27,6 @@ be found.
 ### Runtime
 
 - Protect `health monitor` Go channel [moby/moby#35482](https://github.com/moby/moby/pull/35482)
-- Fix test failure on stopped container [moby/moby#34730](https://github.com/moby/moby/pull/34730) 
 - Fix leaking container/exec state [moby/moby#35484](https://github.com/moby/moby/pull/35484)
 - Add /proc/scsi to masked paths (patch to work around [CVE-2017-16539](http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-16539)) [moby/moby/#35399](https://github.com/moby/moby/pull/35399)
 - Vendor tar-split: fix to prevent memory exhaustion issue that could crash Docker daemon [moby/moby/#35424](https://github.com/moby/moby/pull/35424) Fixes [CVE-2017-14992](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-14992)
