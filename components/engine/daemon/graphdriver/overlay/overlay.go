@@ -107,8 +107,10 @@ func init() {
 }
 
 // Init returns the NaiveDiffDriver, a native diff driver for overlay filesystem.
-// If overlay filesystem is not supported on the host, graphdriver.ErrNotSupported is returned as error.
-// If an overlay filesystem is not supported over an existing filesystem then error graphdriver.ErrIncompatibleFS is returned.
+// If overlay filesystem is not supported on the host, the error
+// graphdriver.ErrNotSupported is returned.
+// If an overlay filesystem is not supported over an existing filesystem then
+// error graphdriver.ErrIncompatibleFS is returned.
 func Init(home string, options []string, uidMaps, gidMaps []idtools.IDMap) (graphdriver.Driver, error) {
 
 	if err := supportsOverlay(); err != nil {
@@ -197,7 +199,8 @@ func (d *Driver) Status() [][2]string {
 	}
 }
 
-// GetMetadata returns meta data about the overlay driver such as root, LowerDir, UpperDir, WorkDir and MergeDir used to store data.
+// GetMetadata returns metadata about the overlay driver such as root,
+// LowerDir, UpperDir, WorkDir and MergeDir used to store data.
 func (d *Driver) GetMetadata(id string) (map[string]string, error) {
 	dir := d.dir(id)
 	if _, err := os.Stat(dir); err != nil {
@@ -292,9 +295,6 @@ func (d *Driver) Create(id, parent string, opts *graphdriver.CreateOpts) (retErr
 		if err := idtools.MkdirAs(path.Join(dir, "work"), 0700, rootUID, rootGID); err != nil {
 			return err
 		}
-		if err := idtools.MkdirAs(path.Join(dir, "merged"), 0700, rootUID, rootGID); err != nil {
-			return err
-		}
 		if err := ioutil.WriteFile(path.Join(dir, "lower-id"), []byte(parent), 0666); err != nil {
 			return err
 		}
@@ -325,9 +325,6 @@ func (d *Driver) Create(id, parent string, opts *graphdriver.CreateOpts) (retErr
 	if err := idtools.MkdirAs(path.Join(dir, "work"), 0700, rootUID, rootGID); err != nil {
 		return err
 	}
-	if err := idtools.MkdirAs(path.Join(dir, "merged"), 0700, rootUID, rootGID); err != nil {
-		return err
-	}
 
 	return copyDir(parentUpperDir, upperDir, 0)
 }
@@ -356,6 +353,7 @@ func (d *Driver) Get(id string, mountLabel string) (s string, err error) {
 	if _, err := os.Stat(rootDir); err == nil {
 		return rootDir, nil
 	}
+
 	mergedDir := path.Join(dir, "merged")
 	if count := d.ctr.Increment(mergedDir); count > 1 {
 		return mergedDir, nil
@@ -363,12 +361,25 @@ func (d *Driver) Get(id string, mountLabel string) (s string, err error) {
 	defer func() {
 		if err != nil {
 			if c := d.ctr.Decrement(mergedDir); c <= 0 {
-				unix.Unmount(mergedDir, 0)
+				if mntErr := unix.Unmount(mergedDir, 0); mntErr != nil {
+					logrus.Debugf("Failed to unmount %s: %v: %v", id, mntErr, err)
+				}
+				// Cleanup the created merged directory; see the comment in Put's rmdir
+				if rmErr := unix.Rmdir(mergedDir); rmErr != nil && !os.IsNotExist(rmErr) {
+					logrus.Warnf("Failed to remove %s: %v: %v", id, rmErr, err)
+				}
 			}
 		}
 	}()
 	lowerID, err := ioutil.ReadFile(path.Join(dir, "lower-id"))
 	if err != nil {
+		return "", err
+	}
+	rootUID, rootGID, err := idtools.GetRootUIDGID(d.uidMaps, d.gidMaps)
+	if err != nil {
+		return "", err
+	}
+	if err := idtools.MkdirAndChown(mergedDir, 0700, idtools.IDPair{rootUID, rootGID}); err != nil {
 		return "", err
 	}
 	var (
@@ -382,10 +393,6 @@ func (d *Driver) Get(id string, mountLabel string) (s string, err error) {
 	}
 	// chown "workdir/work" to the remapped root UID/GID. Overlay fs inside a
 	// user namespace requires this to move a directory from lower to upper.
-	rootUID, rootGID, err := idtools.GetRootUIDGID(d.uidMaps, d.gidMaps)
-	if err != nil {
-		return "", err
-	}
 	if err := os.Chown(path.Join(workDir, "work"), rootUID, rootGID); err != nil {
 		return "", err
 	}
@@ -393,6 +400,8 @@ func (d *Driver) Get(id string, mountLabel string) (s string, err error) {
 }
 
 // Put unmounts the mount path created for the give id.
+// It also removes the 'merged' directory to force the kernel to unmount the
+// overlay mount in other namespaces.
 func (d *Driver) Put(id string) error {
 	d.locker.Lock(id)
 	defer d.locker.Unlock(id)
@@ -406,6 +415,17 @@ func (d *Driver) Put(id string) error {
 	}
 	if err := unix.Unmount(mountpoint, unix.MNT_DETACH); err != nil {
 		logrus.Debugf("Failed to unmount %s overlay: %v", id, err)
+	}
+
+	// Remove the mountpoint here. Removing the mountpoint (in newer kernels)
+	// will cause all other instances of this mount in other mount namespaces
+	// to be unmounted. This is necessary to avoid cases where an overlay mount
+	// that is present in another namespace will cause subsequent mounts
+	// operations to fail with ebusy.  We ignore any errors here because this may
+	// fail on older kernels which don't have
+	// torvalds/linux@8ed936b5671bfb33d89bc60bdcc7cf0470ba52fe applied.
+	if err := unix.Rmdir(mountpoint); err != nil {
+		logrus.Debugf("Failed to remove %s overlay: %v", id, err)
 	}
 	return nil
 }
