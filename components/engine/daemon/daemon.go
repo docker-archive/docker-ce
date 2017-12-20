@@ -62,8 +62,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MainNamespace is the name of the namespace used for users containers
-const MainNamespace = "moby"
+// ContainersNamespace is the name of the namespace used for users containers
+const ContainersNamespace = "moby"
 
 var (
 	errSystemNotSupported = errors.New("the Docker daemon is not supported on this platform")
@@ -247,6 +247,11 @@ func (daemon *Daemon) restore() error {
 					logrus.WithError(err).Errorf("Failed to delete container %s from containerd", c.ID)
 					return
 				}
+			} else if !daemon.configStore.LiveRestoreEnabled {
+				if err := daemon.kill(c, c.StopSignal()); err != nil && !errdefs.IsNotFound(err) {
+					logrus.WithError(err).WithField("container", c.ID).Error("error shutting down container")
+					return
+				}
 			}
 
 			if c.IsRunning() || c.IsPaused() {
@@ -317,24 +322,24 @@ func (daemon *Daemon) restore() error {
 					activeSandboxes[c.NetworkSettings.SandboxID] = options
 					mapLock.Unlock()
 				}
-			} else {
-				// get list of containers we need to restart
+			}
 
-				// Do not autostart containers which
-				// has endpoints in a swarm scope
-				// network yet since the cluster is
-				// not initialized yet. We will start
-				// it after the cluster is
-				// initialized.
-				if daemon.configStore.AutoRestart && c.ShouldRestart() && !c.NetworkSettings.HasSwarmEndpoint {
-					mapLock.Lock()
-					restartContainers[c] = make(chan struct{})
-					mapLock.Unlock()
-				} else if c.HostConfig != nil && c.HostConfig.AutoRemove {
-					mapLock.Lock()
-					removeContainers[c.ID] = c
-					mapLock.Unlock()
-				}
+			// get list of containers we need to restart
+
+			// Do not autostart containers which
+			// has endpoints in a swarm scope
+			// network yet since the cluster is
+			// not initialized yet. We will start
+			// it after the cluster is
+			// initialized.
+			if daemon.configStore.AutoRestart && c.ShouldRestart() && !c.NetworkSettings.HasSwarmEndpoint {
+				mapLock.Lock()
+				restartContainers[c] = make(chan struct{})
+				mapLock.Unlock()
+			} else if c.HostConfig != nil && c.HostConfig.AutoRemove {
+				mapLock.Lock()
+				removeContainers[c.ID] = c
+				mapLock.Unlock()
 			}
 
 			c.Lock()
@@ -890,7 +895,7 @@ func NewDaemon(config *config.Config, registryService registry.Service, containe
 
 	go d.execCommandGC()
 
-	d.containerd, err = containerdRemote.NewClient(MainNamespace, d)
+	d.containerd, err = containerdRemote.NewClient(ContainersNamespace, d)
 	if err != nil {
 		return nil, err
 	}
