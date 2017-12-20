@@ -5,13 +5,17 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
-IMPORTANT: 
-
-You should stop all containers and plugins **BEFORE** upgrading to Docker CE 17.12.
+**IMPORTANT**: You must stop all containers and plugins **BEFORE** upgrading to Docker CE 17.12.
 See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812) 
 
-## 17.12.0-ce (2017-12-DD)
+## 17.12.0-ce (2017-12-27)
 
+## Known Issues
+* AWS logs batch size calculation [moby/moby#35726](https://github.com/moby/moby/pull/35726)
+* Health check no longer uses the container's working directory [moby/moby#35843](https://github.com/moby/moby/issues/35843) 
+* Errors not returned from client in stack deploy configs [moby/moby#757](https://github.com/docker/cli/pull/757)
+* Daemon aborts when project quota fails [moby/moby#35827](https://github.com/moby/moby/pull/35827) 
+* Docker cannot use memory limit when using systemd options [moby/moby#35123](https://github.com/moby/moby/issues/35123)
 
 ### Builder
 
@@ -45,7 +49,6 @@ See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812)
 + Add gelf log driver plugin to Windows build [moby/moby#35073](https://github.com/moby/moby/pull/35073)
 * Set timeout on splunk batch send [moby/moby#35496](https://github.com/moby/moby/pull/35496)
 * Update Graylog2/go-gelf [moby/moby#35765](https://github.com/moby/moby/pull/35765)
-- Fix aws logs batch size calculation [moby/moby#35726](https://github.com/moby/moby/pull/35726)
 
 ### Networking
 
@@ -105,3 +108,4 @@ See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812)
 + Add Packaging for Fedora 27 [docker/docker-ce-packaging#59](https://github.com/docker/docker-ce-packaging/pull/59)
 * Change default versioning scheme to 0.0.0-dev unless specified for packaging [docker/docker-ce-packaging#67](https://github.com/docker/docker-ce-packaging/pull/67)
 * Pass Version to engine static builds [docker/docker-ce-packaging#70](https://github.com/docker/docker-ce-packaging/pull/70)
++ Added support for aarch64 on Debian (stretch/jessie) and Ubuntu Zesty or newer [docker/docker-ce-packaging#35](https://github.com/docker/docker-ce-packaging/pull/35)
