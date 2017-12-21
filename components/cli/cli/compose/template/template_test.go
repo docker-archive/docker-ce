@@ -1,9 +1,9 @@
 package template
 
 import (
+	"reflect"
 	"testing"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/gotestyourself/gotestyourself/assert"
 )
 
@@ -36,8 +36,7 @@ func TestInvalid(t *testing.T) {
 
 	for _, template := range invalidTemplates {
 		_, err := Substitute(template, defaultMapping)
-		assert.Check(t, is.ErrorContains(err, ""))
-		assert.Check(t, is.Contains(err.Error(), "Invalid template"))
+		assert.ErrorContains(t, err, "Invalid template")
 	}
 }
 
