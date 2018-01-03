@@ -21,7 +21,7 @@ func getCheckpointDir(checkDir, checkpointID string, ctrName string, ctrID strin
 	var checkpointDir string
 	var err2 error
 	if checkDir != "" {
-		checkpointDir = filepath.Join(checkDir, ctrID, "checkpoints")
+		checkpointDir = checkDir
 	} else {
 		checkpointDir = ctrCheckpointDir
 	}
