@@ -22,6 +22,7 @@ BuildRequires: pkgconfig(libsystemd-journal)
 # required packages on install
 Requires: /bin/sh
 Requires: container-selinux >= 2.9
+Requires: libseccomp >= 2.3
 Requires: iptables
 Requires: libcgroup
 Requires: systemd-units
