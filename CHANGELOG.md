@@ -5,7 +5,7 @@ information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where target removal dates can also
 be found.
 
-## 18.01.0-ce (2018-01-DD)
+## 18.01.0-ce (2018-01-10)
 
 ### Builder
 
@@ -50,10 +50,10 @@ be found.
 
 ### Runtime
 
-* Re-validate Mounts on container start [moby/moby#35833](https://github.com/moby/moby/pull/35833)
+* Validate Mount-specs on container start to prevent missing host-path [moby/moby#35833](https://github.com/moby/moby/pull/35833)
 - Fix overlay2 storage driver inside a user namespace [moby/moby#35794](https://github.com/moby/moby/pull/35794)
 * Zfs: fix busy error on container stop [moby/moby#35674](https://github.com/moby/moby/pull/35674)
-- Fix #35843 regression on health check workingdir [moby/moby#35845](https://github.com/moby/moby/pull/35845)
+- Fix health checks not using the container's working directory [moby/moby#35845](https://github.com/moby/moby/pull/35845)
 - Fix VFS graph driver failure to initialize because of failure to setup fs quota [moby/moby#35827](https://github.com/moby/moby/pull/35827)
 - Fix containerd events being processed twice [moby/moby#35896](https://github.com/moby/moby/pull/35896)
 
