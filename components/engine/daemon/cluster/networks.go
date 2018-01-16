@@ -7,6 +7,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	types "github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/daemon/cluster/convert"
+	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/runconfig"
 	swarmapi "github.com/docker/swarmkit/api"
 	"github.com/pkg/errors"
@@ -292,13 +293,13 @@ func (c *Cluster) populateNetworkID(ctx context.Context, client swarmapi.Control
 	for i, n := range networks {
 		apiNetwork, err := getNetwork(ctx, client, n.Target)
 		if err != nil {
-			ln, _ := c.config.Backend.FindUniqueNetwork(n.Target)
+			ln, _ := c.config.Backend.FindNetwork(n.Target)
 			if ln != nil && runconfig.IsPreDefinedNetwork(ln.Name()) {
 				// Need to retrieve the corresponding predefined swarm network
 				// and use its id for the request.
 				apiNetwork, err = getNetwork(ctx, client, ln.Name())
 				if err != nil {
-					return errors.Wrap(notFoundError{err}, "could not find the corresponding predefined swarm network")
+					return errors.Wrap(errdefs.NotFound(err), "could not find the corresponding predefined swarm network")
 				}
 				goto setid
 			}

@@ -18,7 +18,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/docker/docker/api/errdefs"
 	"github.com/docker/docker/api/types"
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/swarm"
@@ -29,6 +28,7 @@ import (
 	"github.com/docker/docker/daemon/exec"
 	"github.com/docker/docker/daemon/logger"
 	"github.com/docker/docker/daemon/network"
+	"github.com/docker/docker/errdefs"
 	"github.com/sirupsen/logrus"
 	// register graph drivers
 	_ "github.com/docker/docker/daemon/graphdriver/register"
@@ -1046,11 +1046,7 @@ func (daemon *Daemon) Shutdown() error {
 		daemon.netController.Stop()
 	}
 
-	if err := daemon.cleanupMounts(); err != nil {
-		return err
-	}
-
-	return nil
+	return daemon.cleanupMounts()
 }
 
 // Mount sets container.BaseFS
