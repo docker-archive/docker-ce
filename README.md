@@ -1,4 +1,6 @@
 # Docker CE
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdocker%2Fdocker-ce.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdocker%2Fdocker-ce?ref=badge_shield)
+
 
 This repository hosts open source components of Docker CE products. The
 `master` branch serves to unify the upstream components on a regular
@@ -92,3 +94,7 @@ been merged, be sure to port the fix to the respective upstream git repo.
 There will be a git tag for each release candidate (RC) and general
 availablilty (GA) release. The tag will only point to commits on release
 branches.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fdocker%2Fdocker-ce.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fdocker%2Fdocker-ce?ref=badge_large)
