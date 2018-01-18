@@ -14,6 +14,7 @@ Recommends: aufs-tools,
             ca-certificates,
             cgroupfs-mount | cgroup-lite,
             git,
+            pigz,
             xz-utils,
             ${apparmor:Recommends}
 Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs, docker-ee
