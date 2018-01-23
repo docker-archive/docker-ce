@@ -39,10 +39,10 @@ if [[ "$rpmVersion" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; 
     gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
     gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
-    gitVersion="${gitDate}.git${gitCommit}"
+    gitVersion="git${gitDate}.0.${gitCommit}"
     # gitVersion is now something like '20150128.112847.17e840a'
     rpmVersion="${rpmVersion%-dev}"
-    rpmRelease="0.0.$gitVersion"
+    rpmRelease="0.0.dev.$gitVersion"
 fi
 
 # Replace any other dashes with periods
