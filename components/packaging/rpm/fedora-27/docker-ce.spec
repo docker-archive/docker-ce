@@ -104,6 +104,8 @@ install -p -m 644 engine/contrib/udev/80-docker.rules $RPM_BUILD_ROOT/%{_sysconf
 install -d $RPM_BUILD_ROOT/etc/sysconfig
 install -d $RPM_BUILD_ROOT/%{_initddir}
 install -d $RPM_BUILD_ROOT/%{_unitdir}
+# Fedora 25+ supports (and needs) TasksMax
+sed -i 's/^#TasksMax=/TasksMax=/' /systemd/docker.service
 install -p -m 644 /systemd/docker.service $RPM_BUILD_ROOT/%{_unitdir}/docker.service
 # add bash, zsh, and fish completions
 install -d $RPM_BUILD_ROOT/usr/share/bash-completion/completions
