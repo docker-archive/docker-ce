@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+ENGINE_DIR=$1
+VERSION=$2
+
+if [ -z "$ENGINE_DIR" ] || [ -z "$VERSION" ]; then
+    echo 'usage: ./gen-static-ver ${ENGINE_DIR} ${VERSION}'
+    exit 1
+fi
+
+DATE_COMMAND="date"
+if [[ $(uname) -eq "Darwin" ]]; then
+    DATE_COMMAND="docker run --rm alpine date"
+fi
+GIT_COMMAND="git -C $ENGINE_DIR"
+
+staticVersion="$VERSION"
+if [[ "$VERSION" == *-dev ]]; then
+    gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
+    gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
+    gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
+    staticVersion="${VERSION}-${gitDate}-${gitCommit}"
+fi
+
+echo "$staticVersion"

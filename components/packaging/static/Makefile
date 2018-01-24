@@ -2,6 +2,7 @@ SHELL:=/bin/bash
 ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 VERSION?=0.0.0-dev
+STATIC_VERSION=$(shell ./gen-static-ver $(ENGINE_DIR) $(VERSION))
 CHOWN=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
@@ -25,7 +26,7 @@ static-linux: static-cli static-engine ## create tgz with linux x86_64 client an
 	for f in dockerd docker-containerd docker-containerd-ctr docker-containerd-shim docker-init docker-proxy docker-runc; do \
 		cp -L $(ENGINE_DIR)/bundles/binary-daemon/$$f build/linux/docker/$$f; \
 	done
-	tar -C build/linux -c -z -f build/linux/docker-$(VERSION).tgz docker
+	tar -C build/linux -c -z -f build/linux/docker-$(STATIC_VERSION).tgz docker
 
 .PHONY: hash_files
 hash_files:
@@ -36,21 +37,21 @@ hash_files:
 cross-mac: cross-all-cli ## create tgz with darwin x86_64 client only
 	mkdir -p build/mac/docker
 	cp $(CLI_DIR)/build/docker-darwin-amd64 build/mac/docker/docker
-	tar -C build/mac -c -z -f build/mac/docker-$(VERSION).tgz docker
+	tar -C build/mac -c -z -f build/mac/docker-$(STATIC_VERSION).tgz docker
 
 .PHONY: cross-win
 cross-win: cross-all-cli cross-win-engine ## create zip file with windows x86_64 client and server
 	mkdir -p build/win/docker
 	cp $(CLI_DIR)/build/docker-windows-amd64 build/win/docker/docker.exe
 	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(VERSION).exe build/win/docker/dockerd.exe
-	docker run --rm -v $(CURDIR)/build/win:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(VERSION).zip docker'
+	docker run --rm -v $(CURDIR)/build/win:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(STATIC_VERSION).zip docker'
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build
 
 .PHONY: cross-arm
 cross-arm: cross-all-cli ## create tgz with linux armhf client only
 	mkdir -p build/arm/docker
 	cp $(CLI_DIR)/build/docker-linux-arm build/arm/docker/docker
-	tar -C build/arm -c -z -f build/arm/docker-$(VERSION).tgz docker
+	tar -C build/arm -c -z -f build/arm/docker-$(STATIC_VERSION).tgz docker
 
 .PHONY: static-cli
 static-cli:
