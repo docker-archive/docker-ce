@@ -16,6 +16,9 @@ https://docs.docker.com/engine/deprecated/ where you can find target removal dat
 + Adds a new compose file version 3.6 [docker/cli#808](https://github.com/docker/cli/pull/808)
 - Fix issue of filter in `docker ps` where `health=starting` returns nothing [moby/moby#35940](https://github.com/moby/moby/pull/35940)
 + Improve presentation of published port ranges [docker/cli#581](https://github.com/docker/cli/pull/581)
+* Bump Go to 1.9.3 [docker/cli#827](https://github.com/docker/cli/pull/827)
+- Fix broken Kubernetes stack flags [docker/cli#831](https://github.com/docker/cli/pull/831)
+* Annotate "stack" commands to be "swarm" and "kubernetes" [docker/cli#804](https://github.com/docker/cli/pull/804)
 
 ### Experimental
 
@@ -66,4 +69,3 @@ https://docs.docker.com/engine/deprecated/ where you can find target removal dat
 * Bump containerd to 1.0.1 (9b55aab90508bd389d7654c4baf173a981477d55) [moby/moby#35986](https://github.com/moby/moby/pull/35986)
 * Update runc to fix hang during start and exec [moby/moby#36097](https://github.com/moby/moby/pull/36097) 
 - Fix "--node-generic-resource" singular/plural [moby/moby#36125](https://github.com/moby/moby/pull/36125)
-* Bump Go to 1.9.3 [docker/cli#827](https://github.com/docker/cli/pull/827)
