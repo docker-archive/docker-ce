@@ -22,7 +22,7 @@ https://docs.docker.com/engine/deprecated/ where you can find target removal dat
 + Add manifest command [docker/cli#138](https://github.com/docker/cli/pull/138)
 * LCOW remotefs - return error in Read() implementation [moby/moby#36051](https://github.com/moby/moby/pull/36051)
 + LCOW: Coalesce daemon stores, allow dual LCOW and WCOW mode [moby/moby#34859](https://github.com/moby/moby/pull/34859)
-* LCOW: Fix OpenFile parameters [moby/moby#36043](https://github.com/moby/moby/pull/36043)
+- LCOW: Fix OpenFile parameters [moby/moby#36043](https://github.com/moby/moby/pull/36043)
 * LCOW: Raise minimum requirement to Windows RS3 RTM build (16299) [moby/moby#36065](https://github.com/moby/moby/pull/36065)
 
 ### Logging
@@ -52,16 +52,18 @@ https://docs.docker.com/engine/deprecated/ where you can find target removal dat
 
 ### Runtime
 
-* Fixes unexpected Docker Daemon shutdown based on pipe error [moby/moby#35968](https://github.com/moby/moby/pull/35968)
-* Fix some occurrences of hcsshim::ImportLayer failed in Win32: The system cannot find the path specified [moby/moby#35924](https://github.com/moby/moby/pull/35924)
+- Fixes unexpected Docker Daemon shutdown based on pipe error [moby/moby#35968](https://github.com/moby/moby/pull/35968)
+- Fix some occurrences of hcsshim::ImportLayer failed in Win32: The system cannot find the path specified [moby/moby#35924](https://github.com/moby/moby/pull/35924)
 * Windows: increase the maximum layer size during build to 127GB [moby/moby#35925](https://github.com/moby/moby/pull/35925)
 - Fix Devicemapper: Error running DeleteDevice dm_task_run failed [moby/moby#35919](https://github.com/moby/moby/pull/35919)
 + Introduce « exec_die » event [moby/moby#35744](https://github.com/moby/moby/pull/35744)
 * Update API to version 1.36 [moby/moby#35744](https://github.com/moby/moby/pull/35744)
-* Fix `docker update` not updating cpu quota, and cpu-period of a running container [moby/moby#36030](https://github.com/moby/moby/pull/36030)
+- Fix `docker update` not updating cpu quota, and cpu-period of a running container [moby/moby#36030](https://github.com/moby/moby/pull/36030)
 * Make container shm parent unbindable [moby/moby#35830](https://github.com/moby/moby/pull/35830)
 + Make image (layer) downloads faster by using pigz [moby/moby#35697](https://github.com/moby/moby/pull/35697)
 + Protect the daemon from volume plugins that are slow or deadlocked [moby/moby#35441](https://github.com/moby/moby/pull/35441)
 - Fix `DOCKER_RAMDISK` environment variable not being honoured [moby/moby#35957](https://github.com/moby/moby/pull/35957)
 * Bump containerd to 1.0.1 (9b55aab90508bd389d7654c4baf173a981477d55) [moby/moby#35986](https://github.com/moby/moby/pull/35986)
 * Update runc to fix hang during start and exec [moby/moby#36097](https://github.com/moby/moby/pull/36097) 
+- Fix "--node-generic-resource" singular/plural [moby/moby#36125](https://github.com/moby/moby/pull/36125)
+* Bump Go to 1.9.3 [docker/cli#827](https://github.com/docker/cli/pull/827)
