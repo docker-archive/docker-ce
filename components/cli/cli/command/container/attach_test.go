@@ -1,7 +1,6 @@
 package container
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -9,9 +8,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestNewAttachCommandErrors(t *testing.T) {
@@ -79,50 +78,40 @@ func TestNewAttachCommandErrors(t *testing.T) {
 }
 
 func TestGetExitStatus(t *testing.T) {
-	var (
-		expectedErr = fmt.Errorf("unexpected error")
-		errC        = make(chan error, 1)
-		resultC     = make(chan container.ContainerWaitOKBody, 1)
-	)
+	containerID := "the exec id"
+	expecatedErr := errors.New("unexpected error")
 
 	testcases := []struct {
-		result        *container.ContainerWaitOKBody
-		err           error
+		inspectError  error
+		exitCode      int
 		expectedError error
 	}{
 		{
-			result: &container.ContainerWaitOKBody{
-				StatusCode: 0,
-			},
+			inspectError: nil,
+			exitCode:     0,
 		},
 		{
-			err:           expectedErr,
-			expectedError: expectedErr,
+			inspectError:  expecatedErr,
+			expectedError: expecatedErr,
 		},
 		{
-			result: &container.ContainerWaitOKBody{
-				Error: &container.ContainerWaitOKBodyError{
-					expectedErr.Error(),
-				},
-			},
-			expectedError: expectedErr,
-		},
-		{
-			result: &container.ContainerWaitOKBody{
-				StatusCode: 15,
-			},
+			exitCode:      15,
 			expectedError: cli.StatusError{StatusCode: 15},
 		},
 	}
 
 	for _, testcase := range testcases {
-		if testcase.err != nil {
-			errC <- testcase.err
+		client := &fakeClient{
+			inspectFunc: func(id string) (types.ContainerJSON, error) {
+				assert.Equal(t, containerID, id)
+				return types.ContainerJSON{
+					ContainerJSONBase: &types.ContainerJSONBase{
+						State: &types.ContainerState{ExitCode: testcase.exitCode},
+					},
+				}, testcase.inspectError
+			},
 		}
-		if testcase.result != nil {
-			resultC <- *testcase.result
-		}
-		err := getExitStatus(errC, resultC)
+		err := getExitStatus(context.Background(), client, containerID)
 		assert.Equal(t, testcase.expectedError, err)
 	}
 }
