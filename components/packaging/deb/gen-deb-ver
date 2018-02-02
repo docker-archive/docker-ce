@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+ENGINE_DIR="$1"
+VERSION="$2"
+
+[[ $# < 2 ]] && echo 'not enough args' && exit 1
+
+DATE_COMMAND="date"
+if [[ $(uname) -eq "Darwin" ]]; then
+    DATE_COMMAND="docker run --rm alpine date"
+fi
+
+TZ=UTC
+
+tilde='~' # ouch Bash 4.2 vs 4.3, you keel me
+# git running in different directories, backwards compatible too
+GIT_COMMAND="git -C $ENGINE_DIR"
+debVersion="${VERSION//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
+# if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
+if [[ "$VERSION" == *-dev ]]; then
+    gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
+    gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
+    gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
+    gitVersion="git${gitDate}.0.${gitCommit}"
+    debVersion="$debVersion~$gitVersion"
+
+    # $ dpkg --compare-versions 1.5.0 gt 1.5.0~rc1 && echo true || echo false
+    # true
+    # $ dpkg --compare-versions 1.5.0~rc1 gt 1.5.0~git20150128.112847.17e840a && echo true || echo false
+    # true
+    # $ dpkg --compare-versions 1.5.0~git20150128.112847.17e840a gt 1.5.0~dev~git20150128.112847.17e840a && echo true || echo false
+    # true
+
+    # ie, 1.5.0 > 1.5.0~rc1 > 1.5.0~git20150128.112847.17e840a > 1.5.0~dev~git20150128.112847.17e840a
+fi
+
+echo "$debVersion"
