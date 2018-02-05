@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -x
 set -e
+
+if [[ -z "$DEB_VERSION" ]]; then
+    echo "DEB_VERSION is required to build deb packages"
+    exit 1
+fi
+
 # I want to rip this install-binaries script out so badly
 cd engine
 TMP_GOPATH="/go" bash hack/dockerfile/install-binaries.sh runc-dynamic containerd-dynamic proxy-dynamic tini
@@ -15,36 +21,13 @@ echo VERSION AAA $VERSION
 VERSION=${VERSION:-$( cat engine/VERSION )}
 
 echo VERSION bbb $VERSION
-export TZ=UTC
 
-tilde='~' # ouch Bash 4.2 vs 4.3, you keel me
-# git running in different directories, backwards compatible too
-GIT_COMMAND="git --git-dir=/root/build-deb/engine/.git --work-tree=/root/build-deb/engine/"
-debVersion="${VERSION//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
-# if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
-if [[ "$VERSION" == *-dev ]]; then
-    # TODO: Re-introduce git commit time into version number
-    todaysDate="$(date +'%Y%m%d.%H%M%S')"
-    # We're guaranteed to have DOCKER_GITCOMMIT in the env
-    gitVersion="git${todaysDate}.0.${DOCKER_GITCOMMIT}"
-    # gitVersion is now something like 'git20150128.112847.0.17e840a'
-    debVersion="$debVersion~$gitVersion"
-
-    # $ dpkg --compare-versions 1.5.0 gt 1.5.0~rc1 && echo true || echo false
-    # true
-    # $ dpkg --compare-versions 1.5.0~rc1 gt 1.5.0~git20150128.112847.17e840a && echo true || echo false
-    # true
-    # $ dpkg --compare-versions 1.5.0~git20150128.112847.17e840a gt 1.5.0~dev~git20150128.112847.17e840a && echo true || echo false
-    # true
-
-    # ie, 1.5.0 > 1.5.0~rc1 > 1.5.0~git20150128.112847.17e840a > 1.5.0~dev~git20150128.112847.17e840a
-fi
 debSource="$(awk -F ': ' '$1 == "Source" { print $2; exit }' debian/control)"
 debMaintainer="$(awk -F ': ' '$1 == "Maintainer" { print $2; exit }' debian/control)"
 debDate="$(date --rfc-2822)"
 
 cat > "debian/changelog" <<-EOF
-$debSource (${debVersion}-0~${DISTRO}) $SUITE; urgency=low
+$debSource (${DEB_VERSION}-0~${DISTRO}) $SUITE; urgency=low
   * Version: $VERSION
  -- $debMaintainer  $debDate
 EOF

@@ -4,6 +4,7 @@ ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 GITCOMMIT?=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
+DEB_VERSION=$(shell ./gen-deb-ver $(ENGINE_DIR) $(VERSION))
 DOCKER_EXPERIMENTAL:=0
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 
@@ -32,6 +33,7 @@ raspbian: raspbian-stretch debian-jessie ## build all raspbian deb packages
 ubuntu-xenial: ## build ubuntu xenial deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -45,6 +47,7 @@ ubuntu-xenial: ## build ubuntu xenial deb packages
 ubuntu-trusty: ## build ubuntu trusty deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -58,6 +61,7 @@ ubuntu-trusty: ## build ubuntu trusty deb packages
 ubuntu-artful: ## build ubuntu artful deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -71,6 +75,7 @@ ubuntu-artful: ## build ubuntu artful deb packages
 debian-buster: ## build debian buster deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -84,6 +89,7 @@ debian-buster: ## build debian buster deb packages
 debian-jessie: ## build debian jessie deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -97,6 +103,7 @@ debian-jessie: ## build debian jessie deb packages
 debian-stretch: ## build debian stretch deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -110,6 +117,7 @@ debian-stretch: ## build debian stretch deb packages
 debian-wheezy: ## build debian wheezy deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -123,6 +131,7 @@ debian-wheezy: ## build debian wheezy deb packages
 raspbian-jessie: ## build raspbian jessie deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
@@ -136,6 +145,7 @@ raspbian-jessie: ## build raspbian jessie deb packages
 raspbian-stretch: ## build raspbian stretch deb packages
 	docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 	docker run --rm -i \
+		-e DEB_VERSION=$(DEB_VERSION) \
 		-e VERSION=$(VERSION) \
 		-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 		-v $(CURDIR)/debbuild/$@:/build \
