@@ -3,7 +3,7 @@
 For more information on the list of deprecated flags and APIs, have a look at
 https://docs.docker.com/engine/deprecated/ where you can find target removal dates.
 
-## 18.02.0-ce (2018-02-DD)
+## 18.02.0-ce (2018-02-07)
 
 ### Builder
 
