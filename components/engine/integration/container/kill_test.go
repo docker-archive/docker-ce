@@ -10,7 +10,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/integration/util/request"
+	"github.com/docker/docker/integration/internal/request"
 	"github.com/gotestyourself/gotestyourself/poll"
 	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/stretchr/testify/require"
@@ -174,4 +174,22 @@ func TestKillStoppedContainerAPIPre120(t *testing.T) {
 	require.NoError(t, err)
 	err = client.ContainerKill(ctx, c.ID, "SIGKILL")
 	require.NoError(t, err)
+}
+
+func TestKillDifferentUserContainer(t *testing.T) {
+	// TODO Windows: Windows does not yet support -u (Feb 2016).
+	skip.If(t, testEnv.OSType != "linux", "User containers (container.Config.User) are not yet supported on %q platform", testEnv.OSType)
+
+	defer setupTest(t)()
+	ctx := context.Background()
+	client := request.NewAPIClient(t, client.WithVersion("1.19"))
+
+	cID := runSimpleContainer(ctx, t, client, "", func(config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig) {
+		config.User = "daemon"
+	})
+	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+
+	err := client.ContainerKill(ctx, cID, "SIGKILL")
+	require.NoError(t, err)
+	poll.WaitOn(t, containerIsInState(ctx, client, cID, "exited"), poll.WithDelay(100*time.Millisecond))
 }
