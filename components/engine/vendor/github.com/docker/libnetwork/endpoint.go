@@ -103,6 +103,7 @@ func (ep *endpoint) MarshalJSON() ([]byte, error) {
 	epMap["ingressPorts"] = ep.ingressPorts
 	epMap["svcAliases"] = ep.svcAliases
 	epMap["loadBalancer"] = ep.loadBalancer
+	epMap["serviceEnabled"] = ep.serviceEnabled
 
 	return json.Marshal(epMap)
 }
@@ -221,6 +222,10 @@ func (ep *endpoint) UnmarshalJSON(b []byte) (err error) {
 	var myAliases []string
 	json.Unmarshal(ma, &myAliases)
 	ep.myAliases = myAliases
+
+	if s, ok := epMap["serviceEnabled"]; ok {
+		ep.serviceEnabled = s.(bool)
+	}
 	return nil
 }
 
@@ -245,6 +250,7 @@ func (ep *endpoint) CopyTo(o datastore.KVObject) error {
 	dstEp.svcID = ep.svcID
 	dstEp.virtualIP = ep.virtualIP
 	dstEp.loadBalancer = ep.loadBalancer
+	dstEp.serviceEnabled = ep.serviceEnabled
 
 	dstEp.svcAliases = make([]string, len(ep.svcAliases))
 	copy(dstEp.svcAliases, ep.svcAliases)
@@ -759,6 +765,12 @@ func (ep *endpoint) sbLeave(sb *sandbox, force bool, options ...EndpointOption) 
 		logrus.Warnf("Could not cleanup network resources on container %s disconnect: %v", ep.name, err)
 	}
 
+	if ep.isServiceEnabled() {
+		if e := ep.deleteServiceInfoFromCluster(sb, "sbLeave"); e != nil {
+			logrus.Warnf("delete of service state for endpoint %s from cluster: %v failed", ep.Name(), e)
+		}
+		ep.disableService()
+	}
 	// Update the store about the sandbox detach only after we
 	// have completed sb.clearNetworkresources above to avoid
 	// spurious logs when cleaning up the sandbox when the daemon
