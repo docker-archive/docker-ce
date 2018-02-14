@@ -267,9 +267,9 @@ func (daemon *Daemon) CreateNetwork(create types.NetworkCreateRequest) (*types.N
 }
 
 func (daemon *Daemon) createNetwork(create types.NetworkCreateRequest, id string, agent bool) (*types.NetworkCreateResponse, error) {
-	if runconfig.IsPreDefinedNetwork(create.Name) && !agent {
-		err := fmt.Errorf("%s is a pre-defined network and cannot be created", create.Name)
-		return nil, errdefs.Forbidden(err)
+	if runconfig.IsPreDefinedNetwork(create.Name) {
+		logrus.Debugf("%s is a pre-defined network and cannot be created \n", create.Name)
+		return nil, libnetwork.NetworkNameError(create.Name)
 	}
 
 	var warning string
