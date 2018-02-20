@@ -8,7 +8,7 @@ be found.
 **IMPORTANT**: You must stop all containers and plugins **BEFORE** upgrading to Docker CE 17.12.
 See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812) 
 
-## 17.12.1-ce (2017-02-DD)
+## 17.12.1-ce (2018-02-DD)
 
 ### Client
 - Fix `node-generic-resource` typo [moby/moby#35970](https://github.com/moby/moby/pull/35970) and [moby/moby#36125](https://github.com/moby/moby/pull/36125)
@@ -16,10 +16,13 @@ See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812)
 
 ### Logging
 - awslogs: fix batch size calculation for large logs [moby/moby#35726](https://github.com/moby/moby/pull/35726)
+* Support a proxy in splunk log driver [moby/moby#36220](https://github.com/moby/moby/pull/36220)
 
 ### Networking
 - Fix ingress network when upgrading from 17.09 to 17.12 [moby/moby#36003](https://github.com/moby/moby/pull/36003)
 * Add verbose info to partial overlay ID [moby/moby#35989](https://github.com/moby/moby/pull/35989)
+- Fix IPv6 networking being deconfigured if live-restore is being enabled [docker/libnetwork#2043](https://github.com/docker/libnetwork/pull/2043)
+- Fix watchMiss thread context [docker/libnetwork#2051](https://github.com/docker/libnetwork/pull/2051)
 
 ### Packaging
 - Set TasksMax in docker.service [docker/docker-ce-packaging#78](https://github.com/docker/docker-ce-packaging/pull/78)
@@ -34,6 +37,16 @@ See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812)
 - Honor `DOCKER_RAMDISK` with containerd 1.0 [moby/moby#35957](https://github.com/moby/moby/pull/35957)
 - Update runc to fix hang during start and exec [moby/moby#36097](https://github.com/moby/moby/pull/36097) 
 - Windows: Vendor of Microsoft/hcsshim @v.0.6.8 partial fix for import layer failing [moby/moby#35924](https://github.com/moby/moby/pull/35924)
+* Do not make graphdriver homes private mounts [moby/moby#36047](https://github.com/moby/moby/pull/36047)
+* Use rslave propogation for mounts from daemon root [moby/moby#36055](https://github.com/moby/moby/pull/36055)
+* Set daemon root to use shared mount propagation [moby/moby#36096](https://github.com/moby/moby/pull/36096)
+* Validate that mounted paths exist when container is started, not just during creation  [moby/moby#35833](https://github.com/moby/moby/pull/35833)
+* Add `REMOVE` and `ORPHANED` to TaskState [moby/moby#36146](https://github.com/moby/moby/pull/36146)
+- Fix issue where network inspect does not show Created time for networks in swarm scope [moby/moby#36095](https://github.com/moby/moby/pull/36095)
+* Nullify container read write layer upon release [moby/moby#36130](https://github.com/moby/moby/pull/36160) and [moby/moby#36343](https://github.com/moby/moby/pull/36242)
+
+### Swarm
+* Remove watchMiss from swarm mode [docker/libnetwork#2047](https://github.com/docker/libnetwork/pull/2047) 
 
 ## 17.12.0-ce (2017-12-27)
 
@@ -74,7 +87,7 @@ See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812)
 * Logentries line-only logopt fix to maintain backwards compatibility [moby/moby#35628](https://github.com/moby/moby/pull/35628)
 + Add `--until` flag for docker logs [moby/moby#32914](https://github.com/moby/moby/pull/32914)
 + Add gelf log driver plugin to Windows build [moby/moby#35073](https://github.com/moby/moby/pull/35073)
-* Set timeout on splunk batch send [moby/moby#35496](https://github.com/moby/moby/pull/35496)
+* Set timeout on Splunk batch send [moby/moby#35496](https://github.com/moby/moby/pull/35496)
 * Update Graylog2/go-gelf [moby/moby#35765](https://github.com/moby/moby/pull/35765)
 
 ### Networking
