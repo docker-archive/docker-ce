@@ -108,9 +108,6 @@ func Init(base string, opt []string, uidMaps, gidMaps []idtools.IDMap) (graphdri
 		return nil, fmt.Errorf("Failed to create '%s': %v", base, err)
 	}
 
-	if err := mount.MakePrivate(base); err != nil {
-		return nil, err
-	}
 	d := &Driver{
 		dataset:          rootDataset,
 		options:          options,
@@ -181,7 +178,8 @@ func (d *Driver) String() string {
 	return "zfs"
 }
 
-// Cleanup is used to implement graphdriver.ProtoDriver. There is no cleanup required for this driver.
+// Cleanup is called on daemon shutdown, it is a no-op for ZFS.
+// TODO(@cpuguy83): Walk layer tree and check mounts?
 func (d *Driver) Cleanup() error {
 	return nil
 }
