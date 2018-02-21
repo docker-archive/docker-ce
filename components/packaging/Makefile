@@ -22,7 +22,7 @@ rpm: ## build rpm packages
 	done
 
 .PHONY: deb
-deb: DOCKER_BUILD_PKGS:=ubuntu-zesty ubuntu-xenial ubuntu-trusty debian-buster debian-stretch debian-wheezy debian-jessie raspbian-stretch raspbian-jessie
+deb: DOCKER_BUILD_PKGS:=ubuntu-xenial ubuntu-trusty debian-buster debian-stretch debian-wheezy debian-jessie raspbian-stretch raspbian-jessie
 deb: ## build deb packages
 	for p in $(DOCKER_BUILD_PKGS); do \
 		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) $${p}; \
