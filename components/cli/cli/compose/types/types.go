@@ -70,34 +70,30 @@ func (cd ConfigDetails) LookupEnv(key string) (string, bool) {
 
 // Config is a full compose file configuration
 type Config struct {
-	Filename string
-	Services []ServiceConfig
+	Filename string `yaml:"-"`
+	Version  string
+	Services Services
 	Networks map[string]NetworkConfig
 	Volumes  map[string]VolumeConfig
 	Secrets  map[string]SecretConfig
 	Configs  map[string]ConfigObjConfig
 }
 
-// MarshalYAML makes Config implement yaml.Marshaller
-func (c *Config) MarshalYAML() (interface{}, error) {
-	m := map[string]interface{}{}
+// Services is a list of ServiceConfig
+type Services []ServiceConfig
+
+// MarshalYAML makes Services implement yaml.Marshaller
+func (s Services) MarshalYAML() (interface{}, error) {
 	services := map[string]ServiceConfig{}
-	for _, service := range c.Services {
-		s := service
-		s.Name = ""
-		services[service.Name] = s
+	for _, service := range s {
+		services[service.Name] = service
 	}
-	m["services"] = services
-	m["networks"] = c.Networks
-	m["volumes"] = c.Volumes
-	m["secrets"] = c.Secrets
-	m["configs"] = c.Configs
-	return m, nil
+	return services, nil
 }
 
 // ServiceConfig is the configuration of one service
 type ServiceConfig struct {
-	Name string `yaml:",omitempty"`
+	Name string `yaml:"-"`
 
 	Build           BuildConfig                      `yaml:",omitempty"`
 	CapAdd          []string                         `mapstructure:"cap_add" yaml:"cap_add,omitempty"`

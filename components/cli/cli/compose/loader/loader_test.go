@@ -119,6 +119,7 @@ func strPtr(val string) *string {
 }
 
 var sampleConfig = types.Config{
+	Version: "3.0",
 	Services: []types.ServiceConfig{
 		{
 			Name:        "foo",
@@ -174,6 +175,7 @@ func TestParseYAML(t *testing.T) {
 func TestLoad(t *testing.T) {
 	actual, err := Load(buildConfigDetails(sampleDict, nil))
 	require.NoError(t, err)
+	assert.Equal(t, sampleConfig.Version, actual.Version)
 	assert.Equal(t, serviceSort(sampleConfig.Services), serviceSort(actual.Services))
 	assert.Equal(t, sampleConfig.Networks, actual.Networks)
 	assert.Equal(t, sampleConfig.Volumes, actual.Volumes)
@@ -573,6 +575,7 @@ networks:
 	require.NoError(t, err)
 	expected := &types.Config{
 		Filename: "filename.yml",
+		Version:  "3.4",
 		Services: []types.ServiceConfig{
 			{
 				Name: "web",
@@ -890,6 +893,46 @@ services:
 `)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "services.tmpfs.volumes.0 Additional property tmpfs is not allowed")
+}
+
+func TestLoadBindMountSourceMustNotBeEmpty(t *testing.T) {
+	_, err := loadYAML(`
+version: "3.5"
+services:
+  tmpfs:
+    image: nginx:latest
+    volumes:
+      - type: bind
+        target: /app
+`)
+	require.EqualError(t, err, `invalid mount config for type "bind": field Source must not be empty`)
+}
+
+func TestLoadBindMountWithSource(t *testing.T) {
+	config, err := loadYAML(`
+version: "3.5"
+services:
+  bind:
+    image: nginx:latest
+    volumes:
+      - type: bind
+        target: /app
+        source: "."
+`)
+	require.NoError(t, err)
+
+	workingDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	expected := types.ServiceVolumeConfig{
+		Type:   "bind",
+		Source: workingDir,
+		Target: "/app",
+	}
+
+	require.Len(t, config.Services, 1)
+	assert.Len(t, config.Services[0].Volumes, 1)
+	assert.Equal(t, expected, config.Services[0].Volumes[0])
 }
 
 func TestLoadTmpfsVolumeSizeCanBeZero(t *testing.T) {

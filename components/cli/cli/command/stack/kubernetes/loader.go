@@ -7,18 +7,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type versionedConfig struct {
-	*composetypes.Config `yaml:",inline"`
-	Version              string
-}
-
 // LoadStack loads a stack from a Compose config, with a given name.
-func LoadStack(name, version string, cfg composetypes.Config) (*apiv1beta1.Stack, error) {
-	cfg.Filename = ""
-	res, err := yaml.Marshal(versionedConfig{
-		Version: version,
-		Config:  &cfg,
-	})
+func LoadStack(name string, cfg composetypes.Config) (*apiv1beta1.Stack, error) {
+	res, err := yaml.Marshal(cfg)
 	if err != nil {
 		return nil, err
 	}
