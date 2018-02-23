@@ -1,25 +1,20 @@
 # Changelog 
-Items starting with `DEPRECATE` are important deprecation notices. For more
-information on the list of deprecated flags and APIs please have a look at
-https://docs.docker.com/engine/deprecated/ where target removal dates can also
-be found.
+For more information on the list of deprecated flags and APIs please have a look at
+https://docs.docker.com/engine/deprecated/ where you can find the target removal dates 
 
 ## 18.03.0-ce (2018-03-DD)
 
 
 ### Builder
 
-* switch to -buildmode=pie [moby/moby#34369](https://github.com/moby/moby/pull/34369)
-* Allow Dockerfile from outside build-context [docker/cli#886](https://github.com/docker/cli/pull/886)
+* Switch to -buildmode=pie [moby/moby#34369](https://github.com/moby/moby/pull/34369)
+* Allow Dockerfile to be outside of build-context [docker/cli#886](https://github.com/docker/cli/pull/886) 
 * Builder: fix wrong cache hits building from tars [moby/moby#36329](https://github.com/moby/moby/pull/36329)
-* Update containerd/continuity to fix ARM 32-bit builds [moby/moby#36339](https://github.com/moby/moby/pull/36339)
-* Updated docker-on-docker build-notes. [moby/moby#35892](https://github.com/moby/moby/pull/35892)
-- Fix string type for buildargs API definition [moby/moby#36246](https://github.com/moby/moby/pull/36246)
+- Fixes files leaking to other images in a multi-stage build [moby/moby#36338](https://github.com/moby/moby/pull/36338)
 
 ### Client
 
 * Simplify the marshaling of compose types.Config [docker/cli#895](https://github.com/docker/cli/pull/895)
-* Update reference docs for docker stack deploy [docker/cli#871](https://github.com/docker/cli/pull/871)
 + Add support for multiple composefile when deploying [docker/cli#569](https://github.com/docker/cli/pull/569)
 - Fix broken Kubernetes stack flags [docker/cli#831](https://github.com/docker/cli/pull/831)
 - Fix stack marshaling for Kubernetes [docker/cli#890](https://github.com/docker/cli/pull/890)
@@ -30,36 +25,34 @@ be found.
 * Improve and fix bash completion for images [docker/cli#717](https://github.com/docker/cli/pull/717)
 + Added check for empty source in bind mount [docker/cli#824](https://github.com/docker/cli/pull/824)
 - Fix TLS from environment variables in client [moby/moby#36270](https://github.com/moby/moby/pull/36270)
-* Explain the columns shown in docker stats [docker/cli#860](https://github.com/docker/cli/pull/860)
-* GetAll -> Get to retrieve credentials from credential helpers [docker/cli#840](https://github.com/docker/cli/pull/840)
-+ Add Engine version to docker node ls [docker/cli#885](https://github.com/docker/cli/pull/885)
+* docker build now runs faster when registry-specific credential helper(s) are configured [docker/cli#840](https://github.com/docker/cli/pull/840)
 * Update event filter zsh completion with `disable`, `enable`, `install` and `remove` [docker/cli#372](https://github.com/docker/cli/pull/372)
-* Produce errors when empty ids are passed into inspect calls. [moby/moby#36144](https://github.com/moby/moby/pull/36144)
-* Marshall version [docker/cli#891](https://github.com/docker/cli/pull/891)
-* Replace go-bindata with esc [docker/cli#874](https://github.com/docker/cli/pull/874)
-* Set a non-zero timeout for HTTP client communication with plugin backend. [docker/cli#883](https://github.com/docker/cli/pull/883)
+* Produce errors when empty ids are passed into inspect calls [moby/moby#36144](https://github.com/moby/moby/pull/36144)
+* Marshall version for the k8s controller [docker/cli#891](https://github.com/docker/cli/pull/891)
+* Set a non-zero timeout for HTTP client communication with plugin backend [docker/cli#883](https://github.com/docker/cli/pull/883)
 + Add DOCKER_TLS environment variable for --tls option [docker/cli#863](https://github.com/docker/cli/pull/863)
++ Add --template-driver option for secrets/configs [docker/cli#896](https://github.com/docker/cli/pull/896)
 
 ### Logging
 
-* Awslogs - don't add new lines to maximum sized events [moby/moby#36078](https://github.com/moby/moby/pull/36078)
+* AWS logs - don't add new lines to maximum sized events [moby/moby#36078](https://github.com/moby/moby/pull/36078)
 * Move log validator logic after plugins are loaded [moby/moby#36306](https://github.com/moby/moby/pull/36306)
-* Support a proxy in splunk log driver [moby/moby#36220](https://github.com/moby/moby/pull/36220)
+* Support a proxy in Splunk log driver [moby/moby#36220](https://github.com/moby/moby/pull/36220)
 - Fix log tail with empty logs [moby/moby#36305](https://github.com/moby/moby/pull/36305)
 
 ### Networking
 
-* Bump libnetwork to 5ab4ab830062fe8a30a44b75b0bda6b1f4f166a4 [moby/moby#36099](https://github.com/moby/moby/pull/36099)
-* Document long form of --network and --network-add [docker/cli#843](https://github.com/docker/cli/pull/843)
 * Libnetwork revendoring [moby/moby#36137](https://github.com/moby/moby/pull/36137)
-* Migrates TestContainersAPINetworkMountsNoChown to api tests [moby/moby#36198](https://github.com/moby/moby/pull/36198)
+- Fix for deadlock on exit with Memberlist revendor [docker/libnetwork#2040](https://github.com/docker/libnetwork/pull/2040)
+* Fix user specified ndots option [docker/libnetwork#2065](https://github.com/docker/libnetwork/pull/2065) 
+- Fix to use ContainerID for Windows instead of SandboxID [docker/libnetwork#2010](https://github.com/docker/libnetwork/pull/2010)
 * Verify NetworkingConfig to make sure EndpointSettings is not nil [moby/moby#36077](https://github.com/moby/moby/pull/36077)
-+ Add description to TestContainerNetworkMountsNoChown [moby/moby#36226](https://github.com/moby/moby/pull/36226)
 - Fix `DockerNetworkInternalMode` issue [moby/moby#36298](https://github.com/moby/moby/pull/36298)
 - Fix race in attachable network attachment [moby/moby#36191](https://github.com/moby/moby/pull/36191)
-- Fix the network option table [docker/cli#848](https://github.com/docker/cli/pull/848)
 - Fix timeout issue of `InspectNetwork` on AArch64 [moby/moby#36257](https://github.com/moby/moby/pull/36257)
 * Verbose info is missing for partial overlay ID [moby/moby#35989](https://github.com/moby/moby/pull/35989)
+* Update `FindNetwork` to address network name duplications [moby/moby#30897](https://github.com/moby/moby/pull/30897)
+* Disallow attaching ingress network [docker/swarmkit#2523](https://github.com/docker/swarmkit/pull/2523)
 
 ### Runtime
 
@@ -68,28 +61,24 @@ be found.
 * LCOW: Regular mount if only one layer [moby/moby#36052](https://github.com/moby/moby/pull/36052)
 * Remove interim env var LCOW_API_PLATFORM_IF_OMITTED [moby/moby#36269](https://github.com/moby/moby/pull/36269)
 * Revendor Microsoft/opengcs @ v0.3.6 [moby/moby#36108](https://github.com/moby/moby/pull/36108)
-* Windows: Bump to final RS3 build number [moby/moby#36268](https://github.com/moby/moby/pull/36268)
 - Fix issue of ExitCode and PID not show up in Task.Status.ContainerStatus [moby/moby#36150](https://github.com/moby/moby/pull/36150)
-- Fix issue with plugin scanner going to deep [moby/moby#36119](https://github.com/moby/moby/pull/36119)
-* Do not make graphdriver homes private mounts. [moby/moby#36047](https://github.com/moby/moby/pull/36047)
+- Fix issue with plugin scanner going too deep [moby/moby#36119](https://github.com/moby/moby/pull/36119)
+* Do not make graphdriver homes private mounts [moby/moby#36047](https://github.com/moby/moby/pull/36047)
 * Do not recursive unmount on cleanup of zfs/btrfs [moby/moby#36237](https://github.com/moby/moby/pull/36237)
 * Don't restore image if layer does not exist [moby/moby#36304](https://github.com/moby/moby/pull/36304)
-** Adjust minimum API version for templated configs/secrets [moby/moby#36366](https://github.com/moby/moby/pull/36366)
+* Adjust minimum API version for templated configs/secrets [moby/moby#36366](https://github.com/moby/moby/pull/36366)
 * Bump containerd to 1.0.2 (cfd04396dc68220d1cecbe686a6cc3aa5ce3667c) [moby/moby#36308](https://github.com/moby/moby/pull/36308)
 * Bump Golang to 1.9.4 [moby/moby#36243](https://github.com/moby/moby/pull/36243)
 * Ensure daemon root is unmounted on shutdown [moby/moby#36107](https://github.com/moby/moby/pull/36107)
-- Fix import path [moby/moby#36322](https://github.com/moby/moby/pull/36322)
 * Update runc to 6c55f98695e902427906eed2c799e566e3d3dfb5 [moby/moby#36222](https://github.com/moby/moby/pull/36222)
 - Fix container cleanup on daemon restart [moby/moby#36249](https://github.com/moby/moby/pull/36249)
-* Bump golang to 1.9.4 [docker/cli#868](https://github.com/docker/cli/pull/868)
 * Support SCTP port mapping (bump up API to v1.37) [moby/moby#33922](https://github.com/moby/moby/pull/33922)
 * Support SCTP port mapping [docker/cli#278](https://github.com/docker/cli/pull/278)
 - Fix Volumes property definition in ContainerConfig [moby/moby#35946](https://github.com/moby/moby/pull/35946)
 * Bump moby and dependencies [docker/cli#829](https://github.com/docker/cli/pull/829)
-* Bump moby to 0ede01237c9ab871f1b8db0364427407f3e46541 [docker/cli#894](https://github.com/docker/cli/pull/894)
-* Bump moby vendor and dependencies [docker/cli#892](https://github.com/docker/cli/pull/892)
 * C.RWLayer: check for nil before use [moby/moby#36242](https://github.com/moby/moby/pull/36242)
 + Add `REMOVE` and `ORPHANED` to TaskState [moby/moby#36146](https://github.com/moby/moby/pull/36146)
+- Fixed error detection using `IsErrNotFound` and `IsErrNotImplemented` for `ContainerStatPath`, `CopyFromContainer`, and `CopyToContainer` methods [moby/moby#35979](https://github.com/moby/moby/pull/35979)
 + Add an integration/internal/container helper package [moby/moby#36266](https://github.com/moby/moby/pull/36266)
 + Add canonical import path [moby/moby#36194](https://github.com/moby/moby/pull/36194)
 + Add/use container.Exec() to integration [moby/moby#36326](https://github.com/moby/moby/pull/36326)
@@ -104,17 +93,24 @@ be found.
 * Graphdriver: Fix RefCounter memory leak [moby/moby#36256](https://github.com/moby/moby/pull/36256)
 * Use continuity fs package for volume copy [moby/moby#36290](https://github.com/moby/moby/pull/36290)
 * Use proc/exe for reexec [moby/moby#36124](https://github.com/moby/moby/pull/36124)
-* Templated secrets and configs [moby/moby#33702](https://github.com/moby/moby/pull/33702)
++ Add API support for templated secrets and configs [moby/moby#33702](https://github.com/moby/moby/pull/33702) and [moby/moby#36366](https://github.com/moby/moby/pull/36366)
 * Use rslave propagation for mounts from daemon root [moby/moby#36055](https://github.com/moby/moby/pull/36055)
 + Add /proc/keys to masked paths [moby/moby#36368](https://github.com/moby/moby/pull/36368)
+* Bump Runc to 1.0.0-rc5 [moby/moby#36449](https://github.com/moby/moby/pull/36449)
+- Fixes `runc exec` on big-endian architectures [moby/moby#36449](https://github.com/moby/moby/pull/36449)
+* Use chroot when mount namespaces aren't provided [moby/moby#36449](https://github.com/moby/moby/pull/36449)
+- Fix systemd slice expansion so that it could be consumed by cAdvisor [moby/moby#36449](https://github.com/moby/moby/pull/36449)
+- Fix devices mounted with wrong uid/gid [moby/moby#36449](https://github.com/moby/moby/pull/36449)
 
 ### Swarm Mode
 
-* Bump SwarmKit to f74983e7c015a38a81c8642803a78b8322cf7eac [moby/moby#36274](https://github.com/moby/moby/pull/36274)
-* Clarify network plugins and swarm mode [docker/cli#869](https://github.com/docker/cli/pull/869)
-* Migrates several swarm configs tests from integration-cli to api tests [moby/moby#36291](https://github.com/moby/moby/pull/36291)
-* Migrates several swarm secrets from integration-cli to api tests [moby/moby#36283](https://github.com/moby/moby/pull/36283)
-* Update swarmkit to 68a376dc30d8c4001767c39456b990dbd821371b [moby/moby#36131](https://github.com/moby/moby/pull/36131)
-* [compose] Share the compose loading code between swarm and k8s stack deploy [docker/cli#845](https://github.com/docker/cli/pull/845)
+* Replace EC Private Key with PKCS#8 PEMs [docker/swarmkit#2246](https://github.com/docker/swarmkit/pull/2246)
+* Fix IP overlap with empty EndpointSpec [docker/swarmkit #2505](https://github.com/docker/swarmkit/pull/2505)
+* Add support for Support SCTP port mapping [docker/swarmkit#2298](https://github.com/docker/swarmkit/pull/2298)
+* Do not reschedule tasks if only placement constraints change and are satisfied by the assigned node [docker/swarmkit#2496](https://github.com/docker/swarmkit/pull/2496)
+* Ensure task reaper stopChan is closed no more than once [docker/swarmkit #2491](https://github.com/docker/swarmkit/pull/2491)
+* Synchronization fixes [docker/swarmkit#2495](https://github.com/docker/swarmkit/pull/2495)
+* Add log message to indicate message send retry if streaming unimplemented [docker/swarmkit#2483](https://github.com/docker/swarmkit/pull/2483)
+* Debug logs for session, node events on dispatcher, heartbeats [docker/swarmkit#2486](https://github.com/docker/swarmkit/pull/2486)
 + Add swarm types to bash completion event type filter [docker/cli#888](https://github.com/docker/cli/pull/888)
 - Fix issue where network inspect does not show Created time for networks in swarm scope [moby/moby#36095](https://github.com/moby/moby/pull/36095)
