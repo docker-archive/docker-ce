@@ -8,7 +8,7 @@ be found.
 **IMPORTANT**: You must stop all containers and plugins **BEFORE** upgrading to Docker CE 17.12.
 See related PR: [moby/moby#35812](https://github.com/moby/moby/pull/35812) 
 
-## 17.12.1-ce (2018-02-DD)
+## 17.12.1-ce (2018-02-27)
 
 ### Client
 - Fix `node-generic-resource` typo [moby/moby#35970](https://github.com/moby/moby/pull/35970) and [moby/moby#36125](https://github.com/moby/moby/pull/36125)
