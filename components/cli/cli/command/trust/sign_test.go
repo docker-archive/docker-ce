@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/docker/cli/cli/config"
@@ -13,6 +14,7 @@ import (
 	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"github.com/gotestyourself/gotestyourself/skip"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/client/changelist"
@@ -128,6 +130,7 @@ func TestGetOrGenerateNotaryKey(t *testing.T) {
 }
 
 func TestAddStageSigners(t *testing.T) {
+	skip.If(t, runtime.GOOS == "windows", "FIXME: not supported currently")
 	tmpDir, err := ioutil.TempDir("", "notary-test-")
 	assert.NilError(t, err)
 	defer os.RemoveAll(tmpDir)
