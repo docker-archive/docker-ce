@@ -343,12 +343,12 @@ $ docker run -t -i --mount type=bind,src=/data,dst=/data busybox sh
 ### Publish or expose port (-p, --expose)
 
 ```bash
-$ docker run -p 127.0.0.1:80:8080 ubuntu bash
+$ docker run -p 127.0.0.1:80:8080/tcp ubuntu bash
 ```
 
-This binds port `8080` of the container to port `80` on `127.0.0.1` of the host
-machine. The [Docker User
-Guide](https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/)
+This binds port `8080` of the container to TCP port `80` on `127.0.0.1` of the host
+machine. You can also specify `udp` and `sctp` ports.
+The [Docker User Guide](https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/)
 explains in detail how to manipulate ports in Docker.
 
 ```bash
@@ -592,6 +592,7 @@ Docker supports the following restart policies:
 |:---------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `no`                       | Do not automatically restart the container when it exits. This is the default.                                                                                                                                                                                   |
 | `on-failure[:max-retries]` | Restart only if the container exits with a non-zero exit status. Optionally, limit the number of restart retries the Docker daemon attempts.                                                                                                                     |
+| `unless-stopped`           | Restart the container unless it is explicitly stopped or Docker itself is stopped or restarted. |
 | `always`                   | Always restart the container regardless of the exit status. When you specify always, the Docker daemon will try to restart the container indefinitely. The container will also always start on daemon startup, regardless of the current state of the container. |
 
 ```bash
