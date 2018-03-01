@@ -24,7 +24,7 @@ const (
 )
 
 func (daemon *Daemon) createSpec(c *container.Container) (*specs.Spec, error) {
-	img, err := daemon.GetImage(string(c.ImageID))
+	img, err := daemon.imageService.GetImage(string(c.ImageID))
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (daemon *Daemon) createSpec(c *container.Container) (*specs.Spec, error) {
 		}
 	}
 	s.Process.User.Username = c.Config.User
-	s.Windows.LayerFolders, err = daemon.GetLayerFolders(img, c.RWLayer)
+	s.Windows.LayerFolders, err = daemon.imageService.GetLayerFolders(img, c.RWLayer)
 	if err != nil {
 		return nil, errors.Wrapf(err, "container %s", c.ID)
 	}
@@ -325,9 +325,6 @@ func (daemon *Daemon) createSpecWindowsFields(c *container.Container, s *specs.S
 		}
 		s.Windows.CredentialSpec = cs
 	}
-
-	// Assume we are not starting a container for a servicing operation
-	s.Windows.Servicing = false
 
 	return nil
 }
