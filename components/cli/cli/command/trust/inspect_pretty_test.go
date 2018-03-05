@@ -9,8 +9,9 @@ import (
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/cli/internal/test/testutil"
 	dockerClient "github.com/docker/docker/client"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 	"github.com/theupdateframework/notary"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
@@ -96,9 +97,9 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag")
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img")
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag"))
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img:"))
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
@@ -106,9 +107,9 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.NoError(t, cmd.Execute())
-	assert.Contains(t, cli.OutBuffer().String(), "No signatures for reg/img")
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img")
+	assert.Check(t, cmd.Execute())
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img"))
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img:"))
 }
 
 func TestTrustInspectPrettyCommandFullRepoWithoutSigners(t *testing.T) {
@@ -117,7 +118,7 @@ func TestTrustInspectPrettyCommandFullRepoWithoutSigners(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"signed-repo"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-pretty-full-repo-no-signers.golden")
 }
@@ -128,7 +129,7 @@ func TestTrustInspectPrettyCommandOneTagWithoutSigners(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"signed-repo:green"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-pretty-one-tag-no-signers.golden")
 }
@@ -139,7 +140,7 @@ func TestTrustInspectPrettyCommandFullRepoWithSigners(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"signed-repo"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-pretty-full-repo-with-signers.golden")
 }
@@ -150,36 +151,36 @@ func TestTrustInspectPrettyCommandUnsignedTagInSignedRepo(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"signed-repo:unsigned"})
-	assert.NoError(t, cmd.Execute())
+	assert.Check(t, cmd.Execute())
 
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-pretty-unsigned-tag-with-signers.golden")
 }
 
 func TestNotaryRoleToSigner(t *testing.T) {
-	assert.Equal(t, releasedRoleName, notaryRoleToSigner(data.CanonicalTargetsRole))
-	assert.Equal(t, releasedRoleName, notaryRoleToSigner(trust.ReleasesRole))
-	assert.Equal(t, "signer", notaryRoleToSigner("targets/signer"))
-	assert.Equal(t, "docker/signer", notaryRoleToSigner("targets/docker/signer"))
+	assert.Check(t, is.Equal(releasedRoleName, notaryRoleToSigner(data.CanonicalTargetsRole)))
+	assert.Check(t, is.Equal(releasedRoleName, notaryRoleToSigner(trust.ReleasesRole)))
+	assert.Check(t, is.Equal("signer", notaryRoleToSigner("targets/signer")))
+	assert.Check(t, is.Equal("docker/signer", notaryRoleToSigner("targets/docker/signer")))
 
 	// It's nonsense for other base roles to have signed off on a target, but this function leaves role names intact
 	for _, role := range data.BaseRoles {
 		if role == data.CanonicalTargetsRole {
 			continue
 		}
-		assert.Equal(t, role.String(), notaryRoleToSigner(role))
+		assert.Check(t, is.Equal(role.String(), notaryRoleToSigner(role)))
 	}
-	assert.Equal(t, "notarole", notaryRoleToSigner(data.RoleName("notarole")))
+	assert.Check(t, is.Equal("notarole", notaryRoleToSigner(data.RoleName("notarole"))))
 }
 
 // check if a role name is "released": either targets/releases or targets TUF roles
 func TestIsReleasedTarget(t *testing.T) {
-	assert.True(t, isReleasedTarget(trust.ReleasesRole))
+	assert.Check(t, isReleasedTarget(trust.ReleasesRole))
 	for _, role := range data.BaseRoles {
-		assert.Equal(t, role == data.CanonicalTargetsRole, isReleasedTarget(role))
+		assert.Check(t, is.Equal(role == data.CanonicalTargetsRole, isReleasedTarget(role)))
 	}
-	assert.False(t, isReleasedTarget(data.RoleName("targets/not-releases")))
-	assert.False(t, isReleasedTarget(data.RoleName("random")))
-	assert.False(t, isReleasedTarget(data.RoleName("targets/releases/subrole")))
+	assert.Check(t, !isReleasedTarget(data.RoleName("targets/not-releases")))
+	assert.Check(t, !isReleasedTarget(data.RoleName("random")))
+	assert.Check(t, !isReleasedTarget(data.RoleName("targets/releases/subrole")))
 }
 
 // creates a mock delegation with a given name and no keys
@@ -196,7 +197,7 @@ func TestMatchEmptySignatures(t *testing.T) {
 	emptyTgts := []client.TargetSignedStruct{}
 
 	matchedSigRows := matchReleasedSignatures(emptyTgts)
-	assert.Empty(t, matchedSigRows)
+	assert.Check(t, is.Len(matchedSigRows, 0))
 }
 
 func TestMatchUnreleasedSignatures(t *testing.T) {
@@ -209,7 +210,7 @@ func TestMatchUnreleasedSignatures(t *testing.T) {
 	}
 
 	matchedSigRows := matchReleasedSignatures(unreleasedTgts)
-	assert.Empty(t, matchedSigRows)
+	assert.Check(t, is.Len(matchedSigRows, 0))
 }
 
 func TestMatchOneReleasedSingleSignature(t *testing.T) {
@@ -227,13 +228,13 @@ func TestMatchOneReleasedSingleSignature(t *testing.T) {
 	}
 
 	matchedSigRows := matchReleasedSignatures(oneReleasedTgt)
-	assert.Len(t, matchedSigRows, 1)
+	assert.Check(t, is.Len(matchedSigRows, 1))
 
 	outputRow := matchedSigRows[0]
 	// Empty signers because "targets/releases" doesn't show up
-	assert.Empty(t, outputRow.Signers)
-	assert.Equal(t, releasedTgt.Name, outputRow.SignedTag)
-	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest)
+	assert.Check(t, is.Len(outputRow.Signers, 0))
+	assert.Check(t, is.Equal(releasedTgt.Name, outputRow.SignedTag))
+	assert.Check(t, is.Equal(hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest))
 }
 
 func TestMatchOneReleasedMultiSignature(t *testing.T) {
@@ -252,13 +253,13 @@ func TestMatchOneReleasedMultiSignature(t *testing.T) {
 	}
 
 	matchedSigRows := matchReleasedSignatures(oneReleasedTgt)
-	assert.Len(t, matchedSigRows, 1)
+	assert.Check(t, is.Len(matchedSigRows, 1))
 
 	outputRow := matchedSigRows[0]
 	// We should have three signers
-	assert.Equal(t, outputRow.Signers, []string{"a", "b", "c"})
-	assert.Equal(t, releasedTgt.Name, outputRow.SignedTag)
-	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest)
+	assert.Check(t, is.DeepEqual(outputRow.Signers, []string{"a", "b", "c"}))
+	assert.Check(t, is.Equal(releasedTgt.Name, outputRow.SignedTag))
+	assert.Check(t, is.Equal(hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest))
 }
 
 func TestMatchMultiReleasedMultiSignature(t *testing.T) {
@@ -291,23 +292,23 @@ func TestMatchMultiReleasedMultiSignature(t *testing.T) {
 	multiReleasedTgts = append(multiReleasedTgts, client.TargetSignedStruct{Role: mockDelegationRoleWithName("targets/c"), Target: targetC})
 
 	matchedSigRows := matchReleasedSignatures(multiReleasedTgts)
-	assert.Len(t, matchedSigRows, 3)
+	assert.Check(t, is.Len(matchedSigRows, 3))
 
 	// note that the output is sorted by tag name, so we can reliably index to validate data:
 	outputTargetA := matchedSigRows[0]
-	assert.Equal(t, outputTargetA.Signers, []string{"a"})
-	assert.Equal(t, targetA.Name, outputTargetA.SignedTag)
-	assert.Equal(t, hex.EncodeToString(targetA.Hashes[notary.SHA256]), outputTargetA.Digest)
+	assert.Check(t, is.DeepEqual(outputTargetA.Signers, []string{"a"}))
+	assert.Check(t, is.Equal(targetA.Name, outputTargetA.SignedTag))
+	assert.Check(t, is.Equal(hex.EncodeToString(targetA.Hashes[notary.SHA256]), outputTargetA.Digest))
 
 	outputTargetB := matchedSigRows[1]
-	assert.Equal(t, outputTargetB.Signers, []string{"a", "b"})
-	assert.Equal(t, targetB.Name, outputTargetB.SignedTag)
-	assert.Equal(t, hex.EncodeToString(targetB.Hashes[notary.SHA256]), outputTargetB.Digest)
+	assert.Check(t, is.DeepEqual(outputTargetB.Signers, []string{"a", "b"}))
+	assert.Check(t, is.Equal(targetB.Name, outputTargetB.SignedTag))
+	assert.Check(t, is.Equal(hex.EncodeToString(targetB.Hashes[notary.SHA256]), outputTargetB.Digest))
 
 	outputTargetC := matchedSigRows[2]
-	assert.Equal(t, outputTargetC.Signers, []string{"a", "b", "c"})
-	assert.Equal(t, targetC.Name, outputTargetC.SignedTag)
-	assert.Equal(t, hex.EncodeToString(targetC.Hashes[notary.SHA256]), outputTargetC.Digest)
+	assert.Check(t, is.DeepEqual(outputTargetC.Signers, []string{"a", "b", "c"}))
+	assert.Check(t, is.Equal(targetC.Name, outputTargetC.SignedTag))
+	assert.Check(t, is.Equal(hex.EncodeToString(targetC.Hashes[notary.SHA256]), outputTargetC.Digest))
 }
 
 func TestMatchReleasedSignatureFromTargets(t *testing.T) {
@@ -317,12 +318,12 @@ func TestMatchReleasedSignatureFromTargets(t *testing.T) {
 	releasedTgt := client.Target{Name: "released", Hashes: data.Hashes{notary.SHA256: []byte("released-hash")}}
 	oneReleasedTgt = append(oneReleasedTgt, client.TargetSignedStruct{Role: mockDelegationRoleWithName(data.CanonicalTargetsRole.String()), Target: releasedTgt})
 	matchedSigRows := matchReleasedSignatures(oneReleasedTgt)
-	assert.Len(t, matchedSigRows, 1)
+	assert.Check(t, is.Len(matchedSigRows, 1))
 	outputRow := matchedSigRows[0]
 	// Empty signers because "targets" doesn't show up
-	assert.Empty(t, outputRow.Signers)
-	assert.Equal(t, releasedTgt.Name, outputRow.SignedTag)
-	assert.Equal(t, hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest)
+	assert.Check(t, is.Len(outputRow.Signers, 0))
+	assert.Check(t, is.Equal(releasedTgt.Name, outputRow.SignedTag))
+	assert.Check(t, is.Equal(hex.EncodeToString(releasedTgt.Hashes[notary.SHA256]), outputRow.Digest))
 }
 
 func TestGetSignerRolesWithKeyIDs(t *testing.T) {
@@ -381,7 +382,7 @@ func TestGetSignerRolesWithKeyIDs(t *testing.T) {
 		roleWithSigs = append(roleWithSigs, roleWithSig)
 	}
 	signerRoleToKeyIDs := getDelegationRoleToKeyMap(roles)
-	assert.Equal(t, expectedSignerRoleToKeyIDs, signerRoleToKeyIDs)
+	assert.Check(t, is.DeepEqual(expectedSignerRoleToKeyIDs, signerRoleToKeyIDs))
 }
 
 func TestFormatAdminRole(t *testing.T) {
@@ -392,7 +393,7 @@ func TestFormatAdminRole(t *testing.T) {
 		Name: "targets/alice",
 	}
 	aliceRoleWithSigs := client.RoleWithSignatures{Role: aliceRole, Signatures: nil}
-	assert.Equal(t, "", formatAdminRole(aliceRoleWithSigs))
+	assert.Check(t, is.Equal("", formatAdminRole(aliceRoleWithSigs)))
 
 	releasesRole := data.Role{
 		RootRole: data.RootRole{
@@ -401,7 +402,7 @@ func TestFormatAdminRole(t *testing.T) {
 		Name: "targets/releases",
 	}
 	releasesRoleWithSigs := client.RoleWithSignatures{Role: releasesRole, Signatures: nil}
-	assert.Equal(t, "", formatAdminRole(releasesRoleWithSigs))
+	assert.Check(t, is.Equal("", formatAdminRole(releasesRoleWithSigs)))
 
 	timestampRole := data.Role{
 		RootRole: data.RootRole{
@@ -410,7 +411,7 @@ func TestFormatAdminRole(t *testing.T) {
 		Name: data.CanonicalTimestampRole,
 	}
 	timestampRoleWithSigs := client.RoleWithSignatures{Role: timestampRole, Signatures: nil}
-	assert.Equal(t, "", formatAdminRole(timestampRoleWithSigs))
+	assert.Check(t, is.Equal("", formatAdminRole(timestampRoleWithSigs)))
 
 	snapshotRole := data.Role{
 		RootRole: data.RootRole{
@@ -419,7 +420,7 @@ func TestFormatAdminRole(t *testing.T) {
 		Name: data.CanonicalSnapshotRole,
 	}
 	snapshotRoleWithSigs := client.RoleWithSignatures{Role: snapshotRole, Signatures: nil}
-	assert.Equal(t, "", formatAdminRole(snapshotRoleWithSigs))
+	assert.Check(t, is.Equal("", formatAdminRole(snapshotRoleWithSigs)))
 
 	rootRole := data.Role{
 		RootRole: data.RootRole{
@@ -428,7 +429,7 @@ func TestFormatAdminRole(t *testing.T) {
 		Name: data.CanonicalRootRole,
 	}
 	rootRoleWithSigs := client.RoleWithSignatures{Role: rootRole, Signatures: nil}
-	assert.Equal(t, "Root Key:\tkey11\n", formatAdminRole(rootRoleWithSigs))
+	assert.Check(t, is.Equal("Root Key:\tkey11\n", formatAdminRole(rootRoleWithSigs)))
 
 	targetsRole := data.Role{
 		RootRole: data.RootRole{
@@ -437,5 +438,5 @@ func TestFormatAdminRole(t *testing.T) {
 		Name: data.CanonicalTargetsRole,
 	}
 	targetsRoleWithSigs := client.RoleWithSignatures{Role: targetsRole, Signatures: nil}
-	assert.Equal(t, "Repository Key:\tabc, key11, key99\n", formatAdminRole(targetsRoleWithSigs))
+	assert.Check(t, is.Equal("Repository Key:\tabc, key11, key99\n", formatAdminRole(targetsRoleWithSigs)))
 }

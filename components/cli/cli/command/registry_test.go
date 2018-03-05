@@ -3,8 +3,9 @@ package command_test
 import (
 	"testing"
 
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 
 	// Prevents a circular import with "github.com/docker/cli/internal/test"
@@ -64,12 +65,12 @@ func TestElectAuthServer(t *testing.T) {
 	for _, tc := range testCases {
 		cli := test.NewFakeCli(&fakeClient{infoFunc: tc.infoFunc})
 		server := ElectAuthServer(context.Background(), cli)
-		assert.Equal(t, tc.expectedAuthServer, server)
+		assert.Check(t, is.Equal(tc.expectedAuthServer, server))
 		actual := cli.ErrBuffer().String()
 		if tc.expectedWarning == "" {
-			assert.Empty(t, actual)
+			assert.Check(t, is.Len(actual, 0))
 		} else {
-			assert.Contains(t, actual, tc.expectedWarning)
+			assert.Check(t, is.Contains(actual, tc.expectedWarning))
 		}
 	}
 }
