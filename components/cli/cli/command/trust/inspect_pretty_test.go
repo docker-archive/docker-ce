@@ -96,7 +96,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img:unsigned-tag"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img:"))
 
@@ -106,7 +106,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"reg/img"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img"))
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img:"))
 }
@@ -117,7 +117,7 @@ func TestTrustInspectPrettyCommandFullRepoWithoutSigners(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"signed-repo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-pretty-full-repo-no-signers.golden")
 }
@@ -128,7 +128,7 @@ func TestTrustInspectPrettyCommandOneTagWithoutSigners(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"signed-repo:green"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-pretty-one-tag-no-signers.golden")
 }
@@ -139,7 +139,7 @@ func TestTrustInspectPrettyCommandFullRepoWithSigners(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"signed-repo"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-pretty-full-repo-with-signers.golden")
 }
@@ -150,7 +150,7 @@ func TestTrustInspectPrettyCommandUnsignedTagInSignedRepo(t *testing.T) {
 	cmd := newInspectCommand(cli)
 	cmd.Flags().Set("pretty", "true")
 	cmd.SetArgs([]string{"signed-repo:unsigned"})
-	assert.Check(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 
 	golden.Assert(t, cli.OutBuffer().String(), "trust-inspect-pretty-unsigned-tag-with-signers.golden")
 }
