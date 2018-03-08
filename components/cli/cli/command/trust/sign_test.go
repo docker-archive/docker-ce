@@ -10,6 +10,7 @@ import (
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/trust"
 	"github.com/docker/cli/internal/test"
+	notaryfake "github.com/docker/cli/internal/test/notary"
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary"
@@ -74,7 +75,7 @@ func TestTrustSignCommandErrors(t *testing.T) {
 
 func TestTrustSignCommandOfflineErrors(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getOfflineNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"reg-name.io/image:tag"})
 	cmd.SetOutput(ioutil.Discard)
@@ -279,7 +280,7 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 
 	config.SetDir(tmpDir)
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"ubuntu:latest"})
 	cmd.SetOutput(ioutil.Discard)
@@ -296,7 +297,7 @@ func TestSignCommandChangeListIsCleanedOnError(t *testing.T) {
 
 func TestSignCommandLocalFlag(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
 	cmd := newSignCommand(cli)
 	cmd.SetArgs([]string{"--local", "reg-name.io/image:red"})
 	cmd.SetOutput(ioutil.Discard)
