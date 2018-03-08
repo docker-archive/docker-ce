@@ -11,7 +11,7 @@ fi
     set -e
     cd engine
     # I want to rip this install-binaries script out so badly
-    for component in tini proxy runc containerd;do
+    for component in tini "proxy dynamic" "runc all" "containerd dynamic";do
         TMP_GOPATH="/go" hack/dockerfile/install/install.sh $component
     done
 )
