@@ -66,7 +66,7 @@ pushd /go/src/github.com/docker/cli
 make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
 popd
 pushd engine
-for component in tini proxy runc containerd;do
+for component in tini "proxy dynamic" "runc all" "containerd dynamic";do
     TMP_GOPATH="/go" hack/dockerfile/install/install.sh $component
 done
 VERSION=%{_origversion} hack/make.sh dynbinary
