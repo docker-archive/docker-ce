@@ -16,7 +16,7 @@ import (
 	"github.com/theupdateframework/notary/tuf/data"
 )
 
-/* TODO(n4ss): remove common tests with the regular inspect command */
+// TODO(n4ss): remove common tests with the regular inspect command
 
 type fakeClient struct {
 	dockerClient.Client
@@ -98,7 +98,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	assert.NoError(t, cmd.Execute())
 	assert.Contains(t, cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag")
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img:")
+	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img")
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(getEmptyTargetsNotaryRepository)
@@ -108,7 +108,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	assert.NoError(t, cmd.Execute())
 	assert.Contains(t, cli.OutBuffer().String(), "No signatures for reg/img")
-	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img:")
+	assert.Contains(t, cli.OutBuffer().String(), "Administrative keys for reg/img")
 }
 
 func TestTrustInspectPrettyCommandFullRepoWithoutSigners(t *testing.T) {
