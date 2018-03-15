@@ -4,7 +4,6 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 
 ## 18.03.0-ce (2018-03-DD)
 
-
 ### Builder
 
 * Switch to -buildmode=pie [moby/moby#34369](https://github.com/moby/moby/pull/34369)
@@ -32,6 +31,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Set a non-zero timeout for HTTP client communication with plugin backend [docker/cli#883](https://github.com/docker/cli/pull/883)
 + Add DOCKER_TLS environment variable for --tls option [docker/cli#863](https://github.com/docker/cli/pull/863)
 + Add --template-driver option for secrets/configs [docker/cli#896](https://github.com/docker/cli/pull/896)
++ Move `docker trust` commands out of experimental [docker/cli#934](https://github.com/docker/cli/pull/934) [docker/cli#935](https://github.com/docker/cli/pull/935) [docker/cli#944](https://github.com/docker/cli/pull/944)
 
 ### Logging
 
@@ -53,6 +53,9 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Verbose info is missing for partial overlay ID [moby/moby#35989](https://github.com/moby/moby/pull/35989)
 * Update `FindNetwork` to address network name duplications [moby/moby#30897](https://github.com/moby/moby/pull/30897)
 * Disallow attaching ingress network [docker/swarmkit#2523](https://github.com/docker/swarmkit/pull/2523)
+- Prevent implicit removal of the ingress network [moby/moby#36538](https://github.com/moby/moby/pull/36538)
+- Fix stale HNS endpoints on Windows [moby/moby#36603](https://github.com/moby/moby/pull/36603)
+- IPAM fixes for duplicate IP addresses [docker/libnetwork#2104](https://github.com/docker/libnetwork/pull/2104) [docker/libnetwork#2105](https://github.com/docker/libnetwork/pull/2105)
 
 ### Runtime
 
@@ -101,6 +104,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Use chroot when mount namespaces aren't provided [moby/moby#36449](https://github.com/moby/moby/pull/36449)
 - Fix systemd slice expansion so that it could be consumed by cAdvisor [moby/moby#36449](https://github.com/moby/moby/pull/36449)
 - Fix devices mounted with wrong uid/gid [moby/moby#36449](https://github.com/moby/moby/pull/36449)
+- Fix read-only containers with IPC private mounts `/dev/shm` read-only [moby/moby#36526](https://github.com/moby/moby/pull/36526)
 
 ### Swarm Mode
 
