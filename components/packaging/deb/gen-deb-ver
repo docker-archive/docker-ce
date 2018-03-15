@@ -3,6 +3,8 @@
 ENGINE_DIR="$1"
 VERSION="$2"
 
+SUFFIX=${SUFFIX:=ce}
+
 [[ $# < 2 ]] && echo 'not enough args' && exit 1
 
 DATE_COMMAND="date"
@@ -10,12 +12,41 @@ if [[ $(uname) -eq "Darwin" ]]; then
     DATE_COMMAND="docker run --rm alpine date"
 fi
 
-TZ=UTC
+gen_deb_version() {
+    # Adds an increment to the deb version to get proper order
+    # 18.01.0-${SUFFIX}-tp1   -> 18.01.0-${SUFFIX}-0.1-tp1
+    # 18.01.0-${SUFFIX}-beta1 -> 18.01.0-${SUFFIX}-1.1-beta1
+    # 18.01.0-${SUFFIX}-rc1   -> 18.01.0-${SUFFIX}-2.1-rc1
+    # 18.01.0-${SUFFIX}       -> 18.01.0-${SUFFIX}-3
+    fullVersion="$1"
+    pattern="$2"
+    increment="$3"
+    testVersion="${fullVersion#*-$SUFFIX-*$pattern}"
+    baseVersion="${fullVersion%-"$pattern"*}"
+    echo "$baseVersion-$increment.$testVersion.$pattern$testVersion"
+}
+
+case "$VERSION" in
+    *-tp[0-9]*)
+        debVersion="$(gen_deb_version "$VERSION" tp 0)"
+        ;;
+    *-beta[0-9]*)
+        debVersion="$(gen_deb_version "$VERSION" beta 1)"
+        ;;
+    *-rc[0-9]*)
+        debVersion="$(gen_deb_version "$VERSION" rc 2)"
+        ;;
+    *)
+        debVersion="$VERSION-3"
+        ;;
+esac
+
+export TZ=UTC
 
 tilde='~' # ouch Bash 4.2 vs 4.3, you keel me
 # git running in different directories, backwards compatible too
 GIT_COMMAND="git -C $ENGINE_DIR"
-debVersion="${VERSION//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
+debVersion="${debVersion//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
 # if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
 if [[ "$VERSION" == *-dev ]]; then
     gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
