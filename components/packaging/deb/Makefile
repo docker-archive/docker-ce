@@ -7,9 +7,11 @@ VERSION?=0.0.0-dev
 DEB_VERSION=$(shell ./gen-deb-ver $(ENGINE_DIR) "$(VERSION)")
 DOCKER_EXPERIMENTAL:=0
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
+EPOCH?=
 
 BUILD=docker build -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 RUN=docker run --rm -i \
+	-e EPOCH='$(EPOCH)' \
 	-e DEB_VERSION=$(DEB_VERSION) \
 	-e VERSION=$(VERSION) \
 	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
