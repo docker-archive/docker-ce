@@ -11,22 +11,30 @@ if [[ $(uname) -eq "Darwin" ]]; then
 fi
 
 GIT_COMMAND="git -C $ENGINE_DIR"
-rpmName=docker-ce
 rpmVersion="$VERSION"
-rpmRelease=1
+rpmRelease=3
 
 # rpmRelease versioning is as follows
-# Docker 1.7.0:  version=1.7.0, release=1
-# Docker 1.7.0-rc1: version=1.7.0, release=0.1.rc1
-# Docker 1.7.0-cs1: version=1.7.0.cs1, release=1
-# Docker 1.7.0-cs1-rc1: version=1.7.0.cs1, release=0.1.rc1
-# Docker 1.7.0-dev nightly: version=1.7.0, release=0.0.YYYYMMDD.HHMMSS.gitHASH
+# Docker 18.01.0-ce:  version=18.01.0.ce, release=3
+# Docker 18.01.0-ce-tp1: version=18.01.0.ce, release=0.1.tp1
+# Docker 18.01.0-ce-beta1: version=18.01.0.ce, release=1.1.beta1
+# Docker 18.01.0-ce-rc1: version=18.01.0.ce, release=2.1.rc1
+# Docker 18.01.0-ce-cs1: version=18.01.0.ce.cs1, release=1
+# Docker 18.01.0-ce-cs1-rc1: version=18.01.0.ce.cs1, release=0.1.rc1
+# Docker 18.01.0-ce-dev nightly: version=18.01.0.ce, release=0.0.YYYYMMDD.HHMMSS.gitHASH
 
-# if we have a "-rc*" suffix, set appropriate release
-if [[ "$rpmVersion" =~ .*-rc[0-9]+$ ]] ; then
+if [[ "$rpmVersion" =~ .*-tp[0-9]+$ ]]; then
+    tpVersion=${rpmVersion#*-tp}
+    rpmVersion=${rpmVersion%-tp*}
+    rpmRelease="0.${tpVersion}.tp${tpVersion}"
+elif [[ "$rpmVersion" =~ .*-beta[0-9]+$ ]]; then
+    betaVersion=${rpmVersion#*-beta}
+    rpmVersion=${rpmVersion%-beta*}
+    rpmRelease="1.${betaVersion}.beta${betaVersion}"
+elif [[ "$rpmVersion" =~ .*-rc[0-9]+$ ]]; then
     rcVersion=${rpmVersion#*-rc}
     rpmVersion=${rpmVersion%-rc*}
-    rpmRelease="0.${rcVersion}.rc${rcVersion}"
+    rpmRelease="2.${rcVersion}.rc${rcVersion}"
 fi
 
 DOCKER_GITCOMMIT=$($GIT_COMMAND rev-parse --short HEAD)
