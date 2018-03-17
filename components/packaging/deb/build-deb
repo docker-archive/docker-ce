@@ -2,6 +2,12 @@
 set -x
 set -e
 
+EPOCH="${EPOCH:-}"
+EPOCH_SEP=""
+if [[ ! -z "$EPOCH" ]]; then
+    EPOCH_SEP=":"
+fi
+
 if [[ -z "$DEB_VERSION" ]]; then
     echo "DEB_VERSION is required to build deb packages"
     exit 1
@@ -27,7 +33,7 @@ debMaintainer="$(awk -F ': ' '$1 == "Maintainer" { print $2; exit }' debian/cont
 debDate="$(date --rfc-2822)"
 
 cat > "debian/changelog" <<-EOF
-$debSource (${DEB_VERSION}-0~${DISTRO}) $SUITE; urgency=low
+$debSource (${EPOCH}${EPOCH_SEP}${DEB_VERSION}-0~${DISTRO}) $SUITE; urgency=low
   * Version: $VERSION
  -- $debMaintainer  $debDate
 EOF
