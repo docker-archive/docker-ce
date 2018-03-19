@@ -46,4 +46,4 @@ echo VERSION BBB $VERSION
 dpkg-buildpackage -uc -us -I.git
 destination="/build"
 mkdir -p "$destination"
-mv -v /root/docker-ce* "$destination"
+mv -v /root/docker* "$destination"
