@@ -17,13 +17,6 @@ RUN     go get -d github.com/mjibson/esc && \
         go build -v -o /usr/bin/esc . && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
-ARG     FILEWATCHER_SHA=2e12ea42f6c8c089b19e992145bb94e8adaecedb
-RUN     go get -d github.com/dnephin/filewatcher && \
-        cd /go/src/github.com/dnephin/filewatcher && \
-        git checkout -q "$FILEWATCHER_SHA" && \
-        go build -v -o /usr/bin/filewatcher . && \
-        rm -rf /go/src/* /go/pkg/* /go/bin/*
-
 ENV     CGO_ENABLED=0 \
         PATH=$PATH:/go/src/github.com/docker/cli/build \
         DISABLE_WARN_OUTSIDE_CONTAINER=1
