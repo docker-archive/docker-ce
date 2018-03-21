@@ -27,6 +27,9 @@ gen_deb_version() {
 }
 
 case "$VERSION" in
+    *-dev)
+        debVersion="$VERSION"
+        ;;
     *-tp[0-9]*)
         debVersion="$(gen_deb_version "$VERSION" tp 0)"
         ;;
