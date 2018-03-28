@@ -2,7 +2,7 @@ CLI_DIR:=$(CURDIR)/components/cli
 ENGINE_DIR:=$(CURDIR)/components/engine
 PACKAGING_DIR:=$(CURDIR)/components/packaging
 MOBY_COMPONENTS_SHA=ab7c118272b02d8672dc0255561d0c4015979780
-MOBY_COMPONENTS_URL=https://raw.githubusercontent.com/shykes/moby-extras/$(MOBY_COMPONENTS_SHA)/cmd/moby-components
+MOBY_COMPONENTS_URL=https://raw.githubusercontent.com/docker/moby-extras/$(MOBY_COMPONENTS_SHA)/cmd/moby-components
 MOBY_COMPONENTS=.helpers/moby-components-$(MOBY_COMPONENTS_SHA)
 VERSION=$(shell cat VERSION)
 
