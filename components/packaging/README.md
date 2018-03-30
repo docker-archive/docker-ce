@@ -7,6 +7,7 @@ This repository is solely maintained by Docker, Inc.
 
 The scripts will build for this list of packages types:
 
+* DEB packages for Ubuntu 18.04 Bionic
 * DEB packages for Ubuntu 17.10 Artful
 * DEB packages for Ubuntu 16.04 Xenial
 * DEB packages for Ubuntu 14.04 Trusty
