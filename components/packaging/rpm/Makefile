@@ -34,10 +34,16 @@ clean: ## remove build artifacts
 rpm: fedora centos ## build all rpm packages
 
 .PHONY: fedora
-fedora: fedora-27 fedora-26 ## build all fedora rpm packages
+fedora: fedora-28 fedora-27 fedora-26 ## build all fedora rpm packages
 
 .PHONY: centos
 centos: centos-7 ## build all centos rpm packages
+
+.PHONY: fedora-28
+fedora-28: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build fedora-28 rpm packages
+	docker build -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
+	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
+	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: fedora-27
 fedora-27: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build fedora-27 rpm packages
