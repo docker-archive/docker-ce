@@ -66,8 +66,21 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Daemon/logger/ring.go: log error not instance. [moby/moby#36475](https://github.com/moby/moby/pull/36475)
 - Fix stats collector spinning CPU if no stats are collected. [moby/moby#36609](https://github.com/moby/moby/pull/36609)
 - Fix(distribution): digest cache should not be moved if it was an auth. [moby/moby#36509](https://github.com/moby/moby/pull/36509)
+- Make sure plugin container is removed on failure. [moby/moby#36715](https://github.com/moby/moby/pull/36715)
+* Bump to containerd 1.0.3. [moby/moby#36749](https://github.com/moby/moby/pull/36749)
+* Don't sort plugin mount slice. [moby/moby#36711](https://github.com/moby/moby/pull/36711)
 
 ### Swarm Mode
 
 * Fixes for synchronizing the dispatcher shutdown with in-progress rpcs. [moby/moby#36371](https://github.com/moby/moby/pull/36371)
 * Increase raft ElectionTick to 10xHeartbeatTick. [moby/moby#36672](https://github.com/moby/moby/pull/36672)
+* Make Swarm manager Raft quorum parameters configurable in daemon config. [moby/moby#36726](https://github.com/moby/moby/pull/36726)
+* Ingress network should not be attachable. [docker/swarmkit#2523](https://github.com/docker/swarmkit/pull/2523)
+* [manager/state] Add fernet as an option for raft encryption. [docker/swarmkit#2535](https://github.com/docker/swarmkit/pull/2535)
+* Log GRPC server errors.  [docker/swarmkit#2541](https://github.com/docker/swarmkit/pull/2541)
+* Log leadership changes at the manager level. [docker/swarmkit#2542](https://github.com/docker/swarmkit/pull/2542)
+* Remove the containerd executor. [docker/swarmkit#2568](https://github.com/docker/swarmkit/pull/2568)
+* Agent: backoff session when no remotes are available. [docker/swarmkit#2570](https://github.com/docker/swarmkit/pull/2570)
+* [ca/manager] Remove root CA key encryption support entirely. [docker/swarmkit#2573](https://github.com/docker/swarmkit/pull/2573)
+- Fix agent logging race. [docker/swarmkit#2578](https://github.com/docker/swarmkit/pull/2578)
+* Adding logic to restore networks in order. [docker/swarmkit#2571](https://github.com/docker/swarmkit/pull/2571)
