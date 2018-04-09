@@ -3,7 +3,7 @@
 For more information on the list of deprecated flags and APIs, have a look at
 https://docs.docker.com/engine/deprecated/ where you can find the target removal dates
 
-## 18.04.0-ce (2018-04-DD)
+## 18.04.0-ce (2018-04-10)
 
 ### Builder
 
@@ -22,7 +22,6 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 
 ### Logging
 
-* Make LogFile perms configurable. [moby/moby#36523](https://github.com/moby/moby/pull/36523)
 * Silent login: use credentials from cred store to login. [docker/cli#139](https://github.com/docker/cli/pull/139)
 + Add support for compressibility of log file. [moby/moby#29932](https://github.com/moby/moby/pull/29932)
 - Fix empty LogPath with non-blocking logging mode. [moby/moby#36272](https://github.com/moby/moby/pull/36272)
