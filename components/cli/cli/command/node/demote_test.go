@@ -6,11 +6,10 @@ import (
 
 	"github.com/docker/cli/internal/test"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/pkg/errors"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/cli/internal/test/testutil"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNodeDemoteErrors(t *testing.T) {
@@ -46,7 +45,7 @@ func TestNodeDemoteErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -64,7 +63,7 @@ func TestNodeDemoteNoChange(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID"})
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }
 
 func TestNodeDemoteMultipleNode(t *testing.T) {
@@ -81,5 +80,5 @@ func TestNodeDemoteMultipleNode(t *testing.T) {
 			},
 		}))
 	cmd.SetArgs([]string{"nodeID1", "nodeID2"})
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 }

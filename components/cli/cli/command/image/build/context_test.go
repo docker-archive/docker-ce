@@ -11,10 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/pkg/archive"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 const dockerfileContents = "FROM busybox"
@@ -38,7 +37,7 @@ func testValidateContextDirectory(t *testing.T, prepare func(t *testing.T) (stri
 	defer cleanup()
 
 	err := ValidateContextDirectory(contextDir, excludes)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 }
 
 func TestGetContextFromLocalDirNoDockerfile(t *testing.T) {
@@ -46,7 +45,7 @@ func TestGetContextFromLocalDirNoDockerfile(t *testing.T) {
 	defer cleanup()
 
 	_, _, err := GetContextFromLocalDir(contextDir, "")
-	testutil.ErrorContains(t, err, "Dockerfile")
+	assert.ErrorContains(t, err, "Dockerfile")
 }
 
 func TestGetContextFromLocalDirNotExistingDir(t *testing.T) {
@@ -56,7 +55,7 @@ func TestGetContextFromLocalDirNotExistingDir(t *testing.T) {
 	fakePath := filepath.Join(contextDir, "fake")
 
 	_, _, err := GetContextFromLocalDir(fakePath, "")
-	testutil.ErrorContains(t, err, "fake")
+	assert.ErrorContains(t, err, "fake")
 }
 
 func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
@@ -66,7 +65,7 @@ func TestGetContextFromLocalDirNotExistingDockerfile(t *testing.T) {
 	fakePath := filepath.Join(contextDir, "fake")
 
 	_, _, err := GetContextFromLocalDir(contextDir, fakePath)
-	testutil.ErrorContains(t, err, "fake")
+	assert.ErrorContains(t, err, "fake")
 }
 
 func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
@@ -79,10 +78,10 @@ func TestGetContextFromLocalDirWithNoDirectory(t *testing.T) {
 	defer chdirCleanup()
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, "")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
-	assert.Equal(t, contextDir, absContextDir)
-	assert.Equal(t, DefaultDockerfileName, relDockerfile)
+	assert.Check(t, is.Equal(contextDir, absContextDir))
+	assert.Check(t, is.Equal(DefaultDockerfileName, relDockerfile))
 }
 
 func TestGetContextFromLocalDirWithDockerfile(t *testing.T) {
@@ -92,10 +91,10 @@ func TestGetContextFromLocalDirWithDockerfile(t *testing.T) {
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, "")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
-	assert.Equal(t, contextDir, absContextDir)
-	assert.Equal(t, DefaultDockerfileName, relDockerfile)
+	assert.Check(t, is.Equal(contextDir, absContextDir))
+	assert.Check(t, is.Equal(DefaultDockerfileName, relDockerfile))
 }
 
 func TestGetContextFromLocalDirLocalFile(t *testing.T) {
@@ -130,10 +129,10 @@ func TestGetContextFromLocalDirWithCustomDockerfile(t *testing.T) {
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
 
 	absContextDir, relDockerfile, err := GetContextFromLocalDir(contextDir, DefaultDockerfileName)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
-	assert.Equal(t, contextDir, absContextDir)
-	assert.Equal(t, DefaultDockerfileName, relDockerfile)
+	assert.Check(t, is.Equal(contextDir, absContextDir))
+	assert.Check(t, is.Equal(DefaultDockerfileName, relDockerfile))
 }
 
 func TestGetContextFromReaderString(t *testing.T) {
@@ -161,7 +160,7 @@ func TestGetContextFromReaderString(t *testing.T) {
 		t.Fatalf("Tar stream too long: %s", err)
 	}
 
-	require.NoError(t, tarArchive.Close())
+	assert.NilError(t, tarArchive.Close())
 
 	if dockerfileContents != contents {
 		t.Fatalf("Uncompressed tar archive does not equal: %s, got: %s", dockerfileContents, contents)
@@ -179,15 +178,15 @@ func TestGetContextFromReaderTar(t *testing.T) {
 	createTestTempFile(t, contextDir, DefaultDockerfileName, dockerfileContents, 0777)
 
 	tarStream, err := archive.Tar(contextDir, archive.Uncompressed)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	tarArchive, relDockerfile, err := GetContextFromReader(tarStream, DefaultDockerfileName)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	tarReader := tar.NewReader(tarArchive)
 
 	header, err := tarReader.Next()
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	if header.Name != DefaultDockerfileName {
 		t.Fatalf("Dockerfile name should be: %s, got: %s", DefaultDockerfileName, header.Name)
@@ -203,7 +202,7 @@ func TestGetContextFromReaderTar(t *testing.T) {
 		t.Fatalf("Tar stream too long: %s", err)
 	}
 
-	require.NoError(t, tarArchive.Close())
+	assert.NilError(t, tarArchive.Close())
 
 	if dockerfileContents != contents {
 		t.Fatalf("Uncompressed tar archive does not equal: %s, got: %s", dockerfileContents, contents)
@@ -243,8 +242,8 @@ func TestValidateContextDirectoryWithOneFileExcludes(t *testing.T) {
 // When an error occurs, it terminates the test.
 func createTestTempDir(t *testing.T, dir, prefix string) (string, func()) {
 	path, err := ioutil.TempDir(dir, prefix)
-	require.NoError(t, err)
-	return path, func() { require.NoError(t, os.RemoveAll(path)) }
+	assert.NilError(t, err)
+	return path, func() { assert.NilError(t, os.RemoveAll(path)) }
 }
 
 // createTestTempFile creates a temporary file within dir with specific contents and permissions.
@@ -252,7 +251,7 @@ func createTestTempDir(t *testing.T, dir, prefix string) (string, func()) {
 func createTestTempFile(t *testing.T, dir, filename, contents string, perm os.FileMode) string {
 	filePath := filepath.Join(dir, filename)
 	err := ioutil.WriteFile(filePath, []byte(contents), perm)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	return filePath
 }
 
@@ -262,9 +261,9 @@ func createTestTempFile(t *testing.T, dir, filename, contents string, perm os.Fi
 // When an error occurs, it terminates the test.
 func chdir(t *testing.T, dir string) func() {
 	workingDirectory, err := os.Getwd()
-	require.NoError(t, err)
-	require.NoError(t, os.Chdir(dir))
-	return func() { require.NoError(t, os.Chdir(workingDirectory)) }
+	assert.NilError(t, err)
+	assert.NilError(t, os.Chdir(dir))
+	return func() { assert.NilError(t, os.Chdir(workingDirectory)) }
 }
 
 func TestIsArchive(t *testing.T) {
@@ -295,6 +294,6 @@ func TestIsArchive(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
-		assert.Equal(t, testcase.expected, IsArchive(testcase.header), testcase.doc)
+		assert.Check(t, is.Equal(testcase.expected, IsArchive(testcase.header)), testcase.doc)
 	}
 }

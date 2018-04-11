@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,15 +11,15 @@ import (
 
 	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/pkg/homedir"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
+	"github.com/pkg/errors"
 )
 
 func setupConfigDir(t *testing.T) (string, func()) {
 	tmpdir, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	oldDir := Dir()
 	SetDir(tmpdir)
 
@@ -33,10 +34,10 @@ func TestEmptyConfigDir(t *testing.T) {
 	defer cleanup()
 
 	config, err := Load("")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expectedConfigFilename := filepath.Join(tmpHome, ConfigFileName)
-	assert.Equal(t, expectedConfigFilename, config.Filename)
+	assert.Check(t, is.Equal(expectedConfigFilename, config.Filename))
 
 	// Now save it and make sure it shows up in new form
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -44,11 +45,11 @@ func TestEmptyConfigDir(t *testing.T) {
 
 func TestMissingFile(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	// Now save it and make sure it shows up in new form
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -56,13 +57,13 @@ func TestMissingFile(t *testing.T) {
 
 func TestSaveFileToDirs(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	tmpHome += "/.docker"
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	// Now save it and make sure it shows up in new form
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -70,28 +71,29 @@ func TestSaveFileToDirs(t *testing.T) {
 
 func TestEmptyFile(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	err = ioutil.WriteFile(fn, []byte(""), 0600)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	_, err = Load(tmpHome)
-	testutil.ErrorContains(t, err, "EOF")
+	assert.Equal(t, errors.Cause(err), io.EOF)
+	assert.ErrorContains(t, err, ConfigFileName)
 }
 
 func TestEmptyJSON(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	err = ioutil.WriteFile(fn, []byte("{}"), 0600)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	// Now save it and make sure it shows up in new form
 	saveConfigAndValidateNewFormat(t, config, tmpHome)
@@ -107,7 +109,7 @@ email`: "Invalid auth configuration file",
 	}
 
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	homeKey := homedir.Key()
@@ -119,16 +121,16 @@ email`: "Invalid auth configuration file",
 	for content, expectedError := range invalids {
 		fn := filepath.Join(tmpHome, oldConfigfile)
 		err := ioutil.WriteFile(fn, []byte(content), 0600)
-		require.NoError(t, err)
+		assert.NilError(t, err)
 
 		_, err = Load(tmpHome)
-		testutil.ErrorContains(t, err, expectedError)
+		assert.ErrorContains(t, err, expectedError)
 	}
 }
 
 func TestOldValidAuth(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	homeKey := homedir.Key()
@@ -141,10 +143,10 @@ func TestOldValidAuth(t *testing.T) {
 	js := `username = am9lam9lOmhlbGxv
 	email = user@example.com`
 	err = ioutil.WriteFile(fn, []byte(js), 0600)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	// defaultIndexserver is https://index.docker.io/v1/
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
@@ -163,12 +165,12 @@ func TestOldValidAuth(t *testing.T) {
 	}
 }`
 
-	assert.Equal(t, expConfStr, configStr)
+	assert.Check(t, is.Equal(expConfStr, configStr))
 }
 
 func TestOldJSONInvalid(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	homeKey := homedir.Key()
@@ -192,7 +194,7 @@ func TestOldJSONInvalid(t *testing.T) {
 
 func TestOldJSON(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	homeKey := homedir.Key()
@@ -208,7 +210,7 @@ func TestOldJSON(t *testing.T) {
 	}
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
 	if ac.Username != "joejoe" || ac.Password != "hello" {
@@ -234,7 +236,7 @@ func TestOldJSON(t *testing.T) {
 
 func TestNewJSON(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
@@ -244,7 +246,7 @@ func TestNewJSON(t *testing.T) {
 	}
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
 	if ac.Username != "joejoe" || ac.Password != "hello" {
@@ -269,7 +271,7 @@ func TestNewJSON(t *testing.T) {
 
 func TestNewJSONNoEmail(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
@@ -279,7 +281,7 @@ func TestNewJSONNoEmail(t *testing.T) {
 	}
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
 	if ac.Username != "joejoe" || ac.Password != "hello" {
@@ -304,7 +306,7 @@ func TestNewJSONNoEmail(t *testing.T) {
 
 func TestJSONWithPsFormat(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
@@ -317,7 +319,7 @@ func TestJSONWithPsFormat(t *testing.T) {
 	}
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	if config.PsFormat != `table {{.ID}}\t{{.Label "com.docker.label.cpu"}}` {
 		t.Fatalf("Unknown ps format: %s\n", config.PsFormat)
@@ -333,7 +335,7 @@ func TestJSONWithPsFormat(t *testing.T) {
 
 func TestJSONWithCredentialStore(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
@@ -346,7 +348,7 @@ func TestJSONWithCredentialStore(t *testing.T) {
 	}
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	if config.CredentialsStore != "crazy-secure-storage" {
 		t.Fatalf("Unknown credential store: %s\n", config.CredentialsStore)
@@ -362,7 +364,7 @@ func TestJSONWithCredentialStore(t *testing.T) {
 
 func TestJSONWithCredentialHelpers(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
@@ -375,7 +377,7 @@ func TestJSONWithCredentialHelpers(t *testing.T) {
 	}
 
 	config, err := Load(tmpHome)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	if config.CredentialHelpers == nil {
 		t.Fatal("config.CredentialHelpers was nil")
@@ -397,17 +399,17 @@ func TestJSONWithCredentialHelpers(t *testing.T) {
 
 // Save it and make sure it shows up in new form
 func saveConfigAndValidateNewFormat(t *testing.T, config *configfile.ConfigFile, configDir string) string {
-	require.NoError(t, config.Save())
+	assert.NilError(t, config.Save())
 
 	buf, err := ioutil.ReadFile(filepath.Join(configDir, ConfigFileName))
-	require.NoError(t, err)
-	assert.Contains(t, string(buf), `"auths":`)
+	assert.NilError(t, err)
+	assert.Check(t, is.Contains(string(buf), `"auths":`))
 	return string(buf)
 }
 
 func TestConfigDir(t *testing.T) {
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	if Dir() == tmpHome {
@@ -426,7 +428,7 @@ func TestJSONReaderNoFile(t *testing.T) {
 	js := ` { "auths": { "https://index.docker.io/v1/": { "auth": "am9lam9lOmhlbGxv", "email": "user@example.com" } } }`
 
 	config, err := LoadFromReader(strings.NewReader(js))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
 	if ac.Username != "joejoe" || ac.Password != "hello" {
@@ -439,7 +441,7 @@ func TestOldJSONReaderNoFile(t *testing.T) {
 	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
 
 	config, err := LegacyLoadFromReader(strings.NewReader(js))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	ac := config.AuthConfigs["https://index.docker.io/v1/"]
 	if ac.Username != "joejoe" || ac.Password != "hello" {
@@ -453,7 +455,7 @@ func TestJSONWithPsFormatNoFile(t *testing.T) {
 		"psFormat": "table {{.ID}}\\t{{.Label \"com.docker.label.cpu\"}}"
 }`
 	config, err := LoadFromReader(strings.NewReader(js))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	if config.PsFormat != `table {{.ID}}\t{{.Label "com.docker.label.cpu"}}` {
 		t.Fatalf("Unknown ps format: %s\n", config.PsFormat)
@@ -467,21 +469,21 @@ func TestJSONSaveWithNoFile(t *testing.T) {
 		"psFormat": "table {{.ID}}\\t{{.Label \"com.docker.label.cpu\"}}"
 }`
 	config, err := LoadFromReader(strings.NewReader(js))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	err = config.Save()
-	testutil.ErrorContains(t, err, "with empty filename")
+	assert.ErrorContains(t, err, "with empty filename")
 
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	f, _ := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	defer f.Close()
 
-	require.NoError(t, config.SaveToWriter(f))
+	assert.NilError(t, config.SaveToWriter(f))
 	buf, err := ioutil.ReadFile(filepath.Join(tmpHome, ConfigFileName))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	expConfStr := `{
 	"auths": {
 		"https://index.docker.io/v1/": {
@@ -498,21 +500,21 @@ func TestJSONSaveWithNoFile(t *testing.T) {
 func TestLegacyJSONSaveWithNoFile(t *testing.T) {
 	js := `{"https://index.docker.io/v1/":{"auth":"am9lam9lOmhlbGxv","email":"user@example.com"}}`
 	config, err := LegacyLoadFromReader(strings.NewReader(js))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	err = config.Save()
-	testutil.ErrorContains(t, err, "with empty filename")
+	assert.ErrorContains(t, err, "with empty filename")
 
 	tmpHome, err := ioutil.TempDir("", "config-test")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	defer os.RemoveAll(tmpHome)
 
 	fn := filepath.Join(tmpHome, ConfigFileName)
 	f, _ := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	defer f.Close()
 
-	require.NoError(t, config.SaveToWriter(f))
+	assert.NilError(t, config.SaveToWriter(f))
 	buf, err := ioutil.ReadFile(filepath.Join(tmpHome, ConfigFileName))
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	expConfStr := `{
 	"auths": {
@@ -536,7 +538,7 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 	filename := filepath.Join(dir, ConfigFileName)
 	content := []byte(`{"PsFormat": "format"}`)
 	err := ioutil.WriteFile(filename, content, 0644)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	configFile := LoadDefaultConfigFile(buffer)
 	credStore := credentials.DetectDefaultStore("")
@@ -544,5 +546,5 @@ func TestLoadDefaultConfigFile(t *testing.T) {
 	expected.CredentialsStore = credStore
 	expected.PsFormat = "format"
 
-	assert.Equal(t, expected, configFile)
+	assert.Check(t, is.DeepEqual(expected, configFile))
 }

@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestRemoveErrors(t *testing.T) {
@@ -38,7 +38,7 @@ func TestRemoveErrors(t *testing.T) {
 		cmd := newRemoveCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -50,8 +50,8 @@ func TestRemove(t *testing.T) {
 	})
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo"})
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "plugin-foo\n", cli.OutBuffer().String())
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Equal("plugin-foo\n", cli.OutBuffer().String()))
 }
 
 func TestRemoveWithForceOption(t *testing.T) {
@@ -65,7 +65,7 @@ func TestRemoveWithForceOption(t *testing.T) {
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo"})
 	cmd.Flags().Set("force", "true")
-	assert.NoError(t, cmd.Execute())
-	assert.True(t, force)
-	assert.Equal(t, "plugin-foo\n", cli.OutBuffer().String())
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, force)
+	assert.Check(t, is.Equal("plugin-foo\n", cli.OutBuffer().String()))
 }

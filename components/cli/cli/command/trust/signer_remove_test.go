@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
-	"github.com/stretchr/testify/assert"
+	notaryfake "github.com/docker/cli/internal/test/notary"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/theupdateframework/notary/client"
 	"github.com/theupdateframework/notary/tuf/data"
 )
@@ -32,7 +33,7 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 			test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 	testCasesWithOutput := []struct {
 		name          string
@@ -57,44 +58,44 @@ func TestTrustSignerRemoveErrors(t *testing.T) {
 	}
 	for _, tc := range testCasesWithOutput {
 		cli := test.NewFakeCli(&fakeClient{})
-		cli.SetNotaryClient(getOfflineNotaryRepository)
+		cli.SetNotaryClient(notaryfake.GetOfflineNotaryRepository)
 		cmd := newSignerRemoveCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
 		cmd.Execute()
-		assert.Contains(t, cli.ErrBuffer().String(), tc.expectedError)
+		assert.Check(t, is.Contains(cli.ErrBuffer().String(), tc.expectedError))
 	}
 
 }
 
 func TestRemoveSingleSigner(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 	err := removeSingleSigner(cli, "signed-repo", "test", true)
-	assert.EqualError(t, err, "No signer test for repository signed-repo")
+	assert.Error(t, err, "No signer test for repository signed-repo")
 	err = removeSingleSigner(cli, "signed-repo", "releases", true)
-	assert.EqualError(t, err, "releases is a reserved keyword and cannot be removed")
+	assert.Error(t, err, "releases is a reserved keyword and cannot be removed")
 }
 
 func TestRemoveMultipleSigners(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 	err := removeSigner(cli, signerRemoveOptions{signer: "test", repos: []string{"signed-repo", "signed-repo"}, forceYes: true})
-	assert.EqualError(t, err, "Error removing signer from: signed-repo, signed-repo")
-	assert.Contains(t, cli.ErrBuffer().String(),
-		"No signer test for repository signed-repo")
-	assert.Contains(t, cli.OutBuffer().String(), "Removing signer \"test\" from signed-repo...\n")
+	assert.Error(t, err, "Error removing signer from: signed-repo, signed-repo")
+	assert.Check(t, is.Contains(cli.ErrBuffer().String(),
+		"No signer test for repository signed-repo"))
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Removing signer \"test\" from signed-repo...\n"))
 }
 func TestRemoveLastSignerWarning(t *testing.T) {
 	cli := test.NewFakeCli(&fakeClient{})
-	cli.SetNotaryClient(getLoadedNotaryRepository)
+	cli.SetNotaryClient(notaryfake.GetLoadedNotaryRepository)
 
 	err := removeSigner(cli, signerRemoveOptions{signer: "alice", repos: []string{"signed-repo"}, forceYes: false})
-	assert.NoError(t, err)
-	assert.Contains(t, cli.OutBuffer().String(),
+	assert.NilError(t, err)
+	assert.Check(t, is.Contains(cli.OutBuffer().String(),
 		"The signer \"alice\" signed the last released version of signed-repo. "+
 			"Removing this signer will make signed-repo unpullable. "+
-			"Are you sure you want to continue? [y/N]")
+			"Are you sure you want to continue? [y/N]"))
 }
 
 func TestIsLastSignerForReleases(t *testing.T) {
@@ -104,7 +105,7 @@ func TestIsLastSignerForReleases(t *testing.T) {
 	releaserole.Threshold = 1
 	allrole := []client.RoleWithSignatures{releaserole}
 	lastsigner, _ := isLastSignerForReleases(role, allrole)
-	assert.Equal(t, false, lastsigner)
+	assert.Check(t, is.Equal(false, lastsigner))
 
 	role.KeyIDs = []string{"deadbeef"}
 	sig := data.Signature{}
@@ -113,12 +114,12 @@ func TestIsLastSignerForReleases(t *testing.T) {
 	releaserole.Threshold = 1
 	allrole = []client.RoleWithSignatures{releaserole}
 	lastsigner, _ = isLastSignerForReleases(role, allrole)
-	assert.Equal(t, true, lastsigner)
+	assert.Check(t, is.Equal(true, lastsigner))
 
 	sig.KeyID = "8badf00d"
 	releaserole.Signatures = []data.Signature{sig}
 	releaserole.Threshold = 1
 	allrole = []client.RoleWithSignatures{releaserole}
 	lastsigner, _ = isLastSignerForReleases(role, allrole)
-	assert.Equal(t, false, lastsigner)
+	assert.Check(t, is.Equal(false, lastsigner))
 }

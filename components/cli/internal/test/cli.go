@@ -16,7 +16,8 @@ import (
 	notaryclient "github.com/theupdateframework/notary/client"
 )
 
-type notaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
+// NotaryClientFuncType defines a function that returns a fake notary client
+type NotaryClientFuncType func(imgRefAndAuth trust.ImageRefAndAuth, actions []string) (notaryclient.Repository, error)
 type clientInfoFuncType func() command.ClientInfo
 
 // FakeCli emulates the default DockerCli
@@ -30,23 +31,30 @@ type FakeCli struct {
 	in               *command.InStream
 	server           command.ServerInfo
 	clientInfoFunc   clientInfoFuncType
-	notaryClientFunc notaryClientFuncType
+	notaryClientFunc NotaryClientFuncType
 	manifestStore    manifeststore.Store
 	registryClient   registryclient.RegistryClient
+	contentTrust     bool
 }
 
 // NewFakeCli returns a fake for the command.Cli interface
-func NewFakeCli(client client.APIClient) *FakeCli {
+func NewFakeCli(client client.APIClient, opts ...func(*FakeCli)) *FakeCli {
 	outBuffer := new(bytes.Buffer)
 	errBuffer := new(bytes.Buffer)
-	return &FakeCli{
-		client:     client,
-		out:        command.NewOutStream(outBuffer),
-		outBuffer:  outBuffer,
-		err:        errBuffer,
-		in:         command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
-		configfile: configfile.New("configfile"),
+	c := &FakeCli{
+		client:    client,
+		out:       command.NewOutStream(outBuffer),
+		outBuffer: outBuffer,
+		err:       errBuffer,
+		in:        command.NewInStream(ioutil.NopCloser(strings.NewReader(""))),
+		// Use an empty string for filename so that tests don't create configfiles
+		// Set cli.ConfigFile().Filename to a tempfile to support Save.
+		configfile: configfile.New(""),
 	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 // SetIn sets the input of the cli to the specified ReadCloser
@@ -118,7 +126,7 @@ func (c *FakeCli) ErrBuffer() *bytes.Buffer {
 }
 
 // SetNotaryClient sets the internal getter for retrieving a NotaryClient
-func (c *FakeCli) SetNotaryClient(notaryClientFunc notaryClientFuncType) {
+func (c *FakeCli) SetNotaryClient(notaryClientFunc NotaryClientFuncType) {
 	c.notaryClientFunc = notaryClientFunc
 }
 
@@ -148,4 +156,14 @@ func (c *FakeCli) SetManifestStore(store manifeststore.Store) {
 // SetRegistryClient on the fake cli
 func (c *FakeCli) SetRegistryClient(client registryclient.RegistryClient) {
 	c.registryClient = client
+}
+
+// ContentTrustEnabled on the fake cli
+func (c *FakeCli) ContentTrustEnabled() bool {
+	return c.contentTrust
+}
+
+// EnableContentTrust on the fake cli
+func EnableContentTrust(c *FakeCli) {
+	c.contentTrust = true
 }

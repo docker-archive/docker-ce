@@ -8,12 +8,12 @@ import (
 	"github.com/docker/cli/internal/test"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestStackServicesErrors(t *testing.T) {
@@ -76,7 +76,7 @@ func TestStackServicesErrors(t *testing.T) {
 			cmd.Flags().Set(key, value)
 		}
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -88,9 +88,9 @@ func TestStackServicesEmptyServiceList(t *testing.T) {
 	})
 	cmd := newServicesCommand(fakeCli)
 	cmd.SetArgs([]string{"foo"})
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "", fakeCli.OutBuffer().String())
-	assert.Equal(t, "Nothing found in stack: foo\n", fakeCli.ErrBuffer().String())
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Equal("", fakeCli.OutBuffer().String()))
+	assert.Check(t, is.Equal("Nothing found in stack: foo\n", fakeCli.ErrBuffer().String()))
 }
 
 func TestStackServicesWithQuietOption(t *testing.T) {
@@ -102,7 +102,7 @@ func TestStackServicesWithQuietOption(t *testing.T) {
 	cmd := newServicesCommand(cli)
 	cmd.Flags().Set("quiet", "true")
 	cmd.SetArgs([]string{"foo"})
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-quiet-option.golden")
 }
 
@@ -117,7 +117,7 @@ func TestStackServicesWithFormat(t *testing.T) {
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-format.golden")
 }
 
@@ -134,7 +134,7 @@ func TestStackServicesWithConfigFormat(t *testing.T) {
 	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-with-config-format.golden")
 }
 
@@ -157,6 +157,6 @@ func TestStackServicesWithoutFormat(t *testing.T) {
 	})
 	cmd := newServicesCommand(cli)
 	cmd.SetArgs([]string{"foo"})
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-services-without-format.golden")
 }

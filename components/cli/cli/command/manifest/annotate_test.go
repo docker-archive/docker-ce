@@ -5,10 +5,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestManifestAnnotateError(t *testing.T) {
@@ -35,7 +34,7 @@ func TestManifestAnnotateError(t *testing.T) {
 		cmd := newAnnotateCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -48,13 +47,13 @@ func TestManifestAnnotate(t *testing.T) {
 	namedRef := ref(t, "alpine:3.0")
 	imageManifest := fullImageManifest(t, namedRef)
 	err := store.Save(ref(t, "list:v1"), namedRef, imageManifest)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	cmd := newAnnotateCommand(cli)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/fake:0.0"})
 	cmd.SetOutput(ioutil.Discard)
 	expectedError := "manifest for image example.com/fake:0.0 does not exist"
-	testutil.ErrorContains(t, cmd.Execute(), expectedError)
+	assert.ErrorContains(t, cmd.Execute(), expectedError)
 
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
 	cmd.Flags().Set("os", "freebsd")
@@ -62,17 +61,17 @@ func TestManifestAnnotate(t *testing.T) {
 	cmd.Flags().Set("os-features", "feature1")
 	cmd.Flags().Set("variant", "v7")
 	expectedError = "manifest entry for image has unsupported os/arch combination"
-	testutil.ErrorContains(t, cmd.Execute(), expectedError)
+	assert.ErrorContains(t, cmd.Execute(), expectedError)
 
 	cmd.Flags().Set("arch", "arm")
-	require.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 
 	cmd = newInspectCommand(cli)
 	err = cmd.Flags().Set("verbose", "true")
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	cmd.SetArgs([]string{"example.com/list:v1", "example.com/alpine:3.0"})
-	require.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	actual := cli.OutBuffer()
 	expected := golden.Get(t, "inspect-annotate.golden")
-	assert.Equal(t, string(expected), actual.String())
+	assert.Check(t, is.Equal(string(expected), actual.String()))
 }

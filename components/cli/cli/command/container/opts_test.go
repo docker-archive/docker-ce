@@ -9,14 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types/container"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidateAttach(t *testing.T) {
@@ -67,12 +66,12 @@ func setupRunFlags() (*pflag.FlagSet, *containerOptions) {
 
 func parseMustError(t *testing.T, args string) {
 	_, _, _, err := parseRun(strings.Split(args+" ubuntu bash", " "))
-	assert.Error(t, err, args)
+	assert.ErrorContains(t, err, "", args)
 }
 
 func mustParse(t *testing.T, args string) (*container.Config, *container.HostConfig) {
 	config, hostConfig, _, err := parseRun(append(strings.Split(args, " "), "ubuntu", "bash"))
-	assert.NoError(t, err)
+	assert.NilError(t, err)
 	return config, hostConfig
 }
 
@@ -236,23 +235,23 @@ func TestRunFlagsParseWithMemory(t *testing.T) {
 	flags, _ := setupRunFlags()
 	args := []string{"--memory=invalid", "img", "cmd"}
 	err := flags.Parse(args)
-	testutil.ErrorContains(t, err, `invalid argument "invalid" for "-m, --memory" flag`)
+	assert.ErrorContains(t, err, `invalid argument "invalid" for "-m, --memory" flag`)
 
 	_, hostconfig := mustParse(t, "--memory=1G")
-	assert.Equal(t, int64(1073741824), hostconfig.Memory)
+	assert.Check(t, is.Equal(int64(1073741824), hostconfig.Memory))
 }
 
 func TestParseWithMemorySwap(t *testing.T) {
 	flags, _ := setupRunFlags()
 	args := []string{"--memory-swap=invalid", "img", "cmd"}
 	err := flags.Parse(args)
-	testutil.ErrorContains(t, err, `invalid argument "invalid" for "--memory-swap" flag`)
+	assert.ErrorContains(t, err, `invalid argument "invalid" for "--memory-swap" flag`)
 
 	_, hostconfig := mustParse(t, "--memory-swap=1G")
-	assert.Equal(t, int64(1073741824), hostconfig.MemorySwap)
+	assert.Check(t, is.Equal(int64(1073741824), hostconfig.MemorySwap))
 
 	_, hostconfig = mustParse(t, "--memory-swap=-1")
-	assert.Equal(t, int64(-1), hostconfig.MemorySwap)
+	assert.Check(t, is.Equal(int64(-1), hostconfig.MemorySwap))
 }
 
 func TestParseHostname(t *testing.T) {
@@ -373,24 +372,24 @@ func TestParseModes(t *testing.T) {
 	// pid ko
 	flags, copts := setupRunFlags()
 	args := []string{"--pid=container:", "img", "cmd"}
-	require.NoError(t, flags.Parse(args))
+	assert.NilError(t, flags.Parse(args))
 	_, err := parse(flags, copts)
-	testutil.ErrorContains(t, err, "--pid: invalid PID mode")
+	assert.ErrorContains(t, err, "--pid: invalid PID mode")
 
 	// pid ok
 	_, hostconfig, _, err := parseRun([]string{"--pid=host", "img", "cmd"})
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	if !hostconfig.PidMode.Valid() {
 		t.Fatalf("Expected a valid PidMode, got %v", hostconfig.PidMode)
 	}
 
 	// uts ko
 	_, _, _, err = parseRun([]string{"--uts=container:", "img", "cmd"})
-	testutil.ErrorContains(t, err, "--uts: invalid UTS mode")
+	assert.ErrorContains(t, err, "--uts: invalid UTS mode")
 
 	// uts ok
 	_, hostconfig, _, err = parseRun([]string{"--uts=host", "img", "cmd"})
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	if !hostconfig.UTSMode.Valid() {
 		t.Fatalf("Expected a valid UTSMode, got %v", hostconfig.UTSMode)
 	}
@@ -402,11 +401,11 @@ func TestRunFlagsParseShmSize(t *testing.T) {
 	args := []string{"--shm-size=a128m", "img", "cmd"}
 	expectedErr := `invalid argument "a128m" for "--shm-size" flag: invalid size: 'a128m'`
 	err := flags.Parse(args)
-	testutil.ErrorContains(t, err, expectedErr)
+	assert.ErrorContains(t, err, expectedErr)
 
 	// shm-size ok
 	_, hostconfig, _, err := parseRun([]string{"--shm-size=128m", "img", "cmd"})
-	require.NoError(t, err)
+	assert.NilError(t, err)
 	if hostconfig.ShmSize != 134217728 {
 		t.Fatalf("Expected a valid ShmSize, got %d", hostconfig.ShmSize)
 	}

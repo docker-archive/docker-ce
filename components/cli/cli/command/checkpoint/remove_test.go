@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCheckpointRemoveErrors(t *testing.T) {
@@ -41,7 +41,7 @@ func TestCheckpointRemoveErrors(t *testing.T) {
 		cmd := newRemoveCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -58,8 +58,8 @@ func TestCheckpointRemoveWithOptions(t *testing.T) {
 	cmd := newRemoveCommand(cli)
 	cmd.SetArgs([]string{"container-foo", "checkpoint-bar"})
 	cmd.Flags().Set("checkpoint-dir", "/dir/foo")
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "container-foo", containerID)
-	assert.Equal(t, "checkpoint-bar", checkpointID)
-	assert.Equal(t, "/dir/foo", checkpointDir)
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Equal("container-foo", containerID))
+	assert.Check(t, is.Equal("checkpoint-bar", checkpointID))
+	assert.Check(t, is.Equal("/dir/foo", checkpointDir))
 }

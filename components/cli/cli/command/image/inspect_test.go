@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewInspectCommandErrors(t *testing.T) {
@@ -28,7 +28,7 @@ func TestNewInspectCommandErrors(t *testing.T) {
 		cmd := newInspectCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -46,7 +46,7 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 			imageCount: 1,
 			imageInspectFunc: func(image string) (types.ImageInspect, []byte, error) {
 				imageInspectInvocationCount++
-				assert.Equal(t, "image", image)
+				assert.Check(t, is.Equal("image", image))
 				return types.ImageInspect{}, nil, nil
 			},
 		},
@@ -66,9 +66,9 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 			imageInspectFunc: func(image string) (types.ImageInspect, []byte, error) {
 				imageInspectInvocationCount++
 				if imageInspectInvocationCount == 1 {
-					assert.Equal(t, "image1", image)
+					assert.Check(t, is.Equal("image1", image))
 				} else {
-					assert.Equal(t, "image2", image)
+					assert.Check(t, is.Equal("image2", image))
 				}
 				return types.ImageInspect{}, nil, nil
 			},
@@ -81,8 +81,8 @@ func TestNewInspectCommandSuccess(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
-		assert.NoError(t, err)
+		assert.NilError(t, err)
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("inspect-command-success.%s.golden", tc.name))
-		assert.Equal(t, imageInspectInvocationCount, tc.imageCount)
+		assert.Check(t, is.Equal(imageInspectInvocationCount, tc.imageCount))
 	}
 }

@@ -9,12 +9,12 @@ import (
 	"github.com/docker/cli/internal/test"
 	// Import builders to get the builder function as package function
 	. "github.com/docker/cli/internal/test/builders"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestStackPsErrors(t *testing.T) {
@@ -47,7 +47,7 @@ func TestStackPsErrors(t *testing.T) {
 		}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -61,9 +61,8 @@ func TestStackPsEmptyStack(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	cmd.SetOutput(ioutil.Discard)
 
-	assert.Error(t, cmd.Execute())
-	assert.EqualError(t, cmd.Execute(), "nothing found in stack: foo")
-	assert.Equal(t, "", fakeCli.OutBuffer().String())
+	assert.Error(t, cmd.Execute(), "nothing found in stack: foo")
+	assert.Check(t, is.Equal("", fakeCli.OutBuffer().String()))
 }
 
 func TestStackPsWithQuietOption(t *testing.T) {
@@ -75,7 +74,7 @@ func TestStackPsWithQuietOption(t *testing.T) {
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("quiet", "true")
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-quiet-option.golden")
 
 }
@@ -90,7 +89,7 @@ func TestStackPsWithNoTruncOption(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-trunc", "true")
 	cmd.Flags().Set("format", "{{ .ID }}")
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-no-trunc-option.golden")
 }
 
@@ -109,7 +108,7 @@ func TestStackPsWithNoResolveOption(t *testing.T) {
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("no-resolve", "true")
 	cmd.Flags().Set("format", "{{ .Node }}")
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-no-resolve-option.golden")
 }
 
@@ -122,7 +121,7 @@ func TestStackPsWithFormat(t *testing.T) {
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
 	cmd.Flags().Set("format", "{{ .Name }}")
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-format.golden")
 }
 
@@ -137,7 +136,7 @@ func TestStackPsWithConfigFormat(t *testing.T) {
 	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-with-config-format.golden")
 }
 
@@ -159,6 +158,6 @@ func TestStackPsWithoutFormat(t *testing.T) {
 	})
 	cmd := newPsCommand(cli)
 	cmd.SetArgs([]string{"foo"})
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, cli.OutBuffer().String(), "stack-ps-without-format.golden")
 }

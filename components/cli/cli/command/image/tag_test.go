@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestCliNewTagCommandErrors(t *testing.T) {
@@ -20,7 +20,7 @@ func TestCliNewTagCommandErrors(t *testing.T) {
 		cmd := NewTagCommand(test.NewFakeCli(&fakeClient{}))
 		cmd.SetArgs(args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), expectedError)
+		assert.ErrorContains(t, cmd.Execute(), expectedError)
 	}
 }
 
@@ -28,14 +28,14 @@ func TestCliNewTagCommand(t *testing.T) {
 	cmd := NewTagCommand(
 		test.NewFakeCli(&fakeClient{
 			imageTagFunc: func(image string, ref string) error {
-				assert.Equal(t, "image1", image)
-				assert.Equal(t, "image2", ref)
+				assert.Check(t, is.Equal("image1", image))
+				assert.Check(t, is.Equal("image2", ref))
 				return nil
 			},
 		}))
 	cmd.SetArgs([]string{"image1", "image2"})
 	cmd.SetOutput(ioutil.Discard)
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	value, _ := cmd.Flags().GetBool("interspersed")
-	assert.False(t, value)
+	assert.Check(t, !value)
 }

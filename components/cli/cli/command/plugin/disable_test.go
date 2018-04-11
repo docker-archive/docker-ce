@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 func TestPluginDisableErrors(t *testing.T) {
@@ -41,7 +41,7 @@ func TestPluginDisableErrors(t *testing.T) {
 			}))
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -53,6 +53,6 @@ func TestPluginDisable(t *testing.T) {
 	})
 	cmd := newDisableCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo"})
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "plugin-foo\n", cli.OutBuffer().String())
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Equal("plugin-foo\n", cli.OutBuffer().String()))
 }

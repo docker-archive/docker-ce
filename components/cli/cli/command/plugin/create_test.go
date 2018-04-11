@@ -4,17 +4,21 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"runtime"
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/fs"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateErrors(t *testing.T) {
-
+	noSuchFile := "no such file or directory"
+	if runtime.GOOS == "windows" {
+		noSuchFile = "The system cannot find the file specified."
+	}
 	testCases := []struct {
 		args          []string
 		expectedError string
@@ -29,7 +33,7 @@ func TestCreateErrors(t *testing.T) {
 		},
 		{
 			args:          []string{"plugin-foo", "nonexistent_context_dir"},
-			expectedError: "no such file or directory",
+			expectedError: noSuchFile,
 		},
 	}
 
@@ -38,7 +42,7 @@ func TestCreateErrors(t *testing.T) {
 		cmd := newCreateCommand(cli)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -50,7 +54,7 @@ func TestCreateErrorOnFileAsContextDir(t *testing.T) {
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpFile.Path()})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "context must be a directory")
+	assert.ErrorContains(t, cmd.Execute(), "context must be a directory")
 }
 
 func TestCreateErrorOnContextDirWithoutConfig(t *testing.T) {
@@ -61,7 +65,12 @@ func TestCreateErrorOnContextDirWithoutConfig(t *testing.T) {
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "config.json: no such file or directory")
+
+	expectedErr := "config.json: no such file or directory"
+	if runtime.GOOS == "windows" {
+		expectedErr = "config.json: The system cannot find the file specified."
+	}
+	assert.ErrorContains(t, cmd.Execute(), expectedErr)
 }
 
 func TestCreateErrorOnInvalidConfig(t *testing.T) {
@@ -74,7 +83,7 @@ func TestCreateErrorOnInvalidConfig(t *testing.T) {
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "invalid")
+	assert.ErrorContains(t, cmd.Execute(), "invalid")
 }
 
 func TestCreateErrorFromDaemon(t *testing.T) {
@@ -92,7 +101,7 @@ func TestCreateErrorFromDaemon(t *testing.T) {
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
 	cmd.SetOutput(ioutil.Discard)
-	testutil.ErrorContains(t, cmd.Execute(), "Error creating plugin")
+	assert.ErrorContains(t, cmd.Execute(), "Error creating plugin")
 }
 
 func TestCreatePlugin(t *testing.T) {
@@ -109,6 +118,6 @@ func TestCreatePlugin(t *testing.T) {
 
 	cmd := newCreateCommand(cli)
 	cmd.SetArgs([]string{"plugin-foo", tmpDir.Path()})
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "plugin-foo\n", cli.OutBuffer().String())
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Equal("plugin-foo\n", cli.OutBuffer().String()))
 }

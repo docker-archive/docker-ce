@@ -3,7 +3,8 @@ package template
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 var defaults = map[string]string{
@@ -18,8 +19,8 @@ func defaultMapping(name string) (string, bool) {
 
 func TestEscaped(t *testing.T) {
 	result, err := Substitute("$${foo}", defaultMapping)
-	assert.Nil(t, err)
-	assert.Equal(t, "${foo}", result)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("${foo}", result))
 }
 
 func TestInvalid(t *testing.T) {
@@ -35,49 +36,48 @@ func TestInvalid(t *testing.T) {
 
 	for _, template := range invalidTemplates {
 		_, err := Substitute(template, defaultMapping)
-		assert.Error(t, err)
-		assert.IsType(t, &InvalidTemplateError{}, err)
+		assert.ErrorContains(t, err, "Invalid template")
 	}
 }
 
 func TestNoValueNoDefault(t *testing.T) {
 	for _, template := range []string{"This ${missing} var", "This ${BAR} var"} {
 		result, err := Substitute(template, defaultMapping)
-		assert.Nil(t, err)
-		assert.Equal(t, "This  var", result)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal("This  var", result))
 	}
 }
 
 func TestValueNoDefault(t *testing.T) {
 	for _, template := range []string{"This $FOO var", "This ${FOO} var"} {
 		result, err := Substitute(template, defaultMapping)
-		assert.Nil(t, err)
-		assert.Equal(t, "This first var", result)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal("This first var", result))
 	}
 }
 
 func TestNoValueWithDefault(t *testing.T) {
 	for _, template := range []string{"ok ${missing:-def}", "ok ${missing-def}"} {
 		result, err := Substitute(template, defaultMapping)
-		assert.Nil(t, err)
-		assert.Equal(t, "ok def", result)
+		assert.NilError(t, err)
+		assert.Check(t, is.Equal("ok def", result))
 	}
 }
 
 func TestEmptyValueWithSoftDefault(t *testing.T) {
 	result, err := Substitute("ok ${BAR:-def}", defaultMapping)
-	assert.Nil(t, err)
-	assert.Equal(t, "ok def", result)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok def", result))
 }
 
 func TestEmptyValueWithHardDefault(t *testing.T) {
 	result, err := Substitute("ok ${BAR-def}", defaultMapping)
-	assert.Nil(t, err)
-	assert.Equal(t, "ok ", result)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok ", result))
 }
 
 func TestNonAlphanumericDefault(t *testing.T) {
 	result, err := Substitute("ok ${BAR:-/non:-alphanumeric}", defaultMapping)
-	assert.Nil(t, err)
-	assert.Equal(t, "ok /non:-alphanumeric", result)
+	assert.NilError(t, err)
+	assert.Check(t, is.Equal("ok /non:-alphanumeric", result))
 }

@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewPruneCommandErrors(t *testing.T) {
@@ -41,7 +41,7 @@ func TestNewPruneCommandErrors(t *testing.T) {
 		}))
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -55,7 +55,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			name: "all",
 			args: []string{"--all"},
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
-				assert.Equal(t, "false", pruneFilter.Get("dangling")[0])
+				assert.Check(t, is.Equal("false", pruneFilter.Get("dangling")[0]))
 				return types.ImagesPruneReport{}, nil
 			},
 		},
@@ -63,7 +63,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			name: "force-deleted",
 			args: []string{"--force"},
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
-				assert.Equal(t, "true", pruneFilter.Get("dangling")[0])
+				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
 				return types.ImagesPruneReport{
 					ImagesDeleted:  []types.ImageDeleteResponseItem{{Deleted: "image1"}},
 					SpaceReclaimed: 1,
@@ -74,7 +74,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 			name: "force-untagged",
 			args: []string{"--force"},
 			imagesPruneFunc: func(pruneFilter filters.Args) (types.ImagesPruneReport, error) {
-				assert.Equal(t, "true", pruneFilter.Get("dangling")[0])
+				assert.Check(t, is.Equal("true", pruneFilter.Get("dangling")[0]))
 				return types.ImagesPruneReport{
 					ImagesDeleted:  []types.ImageDeleteResponseItem{{Untagged: "image1"}},
 					SpaceReclaimed: 2,
@@ -88,7 +88,7 @@ func TestNewPruneCommandSuccess(t *testing.T) {
 		cmd.SetOutput(ioutil.Discard)
 		cmd.SetArgs(tc.args)
 		err := cmd.Execute()
-		assert.NoError(t, err)
+		assert.NilError(t, err)
 		golden.Assert(t, cli.OutBuffer().String(), fmt.Sprintf("prune-command-success.%s.golden", tc.name))
 	}
 }

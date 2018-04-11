@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	"github.com/docker/cli/internal/test"
-	"github.com/docker/cli/internal/test/testutil"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 	"github.com/gotestyourself/gotestyourself/golden"
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 const configDataFile = "config-create-with-name.golden"
@@ -47,7 +47,7 @@ func TestConfigCreateErrors(t *testing.T) {
 		)
 		cmd.SetArgs(tc.args)
 		cmd.SetOutput(ioutil.Discard)
-		testutil.ErrorContains(t, cmd.Execute(), tc.expectedError)
+		assert.ErrorContains(t, cmd.Execute(), tc.expectedError)
 	}
 }
 
@@ -70,9 +70,9 @@ func TestConfigCreateWithName(t *testing.T) {
 
 	cmd := newConfigCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
-	assert.NoError(t, cmd.Execute())
+	assert.NilError(t, cmd.Execute())
 	golden.Assert(t, string(actual), configDataFile)
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
 func TestConfigCreateWithLabels(t *testing.T) {
@@ -83,7 +83,7 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	name := "foo"
 
 	data, err := ioutil.ReadFile(filepath.Join("testdata", configDataFile))
-	assert.NoError(t, err)
+	assert.NilError(t, err)
 
 	expected := swarm.ConfigSpec{
 		Annotations: swarm.Annotations{
@@ -109,8 +109,8 @@ func TestConfigCreateWithLabels(t *testing.T) {
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	cmd.Flags().Set("label", "lbl1=Label-foo")
 	cmd.Flags().Set("label", "lbl2=Label-bar")
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
 
 func TestConfigCreateWithTemplatingDriver(t *testing.T) {
@@ -138,6 +138,6 @@ func TestConfigCreateWithTemplatingDriver(t *testing.T) {
 	cmd := newConfigCreateCommand(cli)
 	cmd.SetArgs([]string{name, filepath.Join("testdata", configDataFile)})
 	cmd.Flags().Set("template-driver", expectedDriver.Name)
-	assert.NoError(t, cmd.Execute())
-	assert.Equal(t, "ID-"+name, strings.TrimSpace(cli.OutBuffer().String()))
+	assert.NilError(t, cmd.Execute())
+	assert.Check(t, is.Equal("ID-"+name, strings.TrimSpace(cli.OutBuffer().String())))
 }
