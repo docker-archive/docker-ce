@@ -1,10 +1,10 @@
 package template
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/gotestyourself/gotestyourself/assert"
+	is "github.com/gotestyourself/gotestyourself/assert/cmp"
 )
 
 var defaults = map[string]string{
