@@ -21,6 +21,7 @@ import (
 	"github.com/docker/docker/integration-cli/environment"
 	"github.com/docker/docker/integration-cli/fixtures/plugin"
 	"github.com/docker/docker/integration-cli/registry"
+	testdaemon "github.com/docker/docker/internal/test/daemon"
 	ienv "github.com/docker/docker/internal/test/environment"
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/go-check/check"
@@ -100,7 +101,7 @@ func (s *DockerSuite) OnTimeout(c *check.C) {
 
 	daemonPid := int(rawPid)
 	if daemonPid > 0 {
-		daemon.SignalDaemonDump(daemonPid)
+		testdaemon.SignalDaemonDump(daemonPid)
 	}
 }
 
@@ -285,7 +286,7 @@ func (s *DockerDaemonSuite) TearDownTest(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TearDownSuite(c *check.C) {
-	filepath.Walk(daemon.SockRoot, func(path string, fi os.FileInfo, err error) error {
+	filepath.Walk(testdaemon.SockRoot, func(path string, fi os.FileInfo, err error) error {
 		if err != nil {
 			// ignore errors here
 			// not cleaning up sockets is not really an error
@@ -296,7 +297,7 @@ func (s *DockerDaemonSuite) TearDownSuite(c *check.C) {
 		}
 		return nil
 	})
-	os.RemoveAll(daemon.SockRoot)
+	os.RemoveAll(testdaemon.SockRoot)
 }
 
 const defaultSwarmPort = 2477
@@ -310,7 +311,7 @@ func init() {
 type DockerSwarmSuite struct {
 	server      *httptest.Server
 	ds          *DockerSuite
-	daemons     []*daemon.Swarm
+	daemons     []*daemon.Daemon
 	daemonsLock sync.Mutex // protect access to daemons
 	portIndex   int
 }
@@ -327,14 +328,10 @@ func (s *DockerSwarmSuite) SetUpTest(c *check.C) {
 	testRequires(c, DaemonIsLinux, SameHostDaemon)
 }
 
-func (s *DockerSwarmSuite) AddDaemon(c *check.C, joinSwarm, manager bool) *daemon.Swarm {
-	d := &daemon.Swarm{
-		Daemon: daemon.New(c, dockerBinary, dockerdBinary, daemon.Config{
-			Experimental: testEnv.DaemonInfo.ExperimentalBuild,
-		}),
-		Port: defaultSwarmPort + s.portIndex,
-	}
-	d.ListenAddr = fmt.Sprintf("0.0.0.0:%d", d.Port)
+func (s *DockerSwarmSuite) AddDaemon(c *check.C, joinSwarm, manager bool) *daemon.Daemon {
+	d := daemon.New(c, dockerBinary, dockerdBinary, daemon.Config{
+		Experimental: testEnv.DaemonInfo.ExperimentalBuild,
+	}, testdaemon.WithSwarmPort(defaultSwarmPort+s.portIndex))
 	args := []string{"--iptables=false", "--swarm-default-advertise-addr=lo"} // avoid networking conflicts
 	d.StartWithBusybox(c, args...)
 
@@ -345,12 +342,12 @@ func (s *DockerSwarmSuite) AddDaemon(c *check.C, joinSwarm, manager bool) *daemo
 			if manager {
 				token = tokens.Manager
 			}
-			c.Assert(d.Join(swarm.JoinRequest{
-				RemoteAddrs: []string{s.daemons[0].ListenAddr},
+			d.SwarmJoin(c, swarm.JoinRequest{
+				RemoteAddrs: []string{s.daemons[0].SwarmListenAddr()},
 				JoinToken:   token,
-			}), check.IsNil)
+			})
 		} else {
-			c.Assert(d.Init(swarm.InitRequest{}), check.IsNil)
+			d.SwarmInit(c, swarm.InitRequest{})
 		}
 	}
 
