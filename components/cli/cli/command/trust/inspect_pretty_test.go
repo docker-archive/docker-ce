@@ -99,7 +99,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img:unsigned-tag"))
-	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img:"))
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))
 
 	cli = test.NewFakeCli(&fakeClient{})
 	cli.SetNotaryClient(notaryfake.GetEmptyTargetsNotaryRepository)
@@ -109,7 +109,7 @@ func TestTrustInspectPrettyCommandEmptyNotaryRepoErrors(t *testing.T) {
 	cmd.SetOutput(ioutil.Discard)
 	assert.NilError(t, cmd.Execute())
 	assert.Check(t, is.Contains(cli.OutBuffer().String(), "No signatures for reg/img"))
-	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img:"))
+	assert.Check(t, is.Contains(cli.OutBuffer().String(), "Administrative keys for reg/img"))
 }
 
 func TestTrustInspectPrettyCommandFullRepoWithoutSigners(t *testing.T) {
