@@ -57,7 +57,11 @@ func (s *Collector) Run() {
 	// it will grow enough in first iteration
 	var pairs []publishersPair
 
-	for range time.Tick(s.interval) {
+	for {
+		// Put sleep at the start so that it will always be hit,
+		// preventing a tight loop if no stats are collected.
+		time.Sleep(s.interval)
+
 		// it does not make sense in the first iteration,
 		// but saves allocations in further iterations
 		pairs = pairs[:0]
@@ -72,12 +76,6 @@ func (s *Collector) Run() {
 			continue
 		}
 
-		systemUsage, err := s.getSystemCPUUsage()
-		if err != nil {
-			logrus.Errorf("collecting system cpu usage: %v", err)
-			continue
-		}
-
 		onlineCPUs, err := s.getNumberOnlineCPUs()
 		if err != nil {
 			logrus.Errorf("collecting system online cpu count: %v", err)
@@ -89,6 +87,14 @@ func (s *Collector) Run() {
 
 			switch err.(type) {
 			case nil:
+				// Sample system CPU usage close to container usage to avoid
+				// noise in metric calculations.
+				systemUsage, err := s.getSystemCPUUsage()
+				if err != nil {
+					logrus.WithError(err).WithField("container_id", pair.container.ID).Errorf("collecting system cpu usage")
+					continue
+				}
+
 				// FIXME: move to containerd on Linux (not Windows)
 				stats.CPUStats.SystemUsage = systemUsage
 				stats.CPUStats.OnlineCPUs = onlineCPUs
