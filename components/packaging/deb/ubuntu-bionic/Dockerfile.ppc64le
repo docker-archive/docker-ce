@@ -1,6 +1,6 @@
-FROM ppc64le/ubuntu:xenial
+FROM ubuntu:bionic
 
-RUN apt-get update && apt-get install -y apparmor bash-completion btrfs-tools build-essential cmake curl ca-certificates debhelper dh-apparmor dh-systemd git libapparmor-dev libdevmapper-dev libltdl-dev libseccomp-dev pkg-config vim-common libsystemd-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y apparmor bash-completion btrfs-tools build-essential cmake curl ca-certificates debhelper dh-apparmor dh-systemd git libapparmor-dev libdevmapper-dev pkg-config vim-common libseccomp-dev libsystemd-dev libltdl-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 ENV GO_VERSION 1.9.5
 RUN curl -fSL "https://golang.org/dl/go${GO_VERSION}.linux-ppc64le.tar.gz" | tar xzC /usr/local
@@ -21,7 +21,7 @@ RUN mkdir -p /go/src/github.com/docker && \
 
 
 ENV DISTRO ubuntu
-ENV SUITE xenial
+ENV SUITE bionic
 
 WORKDIR /root/build-deb
 
