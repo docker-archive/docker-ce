@@ -73,7 +73,6 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Bump containerd to 1.0.2 (cfd04396dc68220d1cecbe686a6cc3aa5ce3667c) [moby/moby#36308](https://github.com/moby/moby/pull/36308)
 * Bump Golang to 1.9.4 [moby/moby#36243](https://github.com/moby/moby/pull/36243)
 * Ensure daemon root is unmounted on shutdown [moby/moby#36107](https://github.com/moby/moby/pull/36107)
-* Update runc to 6c55f98695e902427906eed2c799e566e3d3dfb5 [moby/moby#36222](https://github.com/moby/moby/pull/36222)
 - Fix container cleanup on daemon restart [moby/moby#36249](https://github.com/moby/moby/pull/36249)
 * Support SCTP port mapping (bump up API to v1.37) [moby/moby#33922](https://github.com/moby/moby/pull/33922)
 * Support SCTP port mapping [docker/cli#278](https://github.com/docker/cli/pull/278)
