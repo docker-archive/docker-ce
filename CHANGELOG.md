@@ -2,6 +2,18 @@
 For more information on the list of deprecated flags and APIs please have a look at
 https://docs.docker.com/engine/deprecated/ where you can find the target removal dates 
 
+## 18.03.1-ce (2018-04-DD)
+
+### Runtime
+
+- Fix AppArmor profiles not being applied to `docker exec` processes [moby/moby#36466](https://github.com/moby/moby/pull/36466)
+- Don't sort plugin mount slice [moby/moby#36711](https://github.com/moby/moby/pull/36711)
+- Daemon/cluster: handle partial attachment entries during configure [moby/moby#36769](https://github.com/moby/moby/pull/36769)
+* Bump Golang to 1.9.5 [moby/moby#36779](https://github.com/moby/moby/pull/36779) [docker/cli#986](https://github.com/docker/cli/pull/986)
+- Daemon/stats: more resilient cpu sampling [moby/moby#36519](https://github.com/moby/moby/pull/36519)
+* Containerd: update to 1.0.3 release [moby/moby#36749](https://github.com/moby/moby/pull/36749)
+- Fix Windows layer leak when write fails [moby/moby#36728](https://github.com/moby/moby/pull/36728)
+
 ## 18.03.0-ce (2018-03-21)
 
 ### Builder
