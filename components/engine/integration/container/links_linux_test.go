@@ -20,7 +20,7 @@ import (
 )
 
 func TestLinksEtcHostsContentMatch(t *testing.T) {
-	skip.If(t, !testEnv.IsLocalDaemon())
+	skip.If(t, testEnv.IsRemoteDaemon())
 
 	hosts, err := ioutil.ReadFile("/etc/hosts")
 	skip.If(t, os.IsNotExist(err))
@@ -31,7 +31,7 @@ func TestLinksEtcHostsContentMatch(t *testing.T) {
 
 	cID := container.Run(t, ctx, client, container.WithCmd("cat", "/etc/hosts"), container.WithNetworkMode("host"))
 
-	poll.WaitOn(t, containerIsStopped(ctx, client, cID), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsStopped(ctx, client, cID), poll.WithDelay(100*time.Millisecond))
 
 	body, err := client.ContainerLogs(ctx, cID, types.ContainerLogsOptions{
 		ShowStdout: true,

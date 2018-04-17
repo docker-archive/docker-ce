@@ -22,7 +22,7 @@ import (
 )
 
 func TestNetworkNat(t *testing.T) {
-	skip.If(t, !testEnv.IsLocalDaemon())
+	skip.If(t, testEnv.IsRemoteDaemon())
 
 	defer setupTest(t)()
 
@@ -40,7 +40,7 @@ func TestNetworkNat(t *testing.T) {
 }
 
 func TestNetworkLocalhostTCPNat(t *testing.T) {
-	skip.If(t, !testEnv.IsLocalDaemon())
+	skip.If(t, testEnv.IsRemoteDaemon())
 
 	defer setupTest(t)()
 
@@ -57,7 +57,7 @@ func TestNetworkLocalhostTCPNat(t *testing.T) {
 }
 
 func TestNetworkLoopbackNat(t *testing.T) {
-	skip.If(t, !testEnv.IsLocalDaemon())
+	skip.If(t, testEnv.IsRemoteDaemon())
 
 	msg := "it works"
 	startServerContainer(t, msg, 8080)
@@ -69,7 +69,7 @@ func TestNetworkLoopbackNat(t *testing.T) {
 
 	cID := container.Run(t, ctx, client, container.WithCmd("sh", "-c", fmt.Sprintf("stty raw && nc -w 5 %s 8080", endpoint.String())), container.WithTty(true), container.WithNetworkMode("container:server"))
 
-	poll.WaitOn(t, containerIsStopped(ctx, client, cID), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsStopped(ctx, client, cID), poll.WithDelay(100*time.Millisecond))
 
 	body, err := client.ContainerLogs(ctx, cID, types.ContainerLogsOptions{
 		ShowStdout: true,
@@ -98,7 +98,7 @@ func startServerContainer(t *testing.T, msg string, port int) string {
 		}
 	})
 
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	return cID
 }
