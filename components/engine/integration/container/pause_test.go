@@ -25,20 +25,19 @@ func TestPause(t *testing.T) {
 	client := request.NewAPIClient(t)
 	ctx := context.Background()
 
-	name := "testeventpause"
-	cID := container.Run(t, ctx, client, container.WithName(name))
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	cID := container.Run(t, ctx, client)
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	since := request.DaemonUnixTime(ctx, t, client, testEnv)
 
-	err := client.ContainerPause(ctx, name)
+	err := client.ContainerPause(ctx, cID)
 	require.NoError(t, err)
 
 	inspect, err := client.ContainerInspect(ctx, cID)
 	require.NoError(t, err)
-	assert.Equal(t, inspect.State.Paused, true)
+	assert.Equal(t, true, inspect.State.Paused)
 
-	err = client.ContainerUnpause(ctx, name)
+	err = client.ContainerUnpause(ctx, cID)
 	require.NoError(t, err)
 
 	until := request.DaemonUnixTime(ctx, t, client, testEnv)
@@ -46,9 +45,9 @@ func TestPause(t *testing.T) {
 	messages, errs := client.Events(ctx, types.EventsOptions{
 		Since:   since,
 		Until:   until,
-		Filters: filters.NewArgs(filters.Arg("container", name)),
+		Filters: filters.NewArgs(filters.Arg("container", cID)),
 	})
-	assert.Equal(t, getEventActions(t, messages, errs), []string{"pause", "unpause"})
+	assert.Equal(t, []string{"pause", "unpause"}, getEventActions(t, messages, errs))
 }
 
 func TestPauseFailsOnWindowsServerContainers(t *testing.T) {
@@ -59,7 +58,7 @@ func TestPauseFailsOnWindowsServerContainers(t *testing.T) {
 	ctx := context.Background()
 
 	cID := container.Run(t, ctx, client)
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	err := client.ContainerPause(ctx, cID)
 	testutil.ErrorContains(t, err, "cannot pause Windows Server Containers")
@@ -73,7 +72,7 @@ func TestPauseStopPausedContainer(t *testing.T) {
 	ctx := context.Background()
 
 	cID := container.Run(t, ctx, client)
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	err := client.ContainerPause(ctx, cID)
 	require.NoError(t, err)
@@ -81,7 +80,7 @@ func TestPauseStopPausedContainer(t *testing.T) {
 	err = client.ContainerStop(ctx, cID, nil)
 	require.NoError(t, err)
 
-	poll.WaitOn(t, containerIsStopped(ctx, client, cID), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsStopped(ctx, client, cID), poll.WithDelay(100*time.Millisecond))
 }
 
 func getEventActions(t *testing.T, messages <-chan events.Message, errs <-chan error) []string {
@@ -89,7 +88,7 @@ func getEventActions(t *testing.T, messages <-chan events.Message, errs <-chan e
 	for {
 		select {
 		case err := <-errs:
-			assert.Equal(t, err == nil || err == io.EOF, true)
+			assert.True(t, err == nil || err == io.EOF)
 			return actions
 		case e := <-messages:
 			actions = append(actions, e.Status)

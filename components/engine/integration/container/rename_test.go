@@ -51,11 +51,11 @@ func TestRenameStoppedContainer(t *testing.T) {
 
 	oldName := "first_name"
 	cID := container.Run(t, ctx, client, container.WithName(oldName), container.WithCmd("sh"))
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "exited"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "exited"), poll.WithDelay(100*time.Millisecond))
 
 	inspect, err := client.ContainerInspect(ctx, cID)
 	require.NoError(t, err)
-	assert.Equal(t, inspect.Name, "/"+oldName)
+	assert.Equal(t, "/"+oldName, inspect.Name)
 
 	newName := "new_name" + stringid.GenerateNonCryptoID()
 	err = client.ContainerRename(ctx, oldName, newName)
@@ -63,7 +63,7 @@ func TestRenameStoppedContainer(t *testing.T) {
 
 	inspect, err = client.ContainerInspect(ctx, cID)
 	require.NoError(t, err)
-	assert.Equal(t, inspect.Name, "/"+newName)
+	assert.Equal(t, "/"+newName, inspect.Name)
 }
 
 func TestRenameRunningContainerAndReuse(t *testing.T) {
@@ -73,7 +73,7 @@ func TestRenameRunningContainerAndReuse(t *testing.T) {
 
 	oldName := "first_name"
 	cID := container.Run(t, ctx, client, container.WithName(oldName))
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	newName := "new_name" + stringid.GenerateNonCryptoID()
 	err := client.ContainerRename(ctx, oldName, newName)
@@ -81,17 +81,17 @@ func TestRenameRunningContainerAndReuse(t *testing.T) {
 
 	inspect, err := client.ContainerInspect(ctx, cID)
 	require.NoError(t, err)
-	assert.Equal(t, inspect.Name, "/"+newName)
+	assert.Equal(t, "/"+newName, inspect.Name)
 
 	_, err = client.ContainerInspect(ctx, oldName)
 	testutil.ErrorContains(t, err, "No such container: "+oldName)
 
 	cID = container.Run(t, ctx, client, container.WithName(oldName))
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	inspect, err = client.ContainerInspect(ctx, cID)
 	require.NoError(t, err)
-	assert.Equal(t, inspect.Name, "/"+oldName)
+	assert.Equal(t, "/"+oldName, inspect.Name)
 }
 
 func TestRenameInvalidName(t *testing.T) {
@@ -101,14 +101,14 @@ func TestRenameInvalidName(t *testing.T) {
 
 	oldName := "first_name"
 	cID := container.Run(t, ctx, client, container.WithName(oldName))
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	err := client.ContainerRename(ctx, oldName, "new:invalid")
 	testutil.ErrorContains(t, err, "Invalid container name")
 
 	inspect, err := client.ContainerInspect(ctx, oldName)
 	require.NoError(t, err)
-	assert.Equal(t, inspect.ID, cID)
+	assert.Equal(t, cID, inspect.ID)
 }
 
 // Test case for GitHub issue 22466
@@ -133,10 +133,14 @@ func TestRenameAnonymousContainer(t *testing.T) {
 	})
 	err = client.ContainerRename(ctx, cID, "container1")
 	require.NoError(t, err)
+	// Stop/Start the container to get registered
+	// FIXME(vdemeester) this is a really weird behavior as it fails otherwise
+	err = client.ContainerStop(ctx, "container1", nil)
+	require.NoError(t, err)
 	err = client.ContainerStart(ctx, "container1", types.ContainerStartOptions{})
 	require.NoError(t, err)
 
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	count := "-c"
 	if testEnv.OSType == "windows" {
@@ -148,11 +152,11 @@ func TestRenameAnonymousContainer(t *testing.T) {
 		}
 		c.HostConfig.NetworkMode = "network1"
 	}, container.WithCmd("ping", count, "1", "container1"))
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "exited"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "exited"), poll.WithDelay(100*time.Millisecond))
 
 	inspect, err := client.ContainerInspect(ctx, cID)
 	require.NoError(t, err)
-	assert.Equal(t, inspect.State.ExitCode, 0)
+	assert.Equal(t, 0, inspect.State.ExitCode, "container %s exited with the wrong exitcode: %+v", cID, inspect)
 }
 
 // TODO: should be a unit test
@@ -162,7 +166,7 @@ func TestRenameContainerWithSameName(t *testing.T) {
 	client := request.NewAPIClient(t)
 
 	cID := container.Run(t, ctx, client, container.WithName("old"))
-	poll.WaitOn(t, containerIsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, cID, "running"), poll.WithDelay(100*time.Millisecond))
 	err := client.ContainerRename(ctx, "old", "old")
 	testutil.ErrorContains(t, err, "Renaming a container with the same name")
 	err = client.ContainerRename(ctx, cID, "old")
@@ -175,22 +179,22 @@ func TestRenameContainerWithSameName(t *testing.T) {
 // of the linked container should be updated so that the other
 // container could still reference to the container that is renamed.
 func TestRenameContainerWithLinkedContainer(t *testing.T) {
-	skip.If(t, !testEnv.IsLocalDaemon())
+	skip.If(t, testEnv.IsRemoteDaemon())
 
 	defer setupTest(t)()
 	ctx := context.Background()
 	client := request.NewAPIClient(t)
 
 	db1ID := container.Run(t, ctx, client, container.WithName("db1"))
-	poll.WaitOn(t, containerIsInState(ctx, client, db1ID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, db1ID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	app1ID := container.Run(t, ctx, client, container.WithName("app1"), container.WithLinks("db1:/mysql"))
-	poll.WaitOn(t, containerIsInState(ctx, client, app1ID, "running"), poll.WithDelay(100*time.Millisecond))
+	poll.WaitOn(t, container.IsInState(ctx, client, app1ID, "running"), poll.WithDelay(100*time.Millisecond))
 
 	err := client.ContainerRename(ctx, "app1", "app2")
 	require.NoError(t, err)
 
 	inspect, err := client.ContainerInspect(ctx, "app2/mysql")
 	require.NoError(t, err)
-	assert.Equal(t, inspect.ID, db1ID)
+	assert.Equal(t, db1ID, inspect.ID)
 }

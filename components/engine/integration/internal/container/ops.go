@@ -1,6 +1,8 @@
 package container
 
 import (
+	"fmt"
+
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/go-connections/nat"
@@ -17,6 +19,13 @@ func WithName(name string) func(*TestContainerConfig) {
 func WithLinks(links ...string) func(*TestContainerConfig) {
 	return func(c *TestContainerConfig) {
 		c.HostConfig.Links = links
+	}
+}
+
+// WithImage sets the image of the container
+func WithImage(image string) func(*TestContainerConfig) {
+	return func(c *TestContainerConfig) {
+		c.Config.Image = image
 	}
 }
 
@@ -55,5 +64,22 @@ func WithTty(tty bool) func(*TestContainerConfig) {
 func WithWorkingDir(dir string) func(*TestContainerConfig) {
 	return func(c *TestContainerConfig) {
 		c.Config.WorkingDir = dir
+	}
+}
+
+// WithVolume sets the volume of the container
+func WithVolume(name string) func(*TestContainerConfig) {
+	return func(c *TestContainerConfig) {
+		if c.Config.Volumes == nil {
+			c.Config.Volumes = map[string]struct{}{}
+		}
+		c.Config.Volumes[name] = struct{}{}
+	}
+}
+
+// WithBind sets the bind mount of the container
+func WithBind(src, target string) func(*TestContainerConfig) {
+	return func(c *TestContainerConfig) {
+		c.HostConfig.Binds = append(c.HostConfig.Binds, fmt.Sprintf("%s:%s", src, target))
 	}
 }
