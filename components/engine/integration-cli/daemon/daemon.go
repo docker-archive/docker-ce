@@ -30,21 +30,12 @@ type Daemon struct {
 	dockerBinary string
 }
 
-// Config holds docker daemon integration configuration
-type Config struct {
-	Experimental bool
-}
-
 // New returns a Daemon instance to be used for testing.
 // This will create a directory such as d123456789 in the folder specified by $DOCKER_INTEGRATION_DAEMON_DEST or $DEST.
 // The daemon will not automatically start.
-func New(t testingT, dockerBinary string, dockerdBinary string, config Config, ops ...func(*daemon.Daemon)) *Daemon {
+func New(t testingT, dockerBinary string, dockerdBinary string, ops ...func(*daemon.Daemon)) *Daemon {
 	ops = append(ops, daemon.WithDockerdBinary(dockerdBinary))
-	if config.Experimental {
-		ops = append(ops, daemon.WithExperimental)
-	}
 	d := daemon.New(t, ops...)
-
 	return &Daemon{
 		Daemon:       d,
 		dockerBinary: dockerBinary,
@@ -79,18 +70,6 @@ func (d *Daemon) GetIDByName(name string) (string, error) {
 	return d.inspectFieldWithError(name, "Id")
 }
 
-// ActiveContainers returns the list of ids of the currently running containers
-func (d *Daemon) ActiveContainers() (ids []string) {
-	// FIXME(vdemeester) shouldn't ignore the error
-	out, _ := d.Cmd("ps", "-q")
-	for _, id := range strings.Split(out, "\n") {
-		if id = strings.TrimSpace(id); id != "" {
-			ids = append(ids, id)
-		}
-	}
-	return
-}
-
 // InspectField returns the field filter by 'filter'
 func (d *Daemon) InspectField(name, filter string) (string, error) {
 	return d.inspectFilter(name, filter)
@@ -107,15 +86,6 @@ func (d *Daemon) inspectFilter(name, filter string) (string, error) {
 
 func (d *Daemon) inspectFieldWithError(name, field string) (string, error) {
 	return d.inspectFilter(name, fmt.Sprintf(".%s", field))
-}
-
-// FindContainerIP returns the ip of the specified container
-func (d *Daemon) FindContainerIP(id string) (string, error) {
-	out, err := d.Cmd("inspect", "--format='{{ .NetworkSettings.Networks.bridge.IPAddress }}'", id)
-	if err != nil {
-		return "", err
-	}
-	return strings.Trim(out, " \r\n'"), nil
 }
 
 // BuildImageWithOut builds an image with the specified dockerfile and options and returns the output
@@ -146,21 +116,6 @@ func (d *Daemon) CheckActiveContainerCount(c *check.C) (interface{}, check.Comme
 func (d *Daemon) WaitRun(contID string) error {
 	args := []string{"--host", d.Sock()}
 	return WaitInspectWithArgs(d.dockerBinary, contID, "{{.State.Running}}", "true", 10*time.Second, args...)
-}
-
-// CmdRetryOutOfSequence tries the specified command against the current daemon for 10 times
-func (d *Daemon) CmdRetryOutOfSequence(args ...string) (string, error) {
-	for i := 0; ; i++ {
-		out, err := d.Cmd(args...)
-		if err != nil {
-			if strings.Contains(out, "update out of sequence") {
-				if i < 10 {
-					continue
-				}
-			}
-		}
-		return out, err
-	}
 }
 
 // WaitInspectWithArgs waits for the specified expression to be equals to the specified expected string in the given time.

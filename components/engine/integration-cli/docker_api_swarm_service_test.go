@@ -14,8 +14,8 @@ import (
 	"github.com/docker/docker/api/types/swarm/runtime"
 	"github.com/docker/docker/integration-cli/checker"
 	"github.com/docker/docker/integration-cli/daemon"
-	"github.com/docker/docker/integration-cli/fixtures/plugin"
 	testdaemon "github.com/docker/docker/internal/test/daemon"
+	"github.com/docker/docker/internal/test/fixtures/plugin"
 	"github.com/docker/docker/internal/test/registry"
 	"github.com/go-check/check"
 	"golang.org/x/net/context"
@@ -556,7 +556,7 @@ func (s *DockerSwarmSuite) TestAPISwarmServicesStateReporting(c *check.C) {
 	getContainers := func() map[string]*daemon.Daemon {
 		m := make(map[string]*daemon.Daemon)
 		for _, d := range []*daemon.Daemon{d1, d2, d3} {
-			for _, id := range d.ActiveContainers() {
+			for _, id := range d.ActiveContainers(c) {
 				m[id] = d
 			}
 		}
