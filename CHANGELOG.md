@@ -4,6 +4,11 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 
 ## 18.03.1-ce (2018-04-DD)
 
+### Client
+
+- Fix error with merge composefile with networks [docker/cli#983](https://github.com/docker/cli/pull/983)
+- Fix stack redeploying with service after `--force` [docker/cli#963](https://github.com/docker/cli/pull/963)
+
 ### Runtime
 
 - Fix AppArmor profiles not being applied to `docker exec` processes [moby/moby#36466](https://github.com/moby/moby/pull/36466)
@@ -13,6 +18,12 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 - Daemon/stats: more resilient cpu sampling [moby/moby#36519](https://github.com/moby/moby/pull/36519)
 * Containerd: update to 1.0.3 release [moby/moby#36749](https://github.com/moby/moby/pull/36749)
 - Fix Windows layer leak when write fails [moby/moby#36728](https://github.com/moby/moby/pull/36728)
+* Don't make container mount unbindable [moby/moby#36768](https://github.com/moby/moby/pull/36768)
+* Ensure hijacked connection implements a CloseWrite fucntion [moby/moby#36517](https://github.com/moby/moby/pull/36517) 
+
+### Swarm Mode
+
+* Increase raft Election tick to 10 times Heartbeat tick [moby/moby#36672](https://github.com/moby/moby/pull/36672)
 
 ## 18.03.0-ce (2018-03-21)
 
