@@ -411,19 +411,31 @@ files. The `ARG` instruction lets Dockerfile authors define values that users
 can set at build-time using the  `--build-arg` flag:
 
 ```bash
-$ docker build --build-arg HTTP_PROXY=http://10.20.30.2:1234 .
+$ docker build --build-arg HTTP_PROXY=http://10.20.30.2:1234 --build-arg FTP_PROXY=http://40.50.60.5:4567 .
 ```
 
 This flag allows you to pass the build-time variables that are
 accessed like regular environment variables in the `RUN` instruction of the
 Dockerfile. Also, these values don't persist in the intermediate or final images
-like `ENV` values do.
+like `ENV` values do.   You must add `--build-arg` for each build argument.  
 
 Using this flag will not alter the output you see when the `ARG` lines from the
 Dockerfile are echoed during the build process.
 
 For detailed information on using `ARG` and `ENV` instructions, see the
 [Dockerfile reference](../builder.md).
+
+You may also use the `--build-arg` flag without a value, in which case the value
+from the local environment will be propagated into the Docker container being
+built:
+
+```bash
+$ export HTTP_PROXY=http://10.20.30.2:1234
+$ docker build --build-arg HTTP_PROXY .
+```
+
+This is similar to how `docker run -e` works. Refer to the [`docker run` documentation](https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file)
+for more information.
 
 ### Optional security options (--security-opt)
 
@@ -504,7 +516,7 @@ section in the userguide for more information.
 
 The `--squash` option has a number of known limitations:
 
-- When squashing layers, the resulting image cannot take advantage of layer 
+- When squashing layers, the resulting image cannot take advantage of layer
   sharing with other images, and may use significantly more space. Sharing the
   base image is still supported.
 - When using this option you may see significantly more space used due to
@@ -581,7 +593,7 @@ $ docker build --squash -t test .
 If everything is right, the history will look like this:
 
 ```bash
-$ docker history test 
+$ docker history test
 
 IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
 4e10cb5b4cac        3 seconds ago                                                       12 B                merge sha256:88a7b0112a41826885df0e7072698006ee8f621c6ab99fca7fe9151d7b599702 to sha256:47bcc53f74dc94b1920f0b34f6036096526296767650f223433fe65c35f149eb
