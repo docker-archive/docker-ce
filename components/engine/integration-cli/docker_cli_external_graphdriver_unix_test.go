@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/daemon/graphdriver/vfs"
 	"github.com/docker/docker/integration-cli/daemon"
+	testdaemon "github.com/docker/docker/internal/test/daemon"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/plugins"
 	"github.com/go-check/check"
@@ -52,9 +53,7 @@ type graphEventsCounter struct {
 }
 
 func (s *DockerExternalGraphdriverSuite) SetUpTest(c *check.C) {
-	s.d = daemon.New(c, dockerBinary, dockerdBinary, daemon.Config{
-		Experimental: testEnv.DaemonInfo.ExperimentalBuild,
-	})
+	s.d = daemon.New(c, dockerBinary, dockerdBinary, testdaemon.WithEnvironment(testEnv.Execution))
 }
 
 func (s *DockerExternalGraphdriverSuite) OnTimeout(c *check.C) {
@@ -347,7 +346,7 @@ func (s *DockerExternalGraphdriverSuite) TearDownSuite(c *check.C) {
 }
 
 func (s *DockerExternalGraphdriverSuite) TestExternalGraphDriver(c *check.C) {
-	testRequires(c, ExperimentalDaemon)
+	testRequires(c, ExperimentalDaemon, SameHostDaemon)
 
 	s.testExternalGraphDriver("test-external-graph-driver", "spec", c)
 	s.testExternalGraphDriver("json-external-graph-driver", "json", c)
@@ -395,7 +394,7 @@ func (s *DockerExternalGraphdriverSuite) testExternalGraphDriver(name string, ex
 }
 
 func (s *DockerExternalGraphdriverSuite) TestExternalGraphDriverPull(c *check.C) {
-	testRequires(c, Network, ExperimentalDaemon)
+	testRequires(c, Network, ExperimentalDaemon, SameHostDaemon)
 
 	s.d.Start(c)
 

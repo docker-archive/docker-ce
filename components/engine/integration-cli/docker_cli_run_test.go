@@ -25,7 +25,7 @@ import (
 	"github.com/docker/docker/integration-cli/checker"
 	"github.com/docker/docker/integration-cli/cli"
 	"github.com/docker/docker/integration-cli/cli/build"
-	"github.com/docker/docker/integration-cli/cli/build/fakecontext"
+	"github.com/docker/docker/internal/test/fakecontext"
 	"github.com/docker/docker/internal/testutil"
 	"github.com/docker/docker/pkg/mount"
 	"github.com/docker/docker/pkg/parsers/kernel"
@@ -294,7 +294,7 @@ func (s *DockerSuite) TestUserDefinedNetworkAlias(c *check.C) {
 	testRequires(c, DaemonIsLinux, NotUserNamespace, NotArm)
 	dockerCmd(c, "network", "create", "-d", "bridge", "net1")
 
-	cid1, _ := dockerCmd(c, "run", "-d", "--net=net1", "--name=first", "--net-alias=foo1", "--net-alias=foo2", "busybox", "top")
+	cid1, _ := dockerCmd(c, "run", "-d", "--net=net1", "--name=first", "--net-alias=foo1", "--net-alias=foo2", "busybox:glibc", "top")
 	c.Assert(waitRun("first"), check.IsNil)
 
 	// Check if default short-id alias is added automatically
@@ -302,7 +302,7 @@ func (s *DockerSuite) TestUserDefinedNetworkAlias(c *check.C) {
 	aliases := inspectField(c, id, "NetworkSettings.Networks.net1.Aliases")
 	c.Assert(aliases, checker.Contains, stringid.TruncateID(id))
 
-	cid2, _ := dockerCmd(c, "run", "-d", "--net=net1", "--name=second", "busybox", "top")
+	cid2, _ := dockerCmd(c, "run", "-d", "--net=net1", "--name=second", "busybox:glibc", "top")
 	c.Assert(waitRun("second"), check.IsNil)
 
 	// Check if default short-id alias is added automatically

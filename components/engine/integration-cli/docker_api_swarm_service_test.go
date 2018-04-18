@@ -14,13 +14,15 @@ import (
 	"github.com/docker/docker/api/types/swarm/runtime"
 	"github.com/docker/docker/integration-cli/checker"
 	"github.com/docker/docker/integration-cli/daemon"
-	"github.com/docker/docker/integration-cli/fixtures/plugin"
+	testdaemon "github.com/docker/docker/internal/test/daemon"
+	"github.com/docker/docker/internal/test/fixtures/plugin"
+	"github.com/docker/docker/internal/test/registry"
 	"github.com/go-check/check"
 	"golang.org/x/net/context"
 	"golang.org/x/sys/unix"
 )
 
-func setPortConfig(portConfig []swarm.PortConfig) daemon.ServiceConstructor {
+func setPortConfig(portConfig []swarm.PortConfig) testdaemon.ServiceConstructor {
 	return func(s *swarm.Service) {
 		if s.Spec.EndpointSpec == nil {
 			s.Spec.EndpointSpec = &swarm.EndpointSpec{}
@@ -140,7 +142,7 @@ func (s *DockerSwarmSuite) TestAPISwarmServicesCreateGlobal(c *check.C) {
 
 func (s *DockerSwarmSuite) TestAPISwarmServicesUpdate(c *check.C) {
 	const nodeCount = 3
-	var daemons [nodeCount]*daemon.Swarm
+	var daemons [nodeCount]*daemon.Daemon
 	for i := 0; i < nodeCount; i++ {
 		daemons[i] = s.AddDaemon(c, true, i == 0)
 	}
@@ -309,7 +311,7 @@ func (s *DockerSwarmSuite) TestAPISwarmServicesUpdateStartFirst(c *check.C) {
 
 func (s *DockerSwarmSuite) TestAPISwarmServicesFailedUpdate(c *check.C) {
 	const nodeCount = 3
-	var daemons [nodeCount]*daemon.Swarm
+	var daemons [nodeCount]*daemon.Daemon
 	for i := 0; i < nodeCount; i++ {
 		daemons[i] = s.AddDaemon(c, true, i == 0)
 	}
@@ -349,7 +351,7 @@ func (s *DockerSwarmSuite) TestAPISwarmServicesFailedUpdate(c *check.C) {
 
 func (s *DockerSwarmSuite) TestAPISwarmServiceConstraintRole(c *check.C) {
 	const nodeCount = 3
-	var daemons [nodeCount]*daemon.Swarm
+	var daemons [nodeCount]*daemon.Daemon
 	for i := 0; i < nodeCount; i++ {
 		daemons[i] = s.AddDaemon(c, true, i == 0)
 	}
@@ -401,7 +403,7 @@ func (s *DockerSwarmSuite) TestAPISwarmServiceConstraintRole(c *check.C) {
 
 func (s *DockerSwarmSuite) TestAPISwarmServiceConstraintLabel(c *check.C) {
 	const nodeCount = 3
-	var daemons [nodeCount]*daemon.Swarm
+	var daemons [nodeCount]*daemon.Daemon
 	for i := 0; i < nodeCount; i++ {
 		daemons[i] = s.AddDaemon(c, true, i == 0)
 	}
@@ -496,7 +498,7 @@ func (s *DockerSwarmSuite) TestAPISwarmServiceConstraintLabel(c *check.C) {
 
 func (s *DockerSwarmSuite) TestAPISwarmServicePlacementPrefs(c *check.C) {
 	const nodeCount = 3
-	var daemons [nodeCount]*daemon.Swarm
+	var daemons [nodeCount]*daemon.Daemon
 	for i := 0; i < nodeCount; i++ {
 		daemons[i] = s.AddDaemon(c, true, i == 0)
 	}
@@ -551,9 +553,9 @@ func (s *DockerSwarmSuite) TestAPISwarmServicesStateReporting(c *check.C) {
 
 	waitAndAssert(c, defaultReconciliationTimeout, reducedCheck(sumAsIntegers, d1.CheckActiveContainerCount, d2.CheckActiveContainerCount, d3.CheckActiveContainerCount), checker.Equals, instances)
 
-	getContainers := func() map[string]*daemon.Swarm {
-		m := make(map[string]*daemon.Swarm)
-		for _, d := range []*daemon.Swarm{d1, d2, d3} {
+	getContainers := func() map[string]*daemon.Daemon {
+		m := make(map[string]*daemon.Daemon)
+		for _, d := range []*daemon.Daemon{d1, d2, d3} {
 			for _, id := range d.ActiveContainers() {
 				m[id] = d
 			}
@@ -614,7 +616,7 @@ func (s *DockerSwarmSuite) TestAPISwarmServicesStateReporting(c *check.C) {
 func (s *DockerSwarmSuite) TestAPISwarmServicesPlugin(c *check.C) {
 	testRequires(c, ExperimentalDaemon, DaemonIsLinux, IsAmd64)
 
-	reg := setupRegistry(c, false, "", "")
+	reg := registry.NewV2(c)
 	defer reg.Close()
 
 	repo := path.Join(privateRegistryURL, "swarm", "test:v1")

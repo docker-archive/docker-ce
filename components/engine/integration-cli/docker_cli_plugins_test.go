@@ -14,7 +14,7 @@ import (
 	"github.com/docker/docker/integration-cli/checker"
 	"github.com/docker/docker/integration-cli/cli"
 	"github.com/docker/docker/integration-cli/daemon"
-	"github.com/docker/docker/integration-cli/fixtures/plugin"
+	"github.com/docker/docker/internal/test/fixtures/plugin"
 	"github.com/go-check/check"
 	"golang.org/x/net/context"
 )
@@ -473,7 +473,7 @@ func (s *DockerSuite) TestPluginUpgrade(c *check.C) {
 
 func (s *DockerSuite) TestPluginMetricsCollector(c *check.C) {
 	testRequires(c, DaemonIsLinux, Network, SameHostDaemon, IsAmd64)
-	d := daemon.New(c, dockerBinary, dockerdBinary, daemon.Config{})
+	d := daemon.New(c, dockerBinary, dockerdBinary)
 	d.Start(c)
 	defer d.Stop(c)
 

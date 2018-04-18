@@ -1,93 +1,67 @@
 package network // import "github.com/docker/docker/integration/network"
 
 import (
-	"runtime"
 	"testing"
 	"time"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/swarm"
+	swarmtypes "github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/integration/internal/swarm"
+	"github.com/gotestyourself/gotestyourself/assert"
 	"github.com/gotestyourself/gotestyourself/poll"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 func TestServiceWithPredefinedNetwork(t *testing.T) {
 	defer setupTest(t)()
-	d := newSwarm(t)
+	d := swarm.NewSwarm(t, testEnv)
 	defer d.Stop(t)
-	client, err := client.NewClientWithOpts(client.WithHost((d.Sock())))
-	require.NoError(t, err)
+	client := d.NewClientT(t)
+	defer client.Close()
 
 	hostName := "host"
 	var instances uint64 = 1
 	serviceName := "TestService"
 	serviceSpec := swarmServiceSpec(serviceName, instances)
-	serviceSpec.TaskTemplate.Networks = append(serviceSpec.TaskTemplate.Networks, swarm.NetworkAttachmentConfig{Target: hostName})
+	serviceSpec.TaskTemplate.Networks = append(serviceSpec.TaskTemplate.Networks, swarmtypes.NetworkAttachmentConfig{Target: hostName})
 
 	serviceResp, err := client.ServiceCreate(context.Background(), serviceSpec, types.ServiceCreateOptions{
 		QueryRegistry: false,
 	})
-	require.NoError(t, err)
-
-	pollSettings := func(config *poll.Settings) {
-		if runtime.GOARCH == "arm64" || runtime.GOARCH == "arm" {
-			config.Timeout = 50 * time.Second
-			config.Delay = 100 * time.Millisecond
-		} else {
-			config.Timeout = 30 * time.Second
-			config.Delay = 100 * time.Millisecond
-		}
-	}
+	assert.NilError(t, err)
 
 	serviceID := serviceResp.ID
-	poll.WaitOn(t, serviceRunningCount(client, serviceID, instances), pollSettings)
+	poll.WaitOn(t, serviceRunningCount(client, serviceID, instances), swarm.ServicePoll)
 
 	_, _, err = client.ServiceInspectWithRaw(context.Background(), serviceID, types.ServiceInspectOptions{})
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	err = client.ServiceRemove(context.Background(), serviceID)
-	require.NoError(t, err)
-
-	poll.WaitOn(t, serviceIsRemoved(client, serviceID), pollSettings)
-	poll.WaitOn(t, noTasks(client), pollSettings)
-
+	assert.NilError(t, err)
 }
 
 const ingressNet = "ingress"
 
 func TestServiceWithIngressNetwork(t *testing.T) {
 	defer setupTest(t)()
-	d := newSwarm(t)
+	d := swarm.NewSwarm(t, testEnv)
 	defer d.Stop(t)
+	client := d.NewClientT(t)
+	defer client.Close()
 
-	client, err := client.NewClientWithOpts(client.WithHost((d.Sock())))
-	require.NoError(t, err)
-
-	pollSettings := func(config *poll.Settings) {
-		if runtime.GOARCH == "arm64" || runtime.GOARCH == "arm" {
-			config.Timeout = 50 * time.Second
-			config.Delay = 100 * time.Millisecond
-		} else {
-			config.Timeout = 30 * time.Second
-			config.Delay = 100 * time.Millisecond
-		}
-	}
-
-	poll.WaitOn(t, swarmIngressReady(client), pollSettings)
+	poll.WaitOn(t, swarmIngressReady(client), swarm.NetworkPoll)
 
 	var instances uint64 = 1
 	serviceName := "TestIngressService"
 	serviceSpec := swarmServiceSpec(serviceName, instances)
-	serviceSpec.TaskTemplate.Networks = append(serviceSpec.TaskTemplate.Networks, swarm.NetworkAttachmentConfig{Target: ingressNet})
-	serviceSpec.EndpointSpec = &swarm.EndpointSpec{
-		Ports: []swarm.PortConfig{
+	serviceSpec.TaskTemplate.Networks = append(serviceSpec.TaskTemplate.Networks, swarmtypes.NetworkAttachmentConfig{Target: ingressNet})
+	serviceSpec.EndpointSpec = &swarmtypes.EndpointSpec{
+		Ports: []swarmtypes.PortConfig{
 			{
-				Protocol:    swarm.PortConfigProtocolTCP,
+				Protocol:    swarmtypes.PortConfigProtocolTCP,
 				TargetPort:  80,
-				PublishMode: swarm.PortConfigPublishModeIngress,
+				PublishMode: swarmtypes.PortConfigPublishModeIngress,
 			},
 		},
 	}
@@ -95,19 +69,19 @@ func TestServiceWithIngressNetwork(t *testing.T) {
 	serviceResp, err := client.ServiceCreate(context.Background(), serviceSpec, types.ServiceCreateOptions{
 		QueryRegistry: false,
 	})
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	serviceID := serviceResp.ID
-	poll.WaitOn(t, serviceRunningCount(client, serviceID, instances), pollSettings)
+	poll.WaitOn(t, serviceRunningCount(client, serviceID, instances), swarm.ServicePoll)
 
 	_, _, err = client.ServiceInspectWithRaw(context.Background(), serviceID, types.ServiceInspectOptions{})
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
 	err = client.ServiceRemove(context.Background(), serviceID)
-	require.NoError(t, err)
+	assert.NilError(t, err)
 
-	poll.WaitOn(t, serviceIsRemoved(client, serviceID), pollSettings)
-	poll.WaitOn(t, noTasks(client), pollSettings)
+	poll.WaitOn(t, serviceIsRemoved(client, serviceID), swarm.ServicePoll)
+	poll.WaitOn(t, noServices(client), swarm.ServicePoll)
 
 	// Ensure that "ingress" is not removed or corrupted
 	time.Sleep(10 * time.Second)
@@ -115,17 +89,15 @@ func TestServiceWithIngressNetwork(t *testing.T) {
 		Verbose: true,
 		Scope:   "swarm",
 	})
-	require.NoError(t, err, "Ingress network was removed after removing service!")
-	require.NotZero(t, len(netInfo.Containers), "No load balancing endpoints in ingress network")
-	require.NotZero(t, len(netInfo.Peers), "No peers (including self) in ingress network")
+	assert.NilError(t, err, "Ingress network was removed after removing service!")
+	assert.Assert(t, len(netInfo.Containers) != 0, "No load balancing endpoints in ingress network")
+	assert.Assert(t, len(netInfo.Peers) != 0, "No peers (including self) in ingress network")
 	_, ok := netInfo.Containers["ingress-sbox"]
-	require.True(t, ok, "ingress-sbox not present in ingress network")
+	assert.Assert(t, ok, "ingress-sbox not present in ingress network")
 }
 
 func serviceRunningCount(client client.ServiceAPIClient, serviceID string, instances uint64) func(log poll.LogT) poll.Result {
 	return func(log poll.LogT) poll.Result {
-		filter := filters.NewArgs()
-		filter.Add("service", serviceID)
 		services, err := client.ServiceList(context.Background(), types.ServiceListOptions{})
 		if err != nil {
 			return poll.Error(err)
@@ -157,5 +129,19 @@ func swarmIngressReady(client client.NetworkAPIClient) func(log poll.LogT) poll.
 			return poll.Continue("ingress not ready: does not contain the ingress-sbox")
 		}
 		return poll.Success()
+	}
+}
+
+func noServices(client client.ServiceAPIClient) func(log poll.LogT) poll.Result {
+	return func(log poll.LogT) poll.Result {
+		services, err := client.ServiceList(context.Background(), types.ServiceListOptions{})
+		switch {
+		case err != nil:
+			return poll.Error(err)
+		case len(services) == 0:
+			return poll.Success()
+		default:
+			return poll.Continue("Service count at %d waiting for 0", len(services))
+		}
 	}
 }
