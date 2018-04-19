@@ -6,7 +6,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 
 ### Client
 
-- Fix error with merge composefile with networks [docker/cli#983](https://github.com/docker/cli/pull/983)
+- Fix error with merge compose file with networks [docker/cli#983](https://github.com/docker/cli/pull/983)
 * Fix docker stack deploy re-deploying services after the service was updated with `--force` [docker/cli#963](https://github.com/docker/cli/pull/963)
 * Fix docker version output alignment [docker/cli#965](https://github.com/docker/cli/pull/965)
 
@@ -20,9 +20,11 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Containerd: update to 1.0.3 release [moby/moby#36749](https://github.com/moby/moby/pull/36749)
 - Fix Windows layer leak when write fails [moby/moby#36728](https://github.com/moby/moby/pull/36728)
 * Don't make container mount unbindable [moby/moby#36768](https://github.com/moby/moby/pull/36768)
-* Ensure hijacked connection implements a CloseWrite fucntion [moby/moby#36517](https://github.com/moby/moby/pull/36517) 
 - Fix Daemon panics on container export after a daemon restart [moby/moby/36586](https://github.com/moby/moby/pull/36586)
 - Fix digest cache being removed on autherrors [moby/moby#36509](https://github.com/moby/moby/pull/36509)
+- Make sure plugin container is removed on failure [moby/moby#36715](https://github.com/moby/moby/pull/36715)
+- Copy: avoid using all system memory with authz plugins [moby/moby#36595](https://github.com/moby/moby/pull/36595)
+- Relax some libcontainerd client locking [moby/moby#36848](https://github.com/moby/moby/pull/36848)
 
 ### Swarm Mode
 
