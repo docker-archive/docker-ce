@@ -7,7 +7,8 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 ### Client
 
 - Fix error with merge composefile with networks [docker/cli#983](https://github.com/docker/cli/pull/983)
-- Fix stack redeploying with service after `--force` [docker/cli#963](https://github.com/docker/cli/pull/963)
+* Fix docker stack deploy re-deploying services after the service was updated with `--force` [docker/cli#963](https://github.com/docker/cli/pull/963)
+* Fix docker version output alignment [docker/cli#965](https://github.com/docker/cli/pull/965)
 
 ### Runtime
 
@@ -20,10 +21,20 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 - Fix Windows layer leak when write fails [moby/moby#36728](https://github.com/moby/moby/pull/36728)
 * Don't make container mount unbindable [moby/moby#36768](https://github.com/moby/moby/pull/36768)
 * Ensure hijacked connection implements a CloseWrite fucntion [moby/moby#36517](https://github.com/moby/moby/pull/36517) 
+- Fix Daemon panics on container export after a daemon restart [moby/moby/36586](https://github.com/moby/moby/pull/36586)
+- Fix digest cache being removed on autherrors [moby/moby#36509](https://github.com/moby/moby/pull/36509)
 
 ### Swarm Mode
 
 * Increase raft Election tick to 10 times Heartbeat tick [moby/moby#36672](https://github.com/moby/moby/pull/36672)
+
+### Networking
+
+* Gracefully remove LB endpoints from services [docker/libnetwork#2112](https://github.com/docker/libnetwork/pull/2112)
+* Retry other external DNS servers on ServFail [docker/libnetwork#2121](https://github.com/docker/libnetwork/pull/2121)
+* Improve scalabiltiy of bridge network isolation rules [docker/libnetwork#2117](https://github.com/docker/libnetwork/pull/2117)
+* Allow for larger preset property values, do not override [docker/libnetwork#2124](https://github.com/docker/libnetwork/pull/2124)
+* Prevent panics on concurrent reads/writes when calling `changeNodeState` [docker/libnetwork#2136](https://github.com/docker/libnetwork/pull/2136)
 
 ## 18.03.0-ce (2018-03-21)
 
