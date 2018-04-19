@@ -4,6 +4,12 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 
 ## 18.03.1-ce (2018-04-DD)
 
+### Client
+
+- Fix error with merge compose file with networks [docker/cli#983](https://github.com/docker/cli/pull/983)
+* Fix docker stack deploy re-deploying services after the service was updated with `--force` [docker/cli#963](https://github.com/docker/cli/pull/963)
+* Fix docker version output alignment [docker/cli#965](https://github.com/docker/cli/pull/965)
+
 ### Runtime
 
 - Fix AppArmor profiles not being applied to `docker exec` processes [moby/moby#36466](https://github.com/moby/moby/pull/36466)
@@ -13,6 +19,24 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 - Daemon/stats: more resilient cpu sampling [moby/moby#36519](https://github.com/moby/moby/pull/36519)
 * Containerd: update to 1.0.3 release [moby/moby#36749](https://github.com/moby/moby/pull/36749)
 - Fix Windows layer leak when write fails [moby/moby#36728](https://github.com/moby/moby/pull/36728)
+* Don't make container mount unbindable [moby/moby#36768](https://github.com/moby/moby/pull/36768)
+- Fix Daemon panics on container export after a daemon restart [moby/moby/36586](https://github.com/moby/moby/pull/36586)
+- Fix digest cache being removed on autherrors [moby/moby#36509](https://github.com/moby/moby/pull/36509)
+- Make sure plugin container is removed on failure [moby/moby#36715](https://github.com/moby/moby/pull/36715)
+- Copy: avoid using all system memory with authz plugins [moby/moby#36595](https://github.com/moby/moby/pull/36595)
+- Relax some libcontainerd client locking [moby/moby#36848](https://github.com/moby/moby/pull/36848)
+
+### Swarm Mode
+
+* Increase raft Election tick to 10 times Heartbeat tick [moby/moby#36672](https://github.com/moby/moby/pull/36672)
+
+### Networking
+
+* Gracefully remove LB endpoints from services [docker/libnetwork#2112](https://github.com/docker/libnetwork/pull/2112)
+* Retry other external DNS servers on ServFail [docker/libnetwork#2121](https://github.com/docker/libnetwork/pull/2121)
+* Improve scalabiltiy of bridge network isolation rules [docker/libnetwork#2117](https://github.com/docker/libnetwork/pull/2117)
+* Allow for larger preset property values, do not override [docker/libnetwork#2124](https://github.com/docker/libnetwork/pull/2124)
+* Prevent panics on concurrent reads/writes when calling `changeNodeState` [docker/libnetwork#2136](https://github.com/docker/libnetwork/pull/2136)
 
 ## 18.03.0-ce (2018-03-21)
 
