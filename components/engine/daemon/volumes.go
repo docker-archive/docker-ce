@@ -1,7 +1,6 @@
 package daemon // import "github.com/docker/docker/daemon"
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -15,7 +14,7 @@ import (
 	"github.com/docker/docker/container"
 	"github.com/docker/docker/errdefs"
 	"github.com/docker/docker/volume"
-	"github.com/docker/docker/volume/drivers"
+	volumemounts "github.com/docker/docker/volume/mounts"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -76,8 +75,9 @@ func (m mounts) parts(i int) int {
 // 4. Cleanup old volumes that are about to be reassigned.
 func (daemon *Daemon) registerMountPoints(container *container.Container, hostConfig *containertypes.HostConfig) (retErr error) {
 	binds := map[string]bool{}
-	mountPoints := map[string]*volume.MountPoint{}
-	parser := volume.NewParser(container.OS)
+	mountPoints := map[string]*volumemounts.MountPoint{}
+	parser := volumemounts.NewParser(container.OS)
+
 	defer func() {
 		// clean up the container mountpoints once return with error
 		if retErr != nil {
@@ -117,7 +117,7 @@ func (daemon *Daemon) registerMountPoints(container *container.Container, hostCo
 		}
 
 		for _, m := range c.MountPoints {
-			cp := &volume.MountPoint{
+			cp := &volumemounts.MountPoint{
 				Type:        m.Type,
 				Name:        m.Name,
 				Source:      m.Source,
@@ -252,7 +252,7 @@ func (daemon *Daemon) registerMountPoints(container *container.Container, hostCo
 
 // lazyInitializeVolume initializes a mountpoint's volume if needed.
 // This happens after a daemon restart.
-func (daemon *Daemon) lazyInitializeVolume(containerID string, m *volume.MountPoint) error {
+func (daemon *Daemon) lazyInitializeVolume(containerID string, m *volumemounts.MountPoint) error {
 	if len(m.Driver) > 0 && m.Volume == nil {
 		v, err := daemon.volumes.GetWithRef(m.Name, m.Driver, containerID)
 		if err != nil {
@@ -272,7 +272,7 @@ func (daemon *Daemon) backportMountSpec(container *container.Container) {
 	container.Lock()
 	defer container.Unlock()
 
-	parser := volume.NewParser(container.OS)
+	parser := volumemounts.NewParser(container.OS)
 
 	maybeUpdate := make(map[string]bool)
 	for _, mp := range container.MountPoints {
@@ -290,7 +290,7 @@ func (daemon *Daemon) backportMountSpec(container *container.Container) {
 		mountSpecs[m.Target] = true
 	}
 
-	binds := make(map[string]*volume.MountPoint, len(container.HostConfig.Binds))
+	binds := make(map[string]*volumemounts.MountPoint, len(container.HostConfig.Binds))
 	for _, rawSpec := range container.HostConfig.Binds {
 		mp, err := parser.ParseMountRaw(rawSpec, container.HostConfig.VolumeDriver)
 		if err != nil {
@@ -300,7 +300,7 @@ func (daemon *Daemon) backportMountSpec(container *container.Container) {
 		binds[mp.Destination] = mp
 	}
 
-	volumesFrom := make(map[string]volume.MountPoint)
+	volumesFrom := make(map[string]volumemounts.MountPoint)
 	for _, fromSpec := range container.HostConfig.VolumesFrom {
 		from, _, err := parser.ParseVolumesFrom(fromSpec)
 		if err != nil {
@@ -323,7 +323,7 @@ func (daemon *Daemon) backportMountSpec(container *container.Container) {
 		fromC.Unlock()
 	}
 
-	needsUpdate := func(containerMount, other *volume.MountPoint) bool {
+	needsUpdate := func(containerMount, other *volumemounts.MountPoint) bool {
 		if containerMount.Type != other.Type || !reflect.DeepEqual(containerMount.Spec, other.Spec) {
 			return true
 		}
@@ -384,33 +384,4 @@ func (daemon *Daemon) backportMountSpec(container *container.Container) {
 		cm.Spec.Target = cm.Destination
 		cm.Spec.ReadOnly = !cm.RW
 	}
-}
-
-func (daemon *Daemon) traverseLocalVolumes(fn func(volume.Volume) error) error {
-	localVolumeDriver, err := volumedrivers.GetDriver(volume.DefaultDriverName)
-	if err != nil {
-		return fmt.Errorf("can't retrieve local volume driver: %v", err)
-	}
-	vols, err := localVolumeDriver.List()
-	if err != nil {
-		return fmt.Errorf("can't retrieve local volumes: %v", err)
-	}
-
-	for _, v := range vols {
-		name := v.Name()
-		vol, err := daemon.volumes.Get(name)
-		if err != nil {
-			logrus.Warnf("failed to retrieve volume %s from store: %v", name, err)
-		} else {
-			// daemon.volumes.Get will return DetailedVolume
-			v = vol
-		}
-
-		err = fn(v)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
