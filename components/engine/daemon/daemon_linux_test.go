@@ -3,11 +3,15 @@
 package daemon // import "github.com/docker/docker/daemon"
 
 import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	containertypes "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/container"
+	"github.com/docker/docker/daemon/config"
 	"github.com/docker/docker/oci"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/mount"
@@ -180,12 +184,6 @@ func TestShouldUnmountRoot(t *testing.T) {
 			expect: true,
 		},
 		{
-			desc:   "not a mountpoint",
-			root:   "/docker",
-			info:   nil,
-			expect: false,
-		},
-		{
 			desc:   "root is at in a submount from `/`",
 			root:   "/foo/docker",
 			info:   &mount.Info{Root: "/docker", Mountpoint: "/foo/docker"},
@@ -195,12 +193,6 @@ func TestShouldUnmountRoot(t *testing.T) {
 			desc:   "root is mounted in from a parent mount namespace same root dir", // dind is an example of this
 			root:   "/docker",
 			info:   &mount.Info{Root: "/docker/volumes/1234657/_data", Mountpoint: "/docker"},
-			expect: false,
-		},
-		{
-			desc:   "root is mounted in from a parent mount namespace different root dir",
-			root:   "/foo/bar",
-			info:   &mount.Info{Root: "/docker/volumes/1234657/_data", Mountpoint: "/foo/bar"},
 			expect: false,
 		},
 	} {
@@ -227,4 +219,100 @@ func TestShouldUnmountRoot(t *testing.T) {
 			}
 		})
 	}
+}
+
+func checkMounted(t *testing.T, p string, expect bool) {
+	t.Helper()
+	mounted, err := mount.Mounted(p)
+	assert.Check(t, err)
+	assert.Check(t, mounted == expect, "expected %v, actual %v", expect, mounted)
+}
+
+func TestRootMountCleanup(t *testing.T) {
+	t.Parallel()
+
+	testRoot, err := ioutil.TempDir("", t.Name())
+	assert.Assert(t, err)
+	defer os.RemoveAll(testRoot)
+	cfg := &config.Config{}
+
+	err = mount.MakePrivate(testRoot)
+	assert.Assert(t, err)
+	defer mount.Unmount(testRoot)
+
+	cfg.ExecRoot = filepath.Join(testRoot, "exec")
+	cfg.Root = filepath.Join(testRoot, "daemon")
+
+	err = os.Mkdir(cfg.ExecRoot, 0755)
+	assert.Assert(t, err)
+	err = os.Mkdir(cfg.Root, 0755)
+	assert.Assert(t, err)
+
+	d := &Daemon{configStore: cfg, root: cfg.Root}
+	unmountFile := getUnmountOnShutdownPath(cfg)
+
+	t.Run("regular dir no mountpoint", func(t *testing.T) {
+		err = setupDaemonRootPropagation(cfg)
+		assert.Assert(t, err)
+		_, err = os.Stat(unmountFile)
+		assert.Assert(t, err)
+		checkMounted(t, cfg.Root, true)
+
+		assert.Assert(t, d.cleanupMounts())
+		checkMounted(t, cfg.Root, false)
+
+		_, err = os.Stat(unmountFile)
+		assert.Assert(t, os.IsNotExist(err))
+	})
+
+	t.Run("root is a private mountpoint", func(t *testing.T) {
+		err = mount.MakePrivate(cfg.Root)
+		assert.Assert(t, err)
+		defer mount.Unmount(cfg.Root)
+
+		err = setupDaemonRootPropagation(cfg)
+		assert.Assert(t, err)
+		assert.Check(t, ensureShared(cfg.Root))
+
+		_, err = os.Stat(unmountFile)
+		assert.Assert(t, os.IsNotExist(err))
+		assert.Assert(t, d.cleanupMounts())
+		checkMounted(t, cfg.Root, true)
+	})
+
+	// mount is pre-configured with a shared mount
+	t.Run("root is a shared mountpoint", func(t *testing.T) {
+		err = mount.MakeShared(cfg.Root)
+		assert.Assert(t, err)
+		defer mount.Unmount(cfg.Root)
+
+		err = setupDaemonRootPropagation(cfg)
+		assert.Assert(t, err)
+
+		if _, err := os.Stat(unmountFile); err == nil {
+			t.Fatal("unmount file should not exist")
+		}
+
+		assert.Assert(t, d.cleanupMounts())
+		checkMounted(t, cfg.Root, true)
+		assert.Assert(t, mount.Unmount(cfg.Root))
+	})
+
+	// does not need mount but unmount file exists from previous run
+	t.Run("old mount file is cleaned up on setup if not needed", func(t *testing.T) {
+		err = mount.MakeShared(testRoot)
+		assert.Assert(t, err)
+		defer mount.MakePrivate(testRoot)
+		err = ioutil.WriteFile(unmountFile, nil, 0644)
+		assert.Assert(t, err)
+
+		err = setupDaemonRootPropagation(cfg)
+		assert.Assert(t, err)
+
+		_, err = os.Stat(unmountFile)
+		assert.Check(t, os.IsNotExist(err), err)
+		checkMounted(t, cfg.Root, false)
+		assert.Assert(t, d.cleanupMounts())
+	})
+
 }
