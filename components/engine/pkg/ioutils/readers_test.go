@@ -1,6 +1,7 @@
 package ioutils // import "github.com/docker/docker/pkg/ioutils"
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/gotestyourself/gotestyourself/assert"
 	is "github.com/gotestyourself/gotestyourself/assert/cmp"
-	"golang.org/x/net/context"
 )
 
 // Implement io.Reader
@@ -80,7 +80,8 @@ func (p *perpetualReader) Read(buf []byte) (n int, err error) {
 }
 
 func TestCancelReadCloser(t *testing.T) {
-	ctx, _ := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
 	cancelReadCloser := NewCancelReadCloser(ctx, ioutil.NopCloser(&perpetualReader{}))
 	for {
 		var buf [128]byte
