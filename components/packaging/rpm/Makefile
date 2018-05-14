@@ -3,7 +3,6 @@ ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
-DOCKER_EXPERIMENTAL=0
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(ENGINE_DIR) $(VERSION))
 CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
 RPMBUILD=docker run --privileged --rm -i\
@@ -18,7 +17,6 @@ RPMBUILD_FLAGS=-ba\
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(VERSION)' \
-	--define '_experimental $(DOCKER_EXPERIMENTAL)' \
 	SPECS/docker-ce.spec
 
 .PHONY: help
