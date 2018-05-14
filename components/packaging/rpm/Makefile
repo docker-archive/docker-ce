@@ -51,12 +51,6 @@ fedora-27: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build fedora-
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
-.PHONY: fedora-26
-fedora-26: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build fedora-26 rpm packages
-	docker build -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
-	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
-
 .PHONY: centos-7
 centos-7: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build centos-7 rpm packages
 	docker build -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
