@@ -36,7 +36,7 @@ deb: ubuntu debian raspbian ## build all deb packages
 ubuntu: ubuntu-bionic ubuntu-artful ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
 
 .PHONY: debian
-debian: debian-stretch debian-wheezy debian-jessie ## build all debian deb packages
+debian: debian-stretch debian-jessie ## build all debian deb packages
 
 .PHONY: raspbian
 raspbian: raspbian-stretch debian-jessie ## build all raspbian deb packages
@@ -79,12 +79,6 @@ debian-jessie: ## build debian jessie deb packages
 
 .PHONY: debian-stretch
 debian-stretch: ## build debian stretch deb packages
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: debian-wheezy
-debian-wheezy: ## build debian wheezy deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
