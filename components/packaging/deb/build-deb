@@ -13,18 +13,9 @@ if [[ -z "$DEB_VERSION" ]]; then
     exit 1
 fi
 
-(
-    set -e
-    cd engine
-    # I want to rip this install-binaries script out so badly
-    for component in tini "proxy dynamic" "runc all" "containerd dynamic";do
-        TMP_GOPATH="/go" hack/dockerfile/install/install.sh $component
-    done
-)
-
 echo VERSION AAA $VERSION
 
-VERSION=${VERSION:-$( cat engine/VERSION )}
+VERSION=${VERSION:-$( cat cli/VERSION )}
 
 echo VERSION bbb $VERSION
 
@@ -40,7 +31,7 @@ EOF
 # The space above at the start of the line for the debMaintainer is very important
 
 # Give the script a git commit because it wants it
-export DOCKER_GITCOMMIT=${DOCKER_GITCOMMIT-$($GIT_COMMAND rev-parse --short HEAD)}
+export DOCKER_GITCOMMIT=${DOCKER_GITCOMMIT-$(cd cli; $GIT_COMMAND rev-parse --short HEAD)}
 
 echo VERSION BBB $VERSION
 dpkg-buildpackage -uc -us -I.git

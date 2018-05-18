@@ -7,6 +7,10 @@ case "$1" in
 			if ! getent group docker > /dev/null; then
 				groupadd --system docker
 			fi
+                        # TODO Needs upgrade vs. install logic handling here
+                        if ctr --namespace docker container info dockerd 2&>1  > /dev/null ; then
+                            docker engine init
+                        fi
 		fi
 		;;
 	abort-*)
