@@ -28,7 +28,6 @@ Requires: libcgroup
 Requires: systemd-units
 Requires: tar
 Requires: xz
-Requires: pigz
 
 # Resolves: rhbz#1165615
 Requires: device-mapper-libs >= 1.02.90-1
