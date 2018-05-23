@@ -4,7 +4,7 @@ FROM arm32v7/ubuntu:trusty
 RUN sed -i 's|security.ubuntu.com/ubuntu|ports.ubuntu.com/ubuntu-ports|' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y apparmor bash-completion btrfs-tools build-essential cmake curl ca-certificates debhelper dh-apparmor dh-systemd git libapparmor-dev libdevmapper-dev libltdl-dev  pkg-config vim-common libsystemd-journal-dev --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
-ENV GO_VERSION 1.10.2
+ARG GO_VERSION
 RUN curl -fSL "https://golang.org/dl/go${GO_VERSION}.linux-armv6l.tar.gz" | tar xzC /usr/local
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
