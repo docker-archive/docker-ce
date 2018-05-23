@@ -3,6 +3,7 @@ ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
+GO_VERSION:=1.10.2
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(ENGINE_DIR) $(VERSION))
 CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
 RPMBUILD=docker run --privileged --rm -i\
@@ -39,19 +40,19 @@ centos: centos-7 ## build all centos rpm packages
 
 .PHONY: fedora-28
 fedora-28: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build fedora-28 rpm packages
-	docker build -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
+	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: fedora-27
 fedora-27: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build fedora-27 rpm packages
-	docker build -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
+	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: centos-7
 centos-7: rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build centos-7 rpm packages
-	docker build -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
+	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) $@
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
