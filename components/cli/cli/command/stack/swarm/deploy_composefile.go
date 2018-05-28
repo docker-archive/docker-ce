@@ -18,6 +18,9 @@ import (
 )
 
 func deployCompose(ctx context.Context, dockerCli command.Cli, opts options.Deploy) error {
+	if err := validateStackName(opts.Namespace); err != nil {
+		return err
+	}
 	config, err := loader.LoadComposefile(dockerCli, opts)
 	if err != nil {
 		return err
@@ -209,7 +212,7 @@ func deployServices(
 	apiClient := dockerCli.Client()
 	out := dockerCli.Out()
 
-	existingServices, err := getServices(ctx, apiClient, namespace.Name())
+	existingServices, err := getStackServices(ctx, apiClient, namespace.Name())
 	if err != nil {
 		return err
 	}
