@@ -3,7 +3,7 @@ ENGINE_DIR:=$(CURDIR)/../engine
 CLI_DIR:=$(CURDIR)/../cli
 VERSION?=0.0.0-dev
 DOCKER_GITCOMMIT:=abcdefg
-GO_VERSION:=1.10.2
+GO_VERSION:=1.10.3
 
 .PHONY: help
 help: ## show make targets
