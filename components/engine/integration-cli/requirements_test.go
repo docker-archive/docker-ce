@@ -60,7 +60,7 @@ func OnlyDefaultNetworks() bool {
 	return true
 }
 
-// Deprecated: use skip.IfCondition(t, !testEnv.DaemonInfo.ExperimentalBuild)
+// Deprecated: use skip.If(t, !testEnv.DaemonInfo.ExperimentalBuild)
 func ExperimentalDaemon() bool {
 	return testEnv.DaemonInfo.ExperimentalBuild
 }
@@ -206,6 +206,10 @@ func RegistryHosting() bool {
 
 func SwarmInactive() bool {
 	return testEnv.DaemonInfo.Swarm.LocalNodeState == swarm.LocalNodeStateInactive
+}
+
+func TODOBuildkit() bool {
+	return os.Getenv("DOCKER_BUILDKIT") == ""
 }
 
 // testRequires checks if the environment satisfies the requirements
