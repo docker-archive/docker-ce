@@ -182,6 +182,23 @@ func TestLoad(t *testing.T) {
 	assert.Check(t, is.DeepEqual(sampleConfig.Volumes, actual.Volumes))
 }
 
+func TestLoadExtras(t *testing.T) {
+	actual, err := loadYAML(`
+version: "3.7"
+services:
+  foo:
+    image: busybox
+    x-foo: bar`)
+	assert.NilError(t, err)
+	assert.Check(t, is.Len(actual.Services, 1))
+	service := actual.Services[0]
+	assert.Check(t, is.Equal("busybox", service.Image))
+	extras := map[string]interface{}{
+		"x-foo": "bar",
+	}
+	assert.Check(t, is.DeepEqual(extras, service.Extras))
+}
+
 func TestLoadV31(t *testing.T) {
 	actual, err := loadYAML(`
 version: "3.1"
@@ -825,6 +842,9 @@ func TestFullExample(t *testing.T) {
 	assert.Check(t, is.DeepEqual(expectedConfig.Services, config.Services))
 	assert.Check(t, is.DeepEqual(expectedConfig.Networks, config.Networks))
 	assert.Check(t, is.DeepEqual(expectedConfig.Volumes, config.Volumes))
+	assert.Check(t, is.DeepEqual(expectedConfig.Secrets, config.Secrets))
+	assert.Check(t, is.DeepEqual(expectedConfig.Configs, config.Configs))
+	assert.Check(t, is.DeepEqual(expectedConfig.Extras, config.Extras))
 }
 
 func TestLoadTmpfsVolume(t *testing.T) {
@@ -1394,4 +1414,52 @@ networks:
 		},
 	}
 	assert.DeepEqual(t, config, expected, cmpopts.EquateEmpty())
+}
+
+func TestLoadInit(t *testing.T) {
+	booleanTrue := true
+	booleanFalse := false
+
+	var testcases = []struct {
+		doc  string
+		yaml string
+		init *bool
+	}{
+		{
+			doc: "no init defined",
+			yaml: `
+version: '3.7'
+services:
+  foo:
+    image: alpine`,
+		},
+		{
+			doc: "has true init",
+			yaml: `
+version: '3.7'
+services:
+  foo:
+    image: alpine
+    init: true`,
+			init: &booleanTrue,
+		},
+		{
+			doc: "has false init",
+			yaml: `
+version: '3.7'
+services:
+  foo:
+    image: alpine
+    init: false`,
+			init: &booleanFalse,
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.doc, func(t *testing.T) {
+			config, err := loadYAML(testcase.yaml)
+			assert.NilError(t, err)
+			assert.Check(t, is.Len(config.Services, 1))
+			assert.Check(t, is.DeepEqual(config.Services[0].Init, testcase.init))
+		})
+	}
 }
