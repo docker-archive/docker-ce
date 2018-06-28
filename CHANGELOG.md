@@ -13,14 +13,10 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 
 * Builder: fix layer leak on multi-stage wildcard copy. [moby/moby#37178](https://github.com/moby/moby/pull/37178)
 * Fix parsing of invalid environment variable substitution . [moby/moby#37134](https://github.com/moby/moby/pull/37134)
-* Dockerbuilder: use the arch info from base image. [moby/moby#36816](https://github.com/moby/moby/pull/36816)
-* Don't fail to start daemon if builder source is not available. [moby/moby#37280](https://github.com/moby/moby/pull/37280)
+* Builder: use the arch info from base image. [moby/moby#36816](https://github.com/moby/moby/pull/36816) [docker/cli#1111](https://github.com/docker/cli/pull/1111) [moby/moby#37197](https://github.com/moby/moby/pull/37197)
 * Experimental BuildKit support. [moby/moby#37151](https://github.com/moby/moby/pull/37151)
-* Export BuildArgs type from dockerfile package. [moby/moby#37016](https://github.com/moby/moby/pull/37016)
-* Support for experimental BuildKit. [docker/cli#1111](https://github.com/docker/cli/pull/1111)
 * Vendor: dockerfile parser from buildkit. [moby/moby#37197](https://github.com/moby/moby/pull/37197)
-- Fix build on OpenBSD by defining Self(). [moby/moby#37301](https://github.com/moby/moby/pull/37301)
-- Fix the target name issue for multi-stage build. [moby/moby#36960](https://github.com/moby/moby/pull/36960)
+- Fix handling uppercase targets names in multi-stage builds. [moby/moby#36960](https://github.com/moby/moby/pull/36960)
 
 ### Client
 
@@ -154,6 +150,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 + Add support for `init` on services. [moby/moby#37183](https://github.com/moby/moby/pull/37183)
 + Add verification of escapeKeys array length in pkg/term/proxy.go. [moby/moby#36918](https://github.com/moby/moby/pull/36918)
 * When link id is empty for overlay2, do not remove this link.. [moby/moby#36161](https://github.com/moby/moby/pull/36161)
+- Fix build on OpenBSD by defining Self(). [moby/moby#37301](https://github.com/moby/moby/pull/37301)
 
 ### Swarm Mode
 
