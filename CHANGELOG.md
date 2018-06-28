@@ -5,6 +5,10 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 
 ## 18.06.0-ce (2018-07-DD)
 
+### Important notes about this release
+
+- TODO: Notice here for release cycle change
+
 ### Builder
 
 * Builder: fix layer leak on multi-stage wildcard copy. [moby/moby#37178](https://github.com/moby/moby/pull/37178)
