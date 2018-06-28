@@ -15,7 +15,6 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Fix parsing of invalid environment variable substitution . [moby/moby#37134](https://github.com/moby/moby/pull/37134)
 * Builder: use the arch info from base image. [moby/moby#36816](https://github.com/moby/moby/pull/36816) [moby/moby#37197](https://github.com/moby/moby/pull/37197)
 * Experimental BuildKit support. [moby/moby#37151](https://github.com/moby/moby/pull/37151) [docker/cli#1111](https://github.com/docker/cli/pull/1111)
-* Vendor: dockerfile parser from buildkit. [moby/moby#37197](https://github.com/moby/moby/pull/37197)
 - Fix handling uppercase targets names in multi-stage builds. [moby/moby#36960](https://github.com/moby/moby/pull/36960)
 
 ### Client
