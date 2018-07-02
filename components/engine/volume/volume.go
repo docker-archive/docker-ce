@@ -123,6 +123,12 @@ type MountPoint struct {
 	// Sepc is a copy of the API request that created this mount.
 	Spec mounttypes.Mount
 
+	// Some bind mounts should not be automatically created.
+	// (Some are auto-created for backwards-compatability)
+	// This is checked on the API but setting this here prevents race conditions.
+	// where a bind dir existed during validation was removed before reaching the setup code.
+	SkipMountpointCreation bool
+
 	// Track usage of this mountpoint
 	// Specifically needed for containers which are running and calls to `docker cp`
 	// because both these actions require mounting the volumes.
@@ -151,6 +157,10 @@ func (m *MountPoint) Cleanup() error {
 // The, optional, checkFun parameter allows doing additional checking
 // before creating the source directory on the host.
 func (m *MountPoint) Setup(mountLabel string, rootIDs idtools.IDPair, checkFun func(m *MountPoint) error) (path string, err error) {
+	if m.SkipMountpointCreation {
+		return m.Source, nil
+	}
+
 	defer func() {
 		if err != nil || !label.RelabelNeeded(m.Mode) {
 			return
