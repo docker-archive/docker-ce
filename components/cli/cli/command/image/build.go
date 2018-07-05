@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/docker/cli/cli"
@@ -176,8 +177,14 @@ func (out *lastProgressOutput) WriteProgress(prog progress.Progress) error {
 
 // nolint: gocyclo
 func runBuild(dockerCli command.Cli, options buildOptions) error {
-	if os.Getenv("DOCKER_BUILDKIT") != "" {
-		return runBuildBuildKit(dockerCli, options)
+	if buildkitEnv := os.Getenv("DOCKER_BUILDKIT"); buildkitEnv != "" {
+		enableBuildkit, err := strconv.ParseBool(buildkitEnv)
+		if err != nil {
+			return errors.Wrap(err, "DOCKER_BUILDKIT environment variable expects boolean value")
+		}
+		if enableBuildkit {
+			return runBuildBuildKit(dockerCli, options)
+		}
 	}
 
 	var (
@@ -263,10 +270,7 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 		}
 
 		// And canonicalize dockerfile name to a platform-independent one
-		relDockerfile, err = archive.CanonicalTarNameForPath(relDockerfile)
-		if err != nil {
-			return errors.Errorf("cannot canonicalize dockerfile path %s: %v", relDockerfile, err)
-		}
+		relDockerfile = archive.CanonicalTarNameForPath(relDockerfile)
 
 		excludes = build.TrimBuildFilesFromExcludes(excludes, relDockerfile, options.dockerfileFromStdin())
 		buildCtx, err = archive.TarWithOptions(contextDir, &archive.TarOptions{
