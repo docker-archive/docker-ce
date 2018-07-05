@@ -14,7 +14,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Builder: fix layer leak on multi-stage wildcard copy. [moby/moby#37178](https://github.com/moby/moby/pull/37178)
 * Fix parsing of invalid environment variable substitution . [moby/moby#37134](https://github.com/moby/moby/pull/37134)
 * Builder: use the arch info from base image. [moby/moby#36816](https://github.com/moby/moby/pull/36816) [moby/moby#37197](https://github.com/moby/moby/pull/37197)
-* Experimental BuildKit support. [moby/moby#37151](https://github.com/moby/moby/pull/37151) [docker/cli#1111](https://github.com/docker/cli/pull/1111)
++ New experimental builder backend based on [BuildKit](https://github.com/moby/buildkit). To enable, run daemon in experimental mode and set `DOCKER_BUILDKIT=1` environment variable on the docker CLI. [moby/moby#37151](https://github.com/moby/moby/pull/37151) [docker/cli#1111](https://github.com/docker/cli/pull/1111)
 - Fix handling uppercase targets names in multi-stage builds. [moby/moby#36960](https://github.com/moby/moby/pull/36960)
 
 ### Client
@@ -62,8 +62,11 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 + Print warnings on stderr for each unsupported features while parsing a compose file for deployment on Kubernetes. [docker/cli#903](https://github.com/docker/cli/pull/903)
 + Added description about pids count. [docker/cli#1045](https://github.com/docker/cli/pull/1045)
 - Warn user of filter when pruning. [docker/cli#1043](https://github.com/docker/cli/pull/1043)
--  Fix `--rollback-*` options overwriting `--update-*` options. [docker/cli#1052](https://github.com/docker/cli/pull/1052)
+- Fix `--rollback-*` options overwriting `--update-*` options. [docker/cli#1052](https://github.com/docker/cli/pull/1052)
 * Update Attach, Build, Commit, Cp, Create subcommand fish completions. [docker/cli#1005](https://github.com/docker/cli/pull/1005)
++ Add bash completion for `dockerd --default-address-pool`. [docker/cli#1173](https://github.com/docker/cli/pull/1173)
++ Add bash completion for `exec_die` event. [docker/cli#1173](https://github.com/docker/cli/pull/1173)
+* Update docker-credential-helper so `pass` is not called on every docker command. [docker/cli#1184](https://github.com/docker/cli/pull/1184)
 
 ### Deprecation
 
@@ -150,6 +153,11 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 + Add verification of escapeKeys array length in pkg/term/proxy.go. [moby/moby#36918](https://github.com/moby/moby/pull/36918)
 * When link id is empty for overlay2, do not remove this link.. [moby/moby#36161](https://github.com/moby/moby/pull/36161)
 - Fix build on OpenBSD by defining Self(). [moby/moby#37301](https://github.com/moby/moby/pull/37301)
+- Windows: Fix named pipe support for hyper-v isolated containers. [docker/engine#2](https://github.com/docker/engine/pull/2) [docker/cli#1165](https://github.com/docker/cli/pull/1165)
+- Fix manifest lists to always use correct size. [docker/cli#1183](https://github.com/docker/cli/pull/1183)
+* Register OCI media types. [docker/engine#4](https://github.com/docker/engine/pull/4)
+* Update containerd to v1.1.1-rc.2. [docker/engine#1](https://github.com/docker/engine/pull/1)
+* LCOW: Prefer Windows over Linux in a manifest list. [docker/engine#3](https://github.com/docker/engine/pull/3)
 
 ### Swarm Mode
 
