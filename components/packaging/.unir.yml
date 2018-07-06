@@ -1,0 +1,12 @@
+# The list of people who can trigger an auto-merge with approvals
+whitelist:
+    - seemethere
+    - andrewhsu
+    - jose-bigio
+    - corbin-coleman
+
+# At least 2 approvals are needed for auto-merging
+approvals_needed: 2
+
+# If one review requests changes, unir will not merge automatically
+consensus_needed: true

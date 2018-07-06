@@ -2,6 +2,7 @@
 
 ENGINE_DIR="$1"
 VERSION="$2"
+origVersion=$VERSION
 
 SUFFIX=${SUFFIX:=ce}
 
@@ -55,8 +56,8 @@ if [[ "$VERSION" == *-dev ]]; then
     gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
     gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
-    gitVersion="git${gitDate}.0.${gitCommit}"
-    debVersion="$debVersion~$gitVersion"
+    debVersion="0.${gitDate}~${gitCommit}"
+    origVersion=$debVersion
 
     # $ dpkg --compare-versions 1.5.0 gt 1.5.0~rc1 && echo true || echo false
     # true
@@ -68,4 +69,4 @@ if [[ "$VERSION" == *-dev ]]; then
     # ie, 1.5.0 > 1.5.0~rc1 > 1.5.0~git20150128.112847.17e840a > 1.5.0~dev~git20150128.112847.17e840a
 fi
 
-echo "$debVersion"
+echo "$debVersion" "$origVersion"
