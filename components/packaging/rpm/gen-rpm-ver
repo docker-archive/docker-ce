@@ -11,6 +11,7 @@ if [[ $(uname) -eq "Darwin" ]]; then
 fi
 
 GIT_COMMAND="git -C $ENGINE_DIR"
+origVersion="$VERSION"
 rpmVersion="$VERSION"
 rpmRelease=3
 
@@ -47,12 +48,12 @@ if [[ "$rpmVersion" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; 
     gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
     gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
-    gitVersion="git${gitDate}.0.${gitCommit}"
     # gitVersion is now something like '20150128.112847.17e840a'
-    rpmVersion="${rpmVersion%-dev}"
-    rpmRelease="0.0.dev.$gitVersion"
+    rpmVersion="0.${gitDate}~${gitCommit}"
+    rpmRelease="0"
+    origVersion="0.${gitDate}~${gitCommit}"
 fi
 
 # Replace any other dashes with periods
 rpmVersion="${rpmVersion//-/.}"
-echo $rpmVersion $rpmRelease $DOCKER_GITCOMMIT
+echo $rpmVersion $rpmRelease $DOCKER_GITCOMMIT $origVersion

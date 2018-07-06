@@ -17,7 +17,7 @@ RPMBUILD_FLAGS=-ba\
 	--define '_gitcommit $(word 3,$(GEN_RPM_VER))' \
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
-	--define '_origversion $(VERSION)' \
+	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	SPECS/docker-ce.spec
 
 .PHONY: help

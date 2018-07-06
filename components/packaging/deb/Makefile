@@ -12,8 +12,8 @@ EPOCH?=
 BUILD=docker build --build-arg GO_VERSION=$(GO_VERSION) -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 RUN=docker run --rm -i \
 	-e EPOCH='$(EPOCH)' \
-	-e DEB_VERSION=$(DEB_VERSION) \
-	-e VERSION=$(VERSION) \
+	-e DEB_VERSION=$(word 1, $(DEB_VERSION)) \
+	-e VERSION=$(word 2, $(DEB_VERSION)) \
 	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 	-v $(CURDIR)/debbuild/$@:/build \
 	-v $(ENGINE_DIR):/engine \
