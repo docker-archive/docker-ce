@@ -1,6 +1,7 @@
 Name: docker-ce
 Version: %{_version}
 Release: %{_release}%{?dist}
+Epoch: %{getenv:EPOCH}
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0

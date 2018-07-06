@@ -5,8 +5,10 @@ GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
 GO_VERSION:=1.10.3
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(ENGINE_DIR) $(VERSION))
+EPOCH?=1
 CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
 RPMBUILD=docker run --privileged --rm -i\
+	-e EPOCH="$(EPOCH)" \
 	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
 	-v $(CURDIR)/rpmbuild/BUILD:/root/rpmbuild/BUILD \
 	-v $(CURDIR)/rpmbuild/BUILDROOT:/root/rpmbuild/BUILDROOT \

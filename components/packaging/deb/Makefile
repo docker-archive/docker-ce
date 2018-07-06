@@ -7,7 +7,7 @@ VERSION?=0.0.0-dev
 GO_VERSION:=1.10.3
 DEB_VERSION=$(shell ./gen-deb-ver $(ENGINE_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-EPOCH?=
+EPOCH?=1
 
 BUILD=docker build --build-arg GO_VERSION=$(GO_VERSION) -t debbuild-$@/$(ARCH) -f $(CURDIR)/$@/Dockerfile.$(ARCH) .
 RUN=docker run --rm -i \
