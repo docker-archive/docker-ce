@@ -19,7 +19,7 @@ if [[ "$VERSION" == *-dev ]]; then
     gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
     gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
-    staticVersion="${VERSION}-${gitDate}-${gitCommit}"
+    staticVersion="${gitDate}~${gitCommit}"
 fi
 
 echo "$staticVersion"
