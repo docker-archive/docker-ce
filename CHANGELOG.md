@@ -3,7 +3,7 @@
 For more information on the list of deprecated flags and APIs, have a look at
 https://docs.docker.com/engine/deprecated/ where you can find the target removal dates 
 
-## 18.06.0-ce (2018-07-11)
+## 18.06.0-ce (2018-07-DD)
 
 ### Important notes about this release
 
@@ -67,6 +67,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 + Add bash completion for `dockerd --default-address-pool`. [docker/cli#1173](https://github.com/docker/cli/pull/1173)
 + Add bash completion for `exec_die` event. [docker/cli#1173](https://github.com/docker/cli/pull/1173)
 * Update docker-credential-helper so `pass` is not called on every docker command. [docker/cli#1184](https://github.com/docker/cli/pull/1184)
+* Fix for rotating swarm external CA. [docker/cli#1199](https://github.com/docker/cli/pull/1199)
 
 ### Deprecation
 
@@ -97,6 +98,8 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Running docker inspect on network attachment tasks now returns a full task object. [moby/moby#35246](https://github.com/moby/moby/pull/35246)
 * Some container/network cleanups. [moby/moby#37033](https://github.com/moby/moby/pull/37033)
 - Fix network inspect for overlay network. [moby/moby#37045](https://github.com/moby/moby/pull/37045)
+* Improve Scalability of the Linux load balancing. [docker/engine#16](https://github.com/docker/engine/pull/16)
+* Change log level from error to warning. [docker/engine#19](https://github.com/docker/engine/pull/19)
 
 ### Runtime
 
@@ -156,8 +159,11 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 - Windows: Fix named pipe support for hyper-v isolated containers. [docker/engine#2](https://github.com/docker/engine/pull/2) [docker/cli#1165](https://github.com/docker/cli/pull/1165)
 - Fix manifest lists to always use correct size. [docker/cli#1183](https://github.com/docker/cli/pull/1183)
 * Register OCI media types. [docker/engine#4](https://github.com/docker/engine/pull/4)
-* Update containerd to v1.1.1-rc.2. [docker/engine#1](https://github.com/docker/engine/pull/1)
+* Update containerd to v1.1.1 [docker/engine#17](https://github.com/docker/engine/pull/17)
 * LCOW: Prefer Windows over Linux in a manifest list. [docker/engine#3](https://github.com/docker/engine/pull/3)
+* Add updated `MaskPaths` that are used in code paths directly using containerd to address [CVE-2018-10892](https://cve.mitre.org/cgi-bin/cvename.cgi?name=2018-10892). [docker/engine#15](https://github.com/docker/engine/pull/15)
+* Add `/proc/acpi` to masked paths to address [CVE-2018-10892](https://cve.mitre.org/cgi-bin/cvename.cgi?name=2018-10892). [docker/engine#14](https://github.com/docker/engine/pull/14)
+- Fix bindmount autocreate race. [docker/engine#11](https://github.com/docker/engine/pull/11)
 
 ### Swarm Mode
 
@@ -165,3 +171,4 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Bump SwarmKit to remove deprecated grpc metadata wrappers. [moby/moby#36905](https://github.com/moby/moby/pull/36905)
 * Issue an error for --orchestrator=all when working on mismatched Swarm and Kubernetes hosts. [docker/cli#1035](https://github.com/docker/cli/pull/1035)
 - Fix broken swarm commands with Kubernetes defined as orchestrator. "--orchestrator" flag is no longer global but local to stack commands and subcommands [docker/cli#1137](https://github.com/docker/cli/pull/1137) [docker/cli#1139](https://github.com/docker/cli/pull/1139)
+* Bump swarmkit to include task reaper fixes and more metrics. [docker/engine#13](https://github.com/docker/engine/pull/13)
