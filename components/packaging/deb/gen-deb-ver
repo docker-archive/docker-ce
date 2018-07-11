@@ -56,7 +56,7 @@ if [[ "$VERSION" == *-dev ]]; then
     gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
     gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
-    debVersion="0.${gitDate}~${gitCommit}"
+    debVersion="0.${gitDate}-${gitCommit}"
     origVersion=$debVersion
 
     # $ dpkg --compare-versions 1.5.0 gt 1.5.0~rc1 && echo true || echo false
