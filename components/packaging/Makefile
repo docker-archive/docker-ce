@@ -35,3 +35,15 @@ static: ## build static-compiled packages
 	for p in $(DOCKER_BUILD_PKGS); do \
 		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
 	done
+
+# TODO - figure out multi-arch
+.PHONY: image
+image: DOCKER_BUILD_PKGS:=image-linux
+image: ## build static-compiled packages
+	for p in $(DOCKER_BUILD_PKGS); do \
+		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
+	done
+
+.PHONY: release
+release:
+	$(MAKE) -C image $@
