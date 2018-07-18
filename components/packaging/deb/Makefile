@@ -34,7 +34,7 @@ clean: ## remove build artifacts
 deb: ubuntu debian raspbian ## build all deb packages
 
 .PHONY: ubuntu
-ubuntu: ubuntu-bionic ubuntu-artful ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
+ubuntu: ubuntu-bionic ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
 
 .PHONY: debian
 debian: debian-stretch debian-jessie ## build all debian deb packages
@@ -50,12 +50,6 @@ ubuntu-xenial: ## build ubuntu xenial deb packages
 
 .PHONY: ubuntu-trusty
 ubuntu-trusty: ## build ubuntu trusty deb packages
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: ubuntu-artful
-ubuntu-artful: ## build ubuntu artful deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
