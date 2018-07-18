@@ -7,7 +7,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 
 ### Important notes about this release
 
-- TODO: Notice here for release cycle change
+- Docker 18.06 CE will be the last release with a 4-month maintenance lifecycle. The planned Docker 18.09 CE release will be supported for 7 months with Docker 19.03 CE being the next release in line. More details about the release process can be found [here](https://docs.docker.com/install/).
 
 ### Builder
 
