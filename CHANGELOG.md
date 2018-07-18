@@ -3,7 +3,7 @@
 For more information on the list of deprecated flags and APIs, have a look at
 https://docs.docker.com/engine/deprecated/ where you can find the target removal dates 
 
-## 18.06.0-ce (2018-07-DD)
+## 18.06.0-ce (2018-07-18)
 
 ### Important notes about this release
 
@@ -68,6 +68,8 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 + Add bash completion for `exec_die` event. [docker/cli#1173](https://github.com/docker/cli/pull/1173)
 * Update docker-credential-helper so `pass` is not called on every docker command. [docker/cli#1184](https://github.com/docker/cli/pull/1184)
 * Fix for rotating swarm external CA. [docker/cli#1199](https://github.com/docker/cli/pull/1199)
+* Improve version output alignment. [docker/cli#1207](https://github.com/docker/cli/pull/1207)
++ Add bash completion for `service create|update --init`. [docker/cli#1210](https://github.com/docker/cli/pull/1210)
 
 ### Deprecation
 
@@ -172,3 +174,5 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 * Issue an error for --orchestrator=all when working on mismatched Swarm and Kubernetes hosts. [docker/cli#1035](https://github.com/docker/cli/pull/1035)
 - Fix broken swarm commands with Kubernetes defined as orchestrator. "--orchestrator" flag is no longer global but local to stack commands and subcommands [docker/cli#1137](https://github.com/docker/cli/pull/1137) [docker/cli#1139](https://github.com/docker/cli/pull/1139)
 * Bump swarmkit to include task reaper fixes and more metrics. [docker/engine#13](https://github.com/docker/engine/pull/13)
+- Avoid a leak when a service with unassigned tasks is deleted. [docker/engine#27](https://github.com/docker/engine/pull/27)
+- Fix racy batching on the dispatcher. [docker/engine#27](https://github.com/docker/engine/pull/27)
