@@ -53,20 +53,37 @@ GIT_COMMAND="git -C $ENGINE_DIR"
 debVersion="${debVersion//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
 # if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
 if [[ "$VERSION" == *-dev ]]; then
-    gitUnix="$($GIT_COMMAND log -1 --pretty='%at')"
-    gitDate="$($DATE_COMMAND --date "@$gitUnix" +'%Y%m%d.%H%M%S')"
+    # based on golang's pseudo-version: https://groups.google.com/forum/#!topic/golang-dev/a5PqQuBljF4
+    #
+    # using a "pseudo-version" of the form v0.0.0-yyyymmddhhmmss-abcdefabcdef,
+    # where the time is the commit time in UTC and the final suffix is the prefix
+    # of the commit hash. The time portion ensures that two pseudo-versions can
+    # be compared to determine which happened later, the commit hash identifes
+    # the underlying commit, and the v0.0.0- prefix identifies the pseudo-version
+    # as a pre-release before version v0.0.0, so that the go command prefers any
+    # tagged release over any pseudo-version.
+    gitUnix="$($GIT_COMMAND log -1 --pretty='%ct')"
+    gitDate="$($DATE_COMMAND --utc --date "@$gitUnix" +'%Y%m%d%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
-    debVersion="0.${gitDate}-${gitCommit}"
+    debVersion="0.0.0-${gitDate}-${gitCommit}"
     origVersion=$debVersion
 
+    # verify that nightly builds are always < actual releases
+    #
     # $ dpkg --compare-versions 1.5.0 gt 1.5.0~rc1 && echo true || echo false
     # true
-    # $ dpkg --compare-versions 1.5.0~rc1 gt 1.5.0~git20150128.112847.17e840a && echo true || echo false
+    # $ dpkg --compare-versions 1.5.0~rc1 gt 0.0.0-20180719213347-5daff5a && echo true || echo false
     # true
-    # $ dpkg --compare-versions 1.5.0~git20150128.112847.17e840a gt 1.5.0~dev~git20150128.112847.17e840a && echo true || echo false
+    # $ dpkg --compare-versions 18.06.0-ce-rc3 gt 18.06.0-ce-rc2  && echo true || echo false
     # true
-
-    # ie, 1.5.0 > 1.5.0~rc1 > 1.5.0~git20150128.112847.17e840a > 1.5.0~dev~git20150128.112847.17e840a
+    # $ dpkg --compare-versions 18.06.0-ce gt 18.06.0-ce-rc2  && echo true || echo false
+    # false
+    # $ dpkg --compare-versions 18.06.0-ce-rc3 gt 0.0.0-20180719213347-5daff5a  && echo true || echo false
+    # true
+    # $ dpkg --compare-versions 18.06.0-ce gt 0.0.0-20180719213347-5daff5a  && echo true || echo false
+    # true
+    # $ dpkg --compare-versions 0.0.0-20180719213702-cd5e2db gt 0.0.0-20180719213347-5daff5a && echo true || echo false
+    # true
 fi
 
 echo "$debVersion" "$origVersion"
