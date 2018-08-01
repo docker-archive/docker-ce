@@ -4,7 +4,7 @@ CLI_DIR:=$(CURDIR)/../../cli
 VERSION?=0.0.0-dev
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 DOCKER_HUB_ORG?=docker
-ENGINE_IMAGE?=ce-engine
+ENGINE_IMAGE?=engine-community
 
 .PHONY: help
 help: ## show make targets
