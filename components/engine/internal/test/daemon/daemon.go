@@ -200,7 +200,7 @@ func (d *Daemon) Start(t testingT, args ...string) {
 		ht.Helper()
 	}
 	if err := d.StartWithError(args...); err != nil {
-		t.Fatalf("Error starting daemon with arguments: %v", args)
+		t.Fatalf("Error starting daemon with arguments %v : %v", args, err)
 	}
 }
 
@@ -324,8 +324,8 @@ func (d *Daemon) StartWithLogFile(out *os.File, providedArgs ...string) error {
 				return errors.Errorf("[%s] error querying daemon for root directory: %v", d.id, err)
 			}
 			return nil
-		case <-d.Wait:
-			return errors.Errorf("[%s] Daemon exited during startup", d.id)
+		case err := <-d.Wait:
+			return errors.Errorf("[%s] Daemon exited during startup: %v", d.id, err)
 		}
 	}
 }
@@ -435,7 +435,7 @@ out1:
 			return err
 		case <-time.After(20 * time.Second):
 			// time for stopping jobs and run onShutdown hooks
-			d.log.Logf("[%s] daemon started", d.id)
+			d.log.Logf("[%s] daemon stop timeout", d.id)
 			break out1
 		}
 	}
