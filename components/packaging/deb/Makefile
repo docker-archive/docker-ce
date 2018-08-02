@@ -1,11 +1,10 @@
 SHELL:=/bin/bash
 ARCH:=$(shell uname -m)
-ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
-GITCOMMIT?=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
+GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
 GO_VERSION:=1.10.3
-DEB_VERSION=$(shell ./gen-deb-ver $(ENGINE_DIR) "$(VERSION)")
+DEB_VERSION=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 EPOCH?=2
 
@@ -16,7 +15,6 @@ RUN=docker run --rm -i \
 	-e VERSION=$(word 2, $(DEB_VERSION)) \
 	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 	-v $(CURDIR)/debbuild/$@:/build \
-	-v $(ENGINE_DIR):/engine \
 	-v $(CLI_DIR):/cli \
 	-v $(CURDIR)/systemd:/root/build-deb/systemd \
 	debbuild-$@/$(ARCH)
