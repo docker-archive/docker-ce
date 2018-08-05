@@ -8,6 +8,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 ### Important notes about this release
 
 - Docker 18.06 CE will be the last release with a 4-month maintenance lifecycle. The planned Docker 18.09 CE release will be supported for 7 months with Docker 19.03 CE being the next release in line. More details about the release process can be found [here](https://docs.docker.com/install/).
+- As a result of updating to containerd 1.1.1, the `docker-containerd` daemon will now listen on port 10010 by default.
 
 ### Builder
 
