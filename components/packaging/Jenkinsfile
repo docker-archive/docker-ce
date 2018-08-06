@@ -1,5 +1,23 @@
 #!groovy
 
+
+def genBranch(String arch) {
+	return [
+		"${arch}": { ->
+			stage("Build engine image on ${arch}") {
+				wrappedNode(label: "linux&&${arch}", cleanWorkspace: true) {
+					try {
+						checkout scm
+						sh("git clone https://github.com/moby/moby.git engine")
+						sh('make ENGINE_DIR=$(pwd)/engine image')
+					} finally {
+						sh('make ENGINE_DIR=$(pwd)/engine clean-image clean-engine')
+					}
+				}
+		}
+	}]
+}
+
 test_steps = [
 	'deb': { ->
 		stage('Ubuntu Xenial Debian Package') {
@@ -32,5 +50,17 @@ test_steps = [
 		}
 	},
 ]
+
+arches = [
+	"x86_64",
+	"s390x",
+	"ppc64le",
+	"aarch64",
+	"armhf"
+]
+
+arches.each {
+	test_steps << genBranch(it)
+}
 
 parallel(test_steps)
