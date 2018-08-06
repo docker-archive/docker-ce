@@ -11,11 +11,10 @@ ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 ENV AUTO_GOPATH 1
 ENV DOCKER_BUILDTAGS pkcs11 seccomp selinux
 ENV RUNC_BUILDTAGS seccomp selinux
-COPY docker-ce.spec /root/rpmbuild/SPECS/docker-ce.spec
+COPY SPECS /root/rpmbuild/SPECS
 RUN yum install -y rpm-build rpmlint
-RUN rpmlint /root/rpmbuild/SPECS/docker-ce.spec # make sure spec file is ok before installing build deps
-RUN yum-builddep -y /root/rpmbuild/SPECS/docker-ce.spec # this always exits 0 so need to rpmlint before running
-RUN mkdir -p /go/src/github.com/docker /go/src/github.com/opencontainers
+RUN rpmlint /root/rpmbuild/SPECS/*.spec # make sure spec file is ok before installing build deps
+RUN yum-builddep -y /root/rpmbuild/SPECS/*.spec # this always exits 0 so need to rpmlint before running
 COPY --from=golang /usr/local/go /usr/local/go/
 WORKDIR /root/rpmbuild
 ENTRYPOINT ["/bin/rpmbuild"]
