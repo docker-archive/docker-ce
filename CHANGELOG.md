@@ -3,6 +3,28 @@
 For more information on the list of deprecated flags and APIs, have a look at
 https://docs.docker.com/engine/deprecated/ where you can find the target removal dates 
 
+## 18.06.1-ce (2018-08-DD)
+
+### Builder
+
+- Fix no error if build args are missing during docker build. [docker/engine#25](https://github.com/docker/engine/pull/25)
++ Set BuildKit's ExportedProduct variable to show useful errors. [docker/engine#21](https://github.com/docker/engine/pull/21)
+
+### Client
+
++ Various shell completion script updates. [docker/cli#1229](https://github.com/docker/cli/pull/1229) [docker/cli#1268](https://github.com/docker/cli/pull/1268) [docker/cli#1272](https://github.com/docker/cli/pull/1272)
+- Fix `DOCKER_CONFIG` warning message and fallback search. [docker/cli#1241](https://github.com/docker/cli/pull/1241)
+- Fix help message flags on `docker stack` commands and sub-commands. [docker/cli#1267](https://github.com/docker/cli/pull/1267)
+
+### Runtime
+
+* Disable CRI plugin listening on port 10010 by default. [docker/engine#29](https://github.com/docker/engine/pull/29)
+
+### Swarm Mode
+
+- Fix the condition used for skipping over running tasks. [docker/swarmkit#2677](https://github.com/docker/swarmkit/pull/2677)
+- Fix task sorting. [docker/swarmkit#2712](https://github.com/docker/swarmkit/pull/2712)
+
 ## 18.06.0-ce (2018-07-18)
 
 ### Important notes about this release
