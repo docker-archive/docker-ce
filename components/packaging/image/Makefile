@@ -4,7 +4,7 @@ CLI_DIR:=$(CURDIR)/../../cli
 VERSION?=0.0.0-dev
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 DOCKER_HUB_ORG?=docker
-ARCH=$(uname -m)
+ARCH=$(shell uname -m)
 ENGINE_IMAGE?=engine-community
 
 .PHONY: help
@@ -14,6 +14,7 @@ help: ## show make targets
 .PHONY: clean
 clean: ## remove build artifacts
 	-docker rmi $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
+	-rm -f image-linux
 
 .PHONY: image
 image: image-linux
@@ -24,12 +25,12 @@ $(ENGINE_DIR)/Dockerfile.engine:
 
 # builds across multiple archs because the base images 
 # utilize manifests
-.PHONY: image-linux
 image-linux: $(ENGINE_DIR)/Dockerfile.engine
 	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
 	    --build-arg VERSION=$(STATIC_VERSION) \
 	    --build-arg DOCKER_GITCOMMIT=$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD) \
 	    --file $< $(ENGINE_DIR)
+	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) > $@
 
 .PHONY: release
 release:
