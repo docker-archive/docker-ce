@@ -28,6 +28,10 @@ clean: ## remove build artifacts
 	[ ! -d debbuild ] || $(CHOWN) -R $(shell id -u):$(shell id -g) debbuild
 	$(RM) -r debbuild
 
+engine-$(ARCH).tar:
+	$(MAKE) -C ../image image-linux
+	docker save -o $@ $$(cat ../image/image-linux)
+
 .PHONY: deb
 deb: ubuntu debian raspbian ## build all deb packages
 
@@ -41,49 +45,49 @@ debian: debian-stretch debian-jessie ## build all debian deb packages
 raspbian: raspbian-stretch debian-jessie ## build all raspbian deb packages
 
 .PHONY: ubuntu-xenial
-ubuntu-xenial: ## build ubuntu xenial deb packages
+ubuntu-xenial: engine-$(ARCH).tar ## build ubuntu xenial deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 .PHONY: ubuntu-trusty
-ubuntu-trusty: ## build ubuntu trusty deb packages
+ubuntu-trusty: engine-$(ARCH).tar ## build ubuntu trusty deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 .PHONY: ubuntu-bionic
-ubuntu-bionic: ## build ubuntu bionic deb packages
+ubuntu-bionic: engine-$(ARCH).tar ## build ubuntu bionic deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 .PHONY: debian-buster
-debian-buster: ## build debian buster deb packages
+debian-buster: engine-$(ARCH).tar ## build debian buster deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 .PHONY: debian-jessie
-debian-jessie: ## build debian jessie deb packages
+debian-jessie: engine-$(ARCH).tar ## build debian jessie deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 .PHONY: debian-stretch
-debian-stretch: ## build debian stretch deb packages
+debian-stretch: engine-$(ARCH).tar ## build debian stretch deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 .PHONY: raspbian-jessie
-raspbian-jessie: ## build raspbian jessie deb packages
+raspbian-jessie: engine-$(ARCH).tar ## build raspbian jessie deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 .PHONY: raspbian-stretch
-raspbian-stretch: ## build raspbian stretch deb packages
+raspbian-stretch: engine-$(ARCH).tar ## build raspbian stretch deb packages
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
