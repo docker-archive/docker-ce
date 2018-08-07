@@ -30,7 +30,7 @@ clean: ## remove build artifacts
 
 engine-$(ARCH).tar:
 	$(MAKE) -C ../image image-linux
-	docker save -o $@ $(shell cat ../image/image-linux)
+	docker save -o $@ $$(cat ../image/image-linux)
 
 .PHONY: deb
 deb: ubuntu debian raspbian ## build all deb packages

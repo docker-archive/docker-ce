@@ -42,7 +42,7 @@ centos: centos-7 ## build all centos rpm packages
 
 engine-$(ARCH).tar:
 	$(MAKE) -C ../image image-linux
-	docker save $(shell cat ../image/image-linux) > $@
+	docker save -o $@ $$(cat ../image/image-linux) 
 
 .PHONY: fedora-28
 fedora-28: engine-$(ARCH).tar rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz ## build fedora-28 rpm packages

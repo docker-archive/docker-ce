@@ -32,6 +32,10 @@ image-linux: $(ENGINE_DIR)/Dockerfile.engine
 	    --file $< $(ENGINE_DIR)
 	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) > $@
 
+engine-$(ARCH).tar: image-linux
+	docker save -o $@ $$(cat $<)
+
+
 .PHONY: release
 release:
 	docker push $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH)
