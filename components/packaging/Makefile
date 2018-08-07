@@ -3,6 +3,7 @@ ENGINE_DIR:=$(CURDIR)/../engine
 CLI_DIR:=$(CURDIR)/../cli
 VERSION?=0.0.0-dev
 DOCKER_GITCOMMIT:=abcdefg
+ARCH=$(shell uname -m)
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_VERSION:=1.10.3
 
@@ -56,6 +57,9 @@ image: ## build static-compiled packages
 	for p in $(DOCKER_BUILD_PKGS); do \
 		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
 	done
+
+engine-$(ARCH).tar:
+	$(MAKE) -C image $@
 
 .PHONY: release
 release:
