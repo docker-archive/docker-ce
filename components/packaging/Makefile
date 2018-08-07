@@ -23,7 +23,7 @@ clean-image:
 
 
 .PHONY: clean
-clean: clean-engine clean-image ## remove build artifacts
+clean: clean-image ## remove build artifacts
 	$(MAKE) -C rpm clean
 	$(MAKE) -C deb clean
 	$(MAKE) -C static clean
