@@ -28,7 +28,7 @@ $(ENGINE_DIR)/Dockerfile.engine:
 image-linux: $(ENGINE_DIR)/Dockerfile.engine
 	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
 	    --build-arg VERSION=$(STATIC_VERSION) \
-	    --build-arg DOCKER_GITCOMMIT=$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD) \
+	    --build-arg DOCKER_GITCOMMIT=$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD) \
 	    --file $< $(ENGINE_DIR)
 	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) > $@
 
