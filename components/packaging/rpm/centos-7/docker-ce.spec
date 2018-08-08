@@ -69,7 +69,7 @@ pushd engine
 for component in tini "proxy dynamic" "runc all" "containerd dynamic";do
     TMP_GOPATH="/go" hack/dockerfile/install/install.sh $component
 done
-VERSION=%{_origversion} hack/make.sh dynbinary
+VERSION=%{_origversion} PRODUCT=docker hack/make.sh dynbinary
 popd
 
 %check
