@@ -10,7 +10,7 @@ override_dh_gencontrol:
 	dh_gencontrol
 
 override_dh_auto_build:
-	cd engine && ./hack/make.sh dynbinary
+	cd engine && PRODUCT=docker ./hack/make.sh dynbinary
 	cd /go/src/github.com/docker/cli && LDFLAGS='' make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
 
 override_dh_auto_test:
