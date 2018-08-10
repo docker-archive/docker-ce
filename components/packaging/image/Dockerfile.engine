@@ -51,7 +51,7 @@ RUN git clone https://github.com/opencontainers/runc.git /go/src/github.com/open
 WORKDIR /go/src/github.com/opencontainers/runc
 RUN source /binaries-commits && \
     git checkout -q "$RUNC_COMMIT" && \
-    make BUILDTAGS='seccomp apparmor' && make install
+    make BUILDTAGS='seccomp apparmor' static && make install
 
 # Final docker image
 FROM scratch
