@@ -54,11 +54,9 @@ RUN source /binaries-commits && \
     make BUILDTAGS='seccomp apparmor' && make install
 
 # Final docker image
-FROM alpine:3.7
-RUN apk --update add ca-certificates iptables net-tools libseccomp git && \
-    rm -rf /var/cache/apk/*
-COPY --from=dockerd-builder /sbin/dockerd /usr/local/sbin/
-COPY --from=proxy-builder /sbin/docker-proxy /usr/local/sbin/
-COPY --from=init-builder /sbin/docker-init /usr/local/sbin/
-COPY --from=runc-builder /usr/local/sbin/runc /usr/local/sbin/
-ENTRYPOINT ["/usr/local/sbin/dockerd"]
+FROM scratch
+COPY --from=dockerd-builder /sbin/dockerd /sbin/
+COPY --from=proxy-builder /sbin/docker-proxy /sbin/
+COPY --from=init-builder /sbin/docker-init /sbin/
+COPY --from=runc-builder /usr/local/sbin/runc /sbin/
+ENTRYPOINT ["/sbin/dockerd"]
