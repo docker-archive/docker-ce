@@ -18,6 +18,15 @@ Packager: Docker <support@docker.com>
 %global with_selinux 1
 %global _missing_build_ids_terminate_build 0
 
+BuildRequires: make
+BuildRequires: cmake
+BuildRequires: gcc
+BuildRequires: git
+BuildRequires: glibc-static
+BuildRequires: libtool-ltdl-devel
+BuildRequires: libseccomp-devel
+BuildRequires: device-mapper-devel
+BuildRequires: btrfs-progs-devel
 BuildRequires: pkgconfig(systemd)
 
 # required packages on install
