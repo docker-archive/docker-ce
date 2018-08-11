@@ -64,7 +64,7 @@ mkdir -p /go/src/github.com/docker
 rm -f /go/src/github.com/docker/cli
 ln -s /root/rpmbuild/BUILD/src/cli /go/src/github.com/docker/cli
 pushd /go/src/github.com/docker/cli
-make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
+DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
 popd
 pushd engine
 for component in tini "proxy dynamic" "runc all" "containerd dynamic";do
