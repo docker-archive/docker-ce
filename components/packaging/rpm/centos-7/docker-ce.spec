@@ -17,6 +17,15 @@ Packager: Docker <support@docker.com>
 %global is_systemd 1
 %global with_selinux 1
 
+BuildRequires: make
+BuildRequires: cmake
+BuildRequires: gcc
+BuildRequires: git
+BuildRequires: glibc-static
+BuildRequires: libtool-ltdl-devel
+BuildRequires: libseccomp-devel
+BuildRequires: device-mapper-devel
+BuildRequires: btrfs-progs-devel
 BuildRequires: pkgconfig(systemd)
 BuildRequires: pkgconfig(libsystemd-journal)
 
