@@ -35,24 +35,20 @@ fedora: fedora-28 fedora-27 fedora-26 ## build all fedora rpm packages
 .PHONY: centos
 centos: centos-7 ## build all centos rpm packages
 
-engine-$(ARCH).tar:
-	$(MAKE) -C ../image image-linux
-	docker save -o $@ $$(cat ../image/image-linux) 
-
 .PHONY: fedora-28
-fedora-28: engine-$(ARCH).tar rpmbuild/SOURCES/cli.tgz ## build fedora-28 rpm packages
+fedora-28: rpmbuild/SOURCES/cli.tgz ## build fedora-28 rpm packages
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: fedora-27
-fedora-27: engine-$(ARCH).tar rpmbuild/SOURCES/cli.tgz ## build fedora-27 rpm packages
+fedora-27: rpmbuild/SOURCES/cli.tgz ## build fedora-27 rpm packages
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: centos-7
-centos-7: engine-$(ARCH).tar rpmbuild/SOURCES/cli.tgz ## build centos-7 rpm packages
+centos-7: rpmbuild/SOURCES/cli.tgz ## build centos-7 rpm packages
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
