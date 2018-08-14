@@ -19,6 +19,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 ### Runtime
 
 * Disable CRI plugin listening on port 10010 by default. [docker/engine#29](https://github.com/docker/engine/pull/29)
+* Update containerd to v1.1.2. [docker/engine#33](https://github.com/docker/engine/pull/33)
 
 ### Swarm Mode
 
