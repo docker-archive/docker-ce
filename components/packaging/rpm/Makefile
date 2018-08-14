@@ -15,7 +15,12 @@ RPMBUILD_FLAGS=-ba\
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
-	SPECS/docker-ce-cli.spec SPECS/docker-ce.spec
+	SPECS/docker-ce.spec SPECS/docker-ce-cli.spec
+
+SOURCE_TGZS=containerd-proxy.tgz cli.tgz
+SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_TGZS))
+
+CONTAINERD_PROXY_COMMIT=3337fb47f10892318361b58c8483f19b1ffa8203
 
 .PHONY: help
 help: ## show make targets
@@ -24,7 +29,8 @@ help: ## show make targets
 .PHONY: clean
 clean: ## remove build artifacts
 	[ ! -d rpmbuild ] || $(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
-	rm -rf rpmbuild
+	$(RM) -r rpmbuild
+	$(RM) -r tmp/
 
 .PHONY: rpm
 rpm: fedora centos ## build all rpm packages
@@ -36,19 +42,22 @@ fedora: fedora-28 fedora-27 fedora-26 ## build all fedora rpm packages
 centos: centos-7 ## build all centos rpm packages
 
 .PHONY: fedora-28
-fedora-28: rpmbuild/SOURCES/cli.tgz ## build fedora-28 rpm packages
+fedora-28: ## build fedora-28 rpm packages
+fedora-28: $(SOURCES)
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: fedora-27
-fedora-27: rpmbuild/SOURCES/cli.tgz ## build fedora-27 rpm packages
+fedora-27: ## build fedora-27 rpm packages
+fedora-27: $(SOURCES)
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: centos-7
-centos-7: rpmbuild/SOURCES/cli.tgz ## build centos-7 rpm packages
+centos-7: ## build centos-7 rpm packages
+centos-7: $(SOURCES)
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
@@ -60,3 +69,14 @@ rpmbuild/SOURCES/cli.tgz:
 		-v $(CURDIR)/rpmbuild/SOURCES:/v \
 		alpine \
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli
+
+rpmbuild/SOURCES/containerd-proxy.tgz:
+	mkdir -p tmp/
+	curl -fL -o tmp/containerd-proxy.tgz "https://github.com/crosbymichael/containerd-proxy/archive/$(CONTAINERD_PROXY_COMMIT)/ours.tar.gz"
+	tar xzf tmp/containerd-proxy.tgz -C tmp/
+	mv tmp/containerd-proxy-$(CONTAINERD_PROXY_COMMIT) tmp/containerd-proxy
+	mkdir -p $(@D)
+	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
+	tar -zcf $@ -C tmp/ containerd-proxy
+	rm -rf tmp/
+	$(CHOWN) -R root:root rpmbuild/SOURCES

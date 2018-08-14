@@ -4,6 +4,7 @@ Name: docker-ce
 Version: %{_version}
 Release: %{_release}%{?dist}
 Epoch: %{getenv:EPOCH}
+Source0: containerd-proxy.tgz
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
@@ -35,17 +36,24 @@ language, framework or packaging system. That makes them great building blocks
 for deploying and scaling web apps, databases, and backend services without
 depending on a particular stack or provider.
 
+%prep
+%setup -q -c -n src
+
+%build
+mkdir -p /go/src/github.com/crosbymichael/
+ls %{_topdir}/BUILD/src
+ln -s %{_topdir}/BUILD/src/containerd-proxy /go/src/github.com/crosbymichael/containerd-proxy
+go build -v -o /build/dockerd github.com/crosbymichael/containerd-proxy
+
 %install
+install -D -m 0755 /build/dockerd $RPM_BUILD_ROOT/%{_bindir}/dockerd
 
 %files
+/%{_bindir}/dockerd
 
 %post
 if ! getent group docker > /dev/null; then
     groupadd --system docker
-fi
-# TODO Needs upgrade vs. install logic handling here
-if ctr --namespace docker container info dockerd > /dev/null 2>&1 ; then
-    docker engine init
 fi
 
 %changelog
