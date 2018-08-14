@@ -19,8 +19,8 @@ RPMBUILD_FLAGS=-ba\
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	SPECS/docker-ce.spec SPECS/docker-ce-cli.spec
 
-SOURCE_TGZS=containerd-proxy.tgz cli.tgz containerd-shim-process.tar
-SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_TGZS))
+SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json
+SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 .PHONY: help
 help: ## show make targets
@@ -29,7 +29,10 @@ help: ## show make targets
 .PHONY: clean
 clean: ## remove build artifacts
 	[ ! -d rpmbuild ] || $(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
-	$(RM) -r rpmbuild
+	$(RM) -r rpmbuild/
+	[ ! -d artifacts ] || $(CHOWN) -R $(shell id -u):$(shell id -g) artifacts
+	$(RM) -r artifacts/
+	[ ! -d tmp ] || $(CHOWN) -R $(shell id -u):$(shell id -g) tmp
 	$(RM) -r tmp/
 
 .PHONY: rpm
@@ -89,3 +92,11 @@ rpmbuild/SOURCES/containerd-shim-process.tar:
 	mkdir -p $(@D)
 	cp artifacts/containerd-shim-process.tar $@
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
+
+rpmbuild/SOURCES/docker.service: ../systemd/docker.service
+	mkdir -p $(@D)
+	cp $< $@
+
+rpmbuild/SOURCES/dockerd.json: ../common/dockerd.json
+	mkdir -p $(@D)
+	cp $< $@

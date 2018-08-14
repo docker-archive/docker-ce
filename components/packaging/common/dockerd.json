@@ -1,0 +1,11 @@
+{
+        "image": "${ENGINE_IMAGE}",
+        "namespace":"docker",
+        "args": [
+                "-s", "overlay",
+                "--containerd", "/run/containerd/containerd.sock",
+                "--default-runtime", "containerd",
+                "--add-runtime", "containerd=runc"
+        ],
+        "scope": "ce"
+}

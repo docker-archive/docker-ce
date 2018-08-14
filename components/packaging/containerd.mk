@@ -1,6 +1,6 @@
 # Common things for containerd functionality
 
-CONTAINERD_PROXY_COMMIT=3337fb47f10892318361b58c8483f19b1ffa8203
+CONTAINERD_PROXY_COMMIT=6615ae0be4014152533a83d44cdf9d3baa600d19
 CONTAINERD_SHIM_PROCESS_IMAGE=docker.io/docker/containerd-shim-process:a4d1531
 
 # If the docker-containerd.sock is available use that, else use the default containerd.sock
