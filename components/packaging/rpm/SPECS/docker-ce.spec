@@ -5,6 +5,7 @@ Version: %{_version}
 Release: %{_release}%{?dist}
 Epoch: %{getenv:EPOCH}
 Source0: containerd-proxy.tgz
+Source1: containerd-shim-process.tar
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
@@ -13,6 +14,8 @@ Vendor: Docker
 Packager: Docker <support@docker.com>
 
 Requires: docker-ce-cli
+# Should be required as well by docker-ce-cli but let's just be thorough
+Requires: containerd.io
 
 # conflicting packages
 Conflicts: docker
@@ -40,6 +43,7 @@ depending on a particular stack or provider.
 %setup -q -c -n src
 
 %build
+# dockerd proxy compilation
 mkdir -p /go/src/github.com/crosbymichael/
 ls %{_topdir}/BUILD/src
 ln -s %{_topdir}/BUILD/src/containerd-proxy /go/src/github.com/crosbymichael/containerd-proxy
@@ -47,9 +51,12 @@ go build -v -o /build/dockerd github.com/crosbymichael/containerd-proxy
 
 %install
 install -D -m 0755 /build/dockerd $RPM_BUILD_ROOT/%{_bindir}/dockerd
+# TODO: Use containerd-offline-installer to actually install this as ExecStartPre systemd step
+install -D -m 0644 %{_topdir}/SOURCES/containerd-shim-process.tar $RPM_BUILD_ROOT/%{_sharedstatedir}/containerd/containerd-shim-process.tar
 
 %files
 /%{_bindir}/dockerd
+/%{_sharedstatedir}/containerd/containerd-shim-process.tar
 
 %post
 if ! getent group docker > /dev/null; then

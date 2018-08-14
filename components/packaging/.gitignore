@@ -2,3 +2,4 @@ build
 debbuild
 rpmbuild
 tmp
+artifacts

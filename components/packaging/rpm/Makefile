@@ -1,3 +1,5 @@
+include ../containerd.mk
+
 ARCH=$(shell uname -m)
 ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
@@ -17,10 +19,8 @@ RPMBUILD_FLAGS=-ba\
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	SPECS/docker-ce.spec SPECS/docker-ce-cli.spec
 
-SOURCE_TGZS=containerd-proxy.tgz cli.tgz
+SOURCE_TGZS=containerd-proxy.tgz cli.tgz containerd-shim-process.tar
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_TGZS))
-
-CONTAINERD_PROXY_COMMIT=3337fb47f10892318361b58c8483f19b1ffa8203
 
 .PHONY: help
 help: ## show make targets
@@ -44,6 +44,7 @@ centos: centos-7 ## build all centos rpm packages
 .PHONY: fedora-28
 fedora-28: ## build fedora-28 rpm packages
 fedora-28: $(SOURCES)
+	$(CHOWN) -R root:root rpmbuild
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
@@ -51,6 +52,7 @@ fedora-28: $(SOURCES)
 .PHONY: fedora-27
 fedora-27: ## build fedora-27 rpm packages
 fedora-27: $(SOURCES)
+	$(CHOWN) -R root:root rpmbuild
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
@@ -58,6 +60,7 @@ fedora-27: $(SOURCES)
 .PHONY: centos-7
 centos-7: ## build centos-7 rpm packages
 centos-7: $(SOURCES)
+	$(CHOWN) -R root:root rpmbuild
 	docker build --build-arg GO_VERSION=$(GO_VERSION) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
 	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
@@ -79,4 +82,10 @@ rpmbuild/SOURCES/containerd-proxy.tgz:
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 	tar -zcf $@ -C tmp/ containerd-proxy
 	rm -rf tmp/
-	$(CHOWN) -R root:root rpmbuild/SOURCES
+
+rpmbuild/SOURCES/containerd-shim-process.tar:
+	$(CTR) content fetch $(CONTAINERD_SHIM_PROCESS_IMAGE)
+	$(CTR) image export artifacts/containerd-shim-process.tar $(CONTAINERD_SHIM_PROCESS_IMAGE)
+	mkdir -p $(@D)
+	cp artifacts/containerd-shim-process.tar $@
+	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
