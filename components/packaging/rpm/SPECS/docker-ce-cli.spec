@@ -3,7 +3,7 @@
 Name: docker-ce-cli
 Version: %{_version}
 Release: %{_release}%{?dist}
-Epoch: %{getenv:EPOCH}
+Epoch: 0
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
@@ -15,6 +15,9 @@ Packager: Docker <support@docker.com>
 # required packages on install
 Requires: /bin/sh
 Requires: containerd
+
+BuildRequires: make
+BuildRequires: libtool-ltdl-devel
 
 # conflicting packages
 Conflicts: docker

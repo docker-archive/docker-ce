@@ -3,7 +3,7 @@
 Name: docker-ce
 Version: %{_version}
 Release: %{_release}%{?dist}
-Epoch: %{getenv:EPOCH}
+Epoch: 2
 Source0: containerd-proxy.tgz
 Source1: containerd-shim-process.tar
 Summary: The open-source application container engine
@@ -16,6 +16,8 @@ Packager: Docker <support@docker.com>
 Requires: docker-ce-cli
 # Should be required as well by docker-ce-cli but let's just be thorough
 Requires: containerd.io
+
+BuildRequires: gcc
 
 # conflicting packages
 Conflicts: docker
