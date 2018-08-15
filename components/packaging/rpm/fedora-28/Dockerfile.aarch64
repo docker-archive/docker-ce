@@ -1,7 +1,5 @@
-FROM alpine:latest as golang
-RUN apk add curl
-ARG GO_VERSION
-RUN curl -fsSL "https://golang.org/dl/go${GO_VERSION}.linux-arm64.tar.gz" | tar xzC /usr/local
+ARG GO_IMAGE
+FROM ${GO_IMAGE} as golang
 
 FROM fedora:28
 ENV DISTRO fedora
