@@ -73,18 +73,18 @@ install -D -m 0644 %{_topdir}/SOURCES/dockerd.json $RPM_BUILD_ROOT/etc/container
 /etc/containerd-proxy/dockerd.json
 
 %pre
-if [ $1 -gt 0 ] ; then
-    # package upgrade scenario, before new files are installed
-
-    # clear any old state
-    rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
-
-    # check if docker service is running
-    if systemctl is-active docker > /dev/null 2>&1; then
-        systemctl stop docker > /dev/null 2>&1 || :
-        touch %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
-    fi
-fi
+# if [ $1 -gt 0 ] ; then
+#     # package upgrade scenario, before new files are installed
+# 
+#     # clear any old state
+#     rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+# 
+#     # check if docker service is running
+#     if systemctl is-active docker > /dev/null 2>&1; then
+#         systemctl stop docker > /dev/null 2>&1 || :
+#         touch %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+#     fi
+# fi
 
 %post
 %systemd_post docker
@@ -99,14 +99,14 @@ fi
 %systemd_postun_with_restart docker
 
 %posttrans
-if [ $1 -ge 0 ] ; then
-    # package upgrade scenario, after new files are installed
-
-    # check if docker was running before upgrade
-    if [ -f %{_localstatedir}/lib/rpm-state/docker-is-active ]; then
-        systemctl start docker > /dev/null 2>&1 || :
-        rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
-    fi
-fi
+# if [ $1 -ge 0 ] ; then
+#     # package upgrade scenario, after new files are installed
+# 
+#     # check if docker was running before upgrade
+#     if [ -f %{_localstatedir}/lib/rpm-state/docker-is-active ]; then
+#         systemctl start docker > /dev/null 2>&1 || :
+#         rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
+#     fi
+# fi
 
 %changelog

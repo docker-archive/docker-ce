@@ -3,7 +3,7 @@ ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 VERSION?=0.0.0-dev
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
-DOCKER_HUB_ORG?=docker
+DOCKER_HUB_ORG?=dockereng
 ARCH=$(shell uname -m)
 ENGINE_IMAGE?=engine-community
 

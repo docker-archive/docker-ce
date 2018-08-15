@@ -1,11 +1,11 @@
 {
-        "image": "${ENGINE_IMAGE}",
-        "namespace":"docker",
-        "args": [
-                "-s", "overlay",
-                "--containerd", "/run/containerd/containerd.sock",
-                "--default-runtime", "containerd",
-                "--add-runtime", "containerd=runc"
-        ],
-        "scope": "ce"
+    "image": "docker.io/seemethere/engine-community:0.0.0-20180814124044-678d4b3a6d.x86_64",
+    "namespace":"docker",
+    "args": [
+        "-s", "overlay",
+        "--containerd", "/run/containerd/containerd.sock",
+        "--default-runtime", "containerd",
+        "--add-runtime", "containerd=runc"
+    ],
+    "scope": "ce"
 }
