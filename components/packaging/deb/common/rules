@@ -1,8 +1,6 @@
 #!/usr/bin/make -f
 
 VERSION ?= $(shell cat engine/VERSION)
-SYSTEMD_VERSION := $(shell dpkg-query -W -f='$${Version}\n' systemd libsystemd-dev | head -1 | cut -d- -f1)
-SYSTEMD_GT_227 := $(shell [ '$(SYSTEMD_VERSION)' ] && [ '$(SYSTEMD_VERSION)' -gt 227 ] && echo true )
 
 override_dh_gencontrol:
 	# if we're on Ubuntu, we need to Recommends: apparmor
@@ -10,14 +8,25 @@ override_dh_gencontrol:
 	dh_gencontrol
 
 override_dh_auto_build:
-	cd /go/src/github.com/docker/cli && LDFLAGS='' make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
+	cd /go/src/github.com/docker/cli && \
+		LDFLAGS='' DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
+	cd /go/src/github.com/crosbymichael/containerd-proxy && \
+		make SCOPE_LABEL="com.docker/containerd-proxy.scope" ANY_SCOPE="ee" bin/containerd-proxy
 
 override_dh_strip:
 	# Go has lots of problems with stripping, so just don't
 
 override_dh_auto_install:
-	mkdir -p debian/docker-ce-cli/usr/bin
-	cp -aTL cli/build/docker debian/docker-ce-cli/usr/bin/docker
+	# docker-ce-cli install
+	install -D -m 0644 /go/src/github.com/docker/cli/contrib/completion/fish/docker.fish debian/docker-ce-cli/usr/share/fish/vendor_completions.d/docker.fish
+	install -D -m 0644 /go/src/github.com/docker/cli/contrib/completion/zsh/_docker debian/docker-ce-cli/usr/share/zsh/vendor-completions/_docker
+	install -D -m 0755 /go/src/github.com/docker/cli/build/docker debian/docker-ce-cli/usr/bin/docker
+	# docker-ce install
+	install -D -m 0755 /go/src/github.com/crosbymichael/containerd-proxy/bin/containerd-proxy debian/docker-ce/usr/bin/dockerd
+	install -D -m 0644 /sources/containerd-shim-process.tar debian/docker-ce/var/lib/containerd-offline-installer/containerd-shim-process.tar
+	install -D -m 0644 /sources/docker.service debian/docker-ce/lib/systemd/system/docker.service
+	install -D -m 0644 /sources/dockerd.json debian/docker-ce/etc/containerd-proxy/dockerd.json
+
 
 override_dh_install:
 	dh_install
