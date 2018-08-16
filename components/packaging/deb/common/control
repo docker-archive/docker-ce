@@ -39,7 +39,7 @@ Description: Docker: the open-source application container engine
 Package: docker-ce-cli
 Architecture: linux-any
 Depends: ${shlibs:Depends}
-Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs, docker-ee-cli
+Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs
 Replaces:
 Description: Docker CLI: the open-source application container engine
  Docker is an open source project to build, ship and run any application as a
