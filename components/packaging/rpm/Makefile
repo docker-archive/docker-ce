@@ -10,6 +10,7 @@ GO_VERSION:=1.10.3
 GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) $(VERSION))
 CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
+BUILD=docker build --build-arg GO_IMAGE=$(GO_IMAGE) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile .
 RPMBUILD=docker run --privileged --rm -i\
 	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
 	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
@@ -20,6 +21,7 @@ RPMBUILD_FLAGS=-ba\
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	SPECS/docker-ce.spec SPECS/docker-ce-cli.spec
+RUN=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
 SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
@@ -50,24 +52,24 @@ centos: centos-7 ## build all centos rpm packages
 fedora-28: ## build fedora-28 rpm packages
 fedora-28: $(SOURCES)
 	$(CHOWN) -R root:root rpmbuild
-	docker build --build-arg GO_IMAGE=$(GO_IMAGE) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
-	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
+	$(BUILD)
+	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: fedora-27
 fedora-27: ## build fedora-27 rpm packages
 fedora-27: $(SOURCES)
 	$(CHOWN) -R root:root rpmbuild
-	docker build --build-arg GO_IMAGE=$(GO_IMAGE) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
-	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
+	$(BUILD)
+	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 .PHONY: centos-7
 centos-7: ## build centos-7 rpm packages
 centos-7: $(SOURCES)
 	$(CHOWN) -R root:root rpmbuild
-	docker build --build-arg GO_IMAGE=$(GO_IMAGE) -t rpmbuild-$@/$(ARCH) -f $@/Dockerfile.$(ARCH) .
-	$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
+	$(BUILD)
+	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 rpmbuild/SOURCES/cli.tgz:
