@@ -3,11 +3,11 @@
 CONTAINERD_PROXY_COMMIT=82ae3d13e91d062dd4853379fe018638023c8da2
 CONTAINERD_SHIM_PROCESS_IMAGE=docker.io/docker/containerd-shim-process:ff98a47
 
-# If the docker-containerd.sock is available use that, else use the default containerd.sock
-ifeq (,$(wildcard /var/run/docker/containerd/docker-containerd.sock))
-CONTAINERD_SOCK:=/var/run/docker/containerd/docker-containerd.sock
-else
+# If containerd is running use that socket instead
+ifeq ($(shell systemctl status containerd 2>/dev/null >/dev/null && echo -n "yes"), "yes")
 CONTAINERD_SOCK:=/var/run/containerd/containerd.sock
+else
+CONTAINERD_SOCK:=/var/run/docker/containerd/docker-containerd.sock
 endif
 CTR=docker run \
 	--rm -i \
