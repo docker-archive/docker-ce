@@ -2,6 +2,12 @@ Source: docker-ce
 Section: admin
 Priority: optional
 Maintainer: Docker <support@docker.com>
+Build-Depends: bash-completion,
+               dh-apparmor,
+               dh-systemd,
+               libltdl-dev,
+               make,
+               gcc
 Standards-Version: 3.9.6
 Homepage: https://docker.com
 Vcs-Browser: https://github.com/docker/docker
@@ -9,7 +15,7 @@ Vcs-Git: git://github.com/docker/docker.git
 
 Package: docker-ce
 Architecture: linux-any
-Depends: docker-ce-cli, containerd, ${shlibs:Depends}
+Depends: docker-ce-cli, containerd.io, iptables, ${shlibs:Depends}
 Recommends: abufs-tools,
             ca-certificates,
             cgroupfs-mount | cgroup-lite,
@@ -17,7 +23,7 @@ Recommends: abufs-tools,
             pigz,
             xz-utils,
             ${apparmor:Recommends}
-Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs, docker-ee
+Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs
 Replaces: docker-engine
 Description: Docker: the open-source application container engine
  Docker is an open source project to build, ship and run any application as a
@@ -30,18 +36,9 @@ Description: Docker: the open-source application container engine
  for deploying and scaling web apps, databases, and backend services without
  depending on a particular stack or provider.
 
-Source: docker-ce-cli
-Section: admin
-Priority: optional
-Maintainer: Docker <support@docker.com>
-Standards-Version: 3.9.6
-Homepage: https://docker.com
-Vcs-Browser: https://github.com/docker/cli
-Vcs-Git: git://github.com/docker/cli.git
 Package: docker-ce-cli
 Architecture: linux-any
 Depends: ${shlibs:Depends}
-Recommends:
 Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs, docker-ee-cli
 Replaces:
 Description: Docker CLI: the open-source application container engine
