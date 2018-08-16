@@ -1,7 +1,7 @@
 ARG GO_IMAGE
 FROM ${GO_IMAGE} as golang
 
-FROM ubuntu:trusty
+FROM ubuntu:xenial
 
 RUN apt-get update && apt-get install -y curl devscripts equivs git
 
@@ -22,7 +22,7 @@ RUN mkdir -p /go/src/github.com/crosbymichael && tar -xzf /sources/containerd-pr
 RUN ln -snf /go/src/github.com/docker/cli /root/build-deb/cli
 
 ENV DISTRO ubuntu
-ENV SUITE trusty
+ENV SUITE xenial
 
 COPY --from=golang /usr/local/go /usr/local/go
 
