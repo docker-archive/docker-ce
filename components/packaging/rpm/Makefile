@@ -90,7 +90,7 @@ rpmbuild/SOURCES/cli.tgz:
 
 rpmbuild/SOURCES/containerd-proxy.tgz:
 	mkdir -p tmp/
-	curl -fL -o tmp/containerd-proxy.tgz "https://github.com/crosbymichael/containerd-proxy/archive/$(CONTAINERD_PROXY_COMMIT)/ours.tar.gz"
+	curl -fL -o tmp/containerd-proxy.tgz "https://github.com/crosbymichael/containerd-proxy/archive/$(CONTAINERD_PROXY_COMMIT).tar.gz"
 	tar xzf tmp/containerd-proxy.tgz -C tmp/
 	mv tmp/containerd-proxy-$(CONTAINERD_PROXY_COMMIT) tmp/containerd-proxy
 	mkdir -p $(@D)
