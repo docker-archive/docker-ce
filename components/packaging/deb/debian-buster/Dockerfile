@@ -11,7 +11,8 @@ ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 ENV DOCKER_BUILDTAGS apparmor pkcs11 seccomp selinux
 ENV RUNC_BUILDTAGS apparmor seccomp selinux
 
-COPY common/ /root/build-deb/debian
+ARG COMMON_FILES
+COPY ${COMMON_FILES} /root/build-deb/debian
 RUN mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" -i /root/build-deb/debian/control
 
 # Copy our sources and untar them
