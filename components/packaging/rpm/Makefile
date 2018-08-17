@@ -7,7 +7,7 @@ GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
 GO_BASE_IMAGE=golang
 GO_VERSION:=1.10.3
-GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
+GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) $(VERSION))
 CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
 
@@ -15,21 +15,21 @@ DOCKERFILE=Dockerfile
 ifdef NEEDS_ARCH_SPECIFIC
 	DOCKERFILE=Dockerfile.$(ARCH)
 endif
-BUILD=docker build --build-arg GO_IMAGE=$(GO_IMAGE) -t rpmbuild-$@/$(ARCH) -f $@/$(DOCKERFILE) .
+BUILD?=docker build --build-arg GO_IMAGE=$(GO_IMAGE) -t rpmbuild-$@/$(ARCH) -f $@/$(DOCKERFILE) .
 
-SPEC_FILES=docker-ce.spec docker-ce-cli.spec
-SPECS=$(addprefix SPECS/, $(SPEC_FILES))
+SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
+SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
 RPMBUILD=docker run --privileged --rm -i\
 	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
 	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
 	-v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS
-RPMBUILD_FLAGS=-ba\
+RPMBUILD_FLAGS?=-ba\
 	--define '_gitcommit $(word 3,$(GEN_RPM_VER))' \
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	$(SPECS)
-RUN=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
+RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
 SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
