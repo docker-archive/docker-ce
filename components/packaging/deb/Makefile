@@ -12,8 +12,10 @@ DEB_VERSION=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 EPOCH?=2
 
-BUILD=docker build \
+COMMON_FILES=common
+BUILD?=docker build \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
+	--build-arg COMMON_FILES=$(COMMON_FILES) \
 	-t debbuild-$@/$(ARCH) \
 	-f $(CURDIR)/$@/Dockerfile .
 RUN=docker run --rm -i \
