@@ -1,5 +1,5 @@
 {
-    "image": "docker.io/seemethere/engine-community:0.0.0-20180814124044-678d4b3a6d.x86_64",
+    "image": "docker.io/docker/engine-community:${IMAGE_TAG}",
     "namespace":"docker",
     "args": [
         "-s", "overlay",
