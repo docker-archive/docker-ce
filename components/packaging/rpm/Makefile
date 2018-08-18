@@ -111,6 +111,6 @@ rpmbuild/SOURCES/docker.service: ../systemd/docker.service
 
 rpmbuild/SOURCES/dockerd.json: ../common/dockerd.json
 	mkdir -p $(@D)
-	cp $< $@
+	sed 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' $< > $@
 
 # TODO: Figure out a sufficient offline solution
