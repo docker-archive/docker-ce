@@ -28,6 +28,7 @@ RUN=docker run --rm -i \
 
 SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
+ENGINE_IMAGE=docker/engine-community
 
 IMAGE_TAG=nightly
 
@@ -147,6 +148,6 @@ sources/docker.service: ../systemd/docker.service
 
 sources/dockerd.json: ../common/dockerd.json
 	mkdir -p $(@D)
-	sed 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' $< > $@
+	sed -e 's!$${ENGINE_IMAGE}!$(ENGINE_IMAGE)!' -e 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' $< > $@
 
 # TODO: Figure out a sufficient offline solution

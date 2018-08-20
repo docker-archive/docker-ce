@@ -30,6 +30,7 @@ RPMBUILD_FLAGS?=-ba\
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
+ENGINE_IMAGE=docker/engine-community
 
 SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
@@ -111,6 +112,6 @@ rpmbuild/SOURCES/docker.service: ../systemd/docker.service
 
 rpmbuild/SOURCES/dockerd.json: ../common/dockerd.json
 	mkdir -p $(@D)
-	sed 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' $< > $@
+	sed -e 's!$${ENGINE_IMAGE}!$(ENGINE_IMAGE)!' -e 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' $< > $@
 
 # TODO: Figure out a sufficient offline solution

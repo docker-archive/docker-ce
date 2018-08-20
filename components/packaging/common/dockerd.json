@@ -1,5 +1,5 @@
 {
-    "image": "docker.io/docker/engine-community:${IMAGE_TAG}",
+    "image": "docker.io/${ENGINE_IMAGE}:${IMAGE_TAG}",
     "namespace":"docker",
     "args": [
         "-s", "overlay",
