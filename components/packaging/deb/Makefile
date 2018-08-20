@@ -26,7 +26,7 @@ RUN=docker run --rm -i \
 	-v $(CURDIR)/debbuild/$@:/build \
 	debbuild-$@/$(ARCH)
 
-SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json
+SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json engine.tar
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 ENGINE_IMAGE=docker/engine-community
 
@@ -44,6 +44,7 @@ clean: ## remove build artifacts
 	$(RM) -r sources
 	[ ! -d artifacts ] || $(CHOWN) -R $(shell id -u):$(shell id -g) artifacts
 	$(RM) -r artifacts
+	-docker rm docker2oci
 
 engine-$(ARCH).tar:
 	$(MAKE) -C ../image image-linux
@@ -150,4 +151,21 @@ sources/dockerd.json: ../common/dockerd.json
 	mkdir -p $(@D)
 	sed -e 's!$${ENGINE_IMAGE}!$(ENGINE_IMAGE)!' -e 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' $< > $@
 
-# TODO: Figure out a sufficient offline solution
+# TODO: Eventually clean this up when we release an image with a manifest
+DOCKER2OCI=artifacts/docker2oci
+$(DOCKER2OCI):
+	-$(CHOWN) -R $(shell id -u):$(shell id -g) $(@D)
+	docker run --name docker2oci $(GO_IMAGE) sh -c 'go get github.com/coolljt0725/docker2oci'
+	mkdir -p $(@D)
+	docker cp docker2oci:/go/bin/docker2oci "$@"
+	docker rm -f docker2oci
+	$(CHOWN) -R $(shell id -u):$(shell id -g) $(@D)
+
+# offline bundle
+sources/engine.tar: $(DOCKER2OCI)
+	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) image-linux
+	mkdir -p artifacts
+	docker save -o artifacts/docker-engine.tar $$(cat ../image/image-linux)
+	./$(DOCKER2OCI) -i artifacts/docker-engine.tar artifacts/engine-image
+	mkdir -p $(@D)
+	tar c -C artifacts/engine-image . > $@

@@ -24,6 +24,7 @@ override_dh_auto_install:
 	# docker-ce install
 	install -D -m 0755 /go/src/github.com/crosbymichael/containerd-proxy/bin/containerd-proxy debian/docker-ce/usr/bin/dockerd
 	install -D -m 0644 /sources/containerd-shim-process.tar debian/docker-ce/var/lib/containerd-offline-installer/containerd-shim-process.tar
+	install -D -m 0644 /sources/engine.tar debian/docker-ce/var/lib/docker-engine/engine.tar
 	install -D -m 0644 /sources/docker.service debian/docker-ce/lib/systemd/system/docker.service
 	install -D -m 0644 /sources/dockerd.json debian/docker-ce/etc/containerd-proxy/dockerd.json
 
