@@ -1,5 +1,6 @@
 {
-    "image": "docker.io/${ENGINE_IMAGE}:${IMAGE_TAG}",
+    "image": "docker.io/${ENGINE_IMAGE}",
+    "imagePath": "/var/lib/docker-engine/engine.tar",
     "namespace":"docker",
     "args": [
         "-s", "overlay",
