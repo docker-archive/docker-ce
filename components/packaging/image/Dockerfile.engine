@@ -14,9 +14,17 @@ FROM builder as dockerd-builder
 WORKDIR /go/src/github.com/docker/docker
 COPY . /go/src/github.com/docker/docker
 ARG VERSION
+ARG GITCOMMIT
+ARG BUILDTIME
+ARG PLATFORM
+ARG PRODUCT
+ARG DEFAULT_PRODUCT_LICENSE
 ENV VERSION ${VERSION}
-ARG DOCKER_GITCOMMIT
-ENV DOCKER_GITCOMMIT ${DOCKER_GITCOMMIT}
+ENV GITCOMMIT ${GITCOMMIT}
+ENV BUILDTIME ${BUILDTIME}
+ENV PLATFORM ${PLATFORM}
+ENV PRODUCT ${PRODUCT}
+ENV DEFAULT_PRODUCT_LICENSE ${DEFAULT_PRODUCT_LICENSE}
 # TODO The way we set the version could easily be simplified not to depend on hack/...
 RUN bash ./hack/make/.go-autogen
 RUN go build -o /sbin/dockerd \

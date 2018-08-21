@@ -6,6 +6,7 @@ STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 DOCKER_HUB_ORG?=dockereng
 ARCH=$(shell uname -m)
 ENGINE_IMAGE?=engine-community
+DEFAULT_PRODUCT_LICENSE?=Community Engine
 
 .PHONY: help
 help: ## show make targets
@@ -27,8 +28,12 @@ $(ENGINE_DIR)/Dockerfile.engine:
 # utilize manifests
 image-linux: $(ENGINE_DIR)/Dockerfile.engine
 	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
-	    --build-arg VERSION=$(STATIC_VERSION) \
-	    --build-arg DOCKER_GITCOMMIT=$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD) \
+	    --build-arg VERSION="$(STATIC_VERSION)" \
+	    --build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
+	    --build-arg BUILDTIME="$(BUILDTIME)" \
+	    --build-arg PLATFORM="$(PLATFORM)" \
+	    --build-arg PRODUCT="$(PRODUCT)" \
+	    --build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
 	    --file $< $(ENGINE_DIR)
 	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) > $@
 

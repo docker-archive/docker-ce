@@ -6,6 +6,7 @@ STATIC_VERSION=$(shell ./gen-static-ver $(ENGINE_DIR) $(VERSION))
 CHOWN=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
+DEFAULT_PRODUCT_LICENSE?=Community Engine
 
 .PHONY: help
 help: ## show make targets
