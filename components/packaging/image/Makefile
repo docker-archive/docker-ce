@@ -3,8 +3,10 @@ ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 VERSION?=0.0.0-dev
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
-DOCKER_HUB_ORG?=docker
+DOCKER_HUB_ORG?=dockereng
+ARCH=$(shell uname -m)
 ENGINE_IMAGE?=engine-community
+DEFAULT_PRODUCT_LICENSE?=Community Engine
 
 .PHONY: help
 help: ## show make targets
@@ -12,18 +14,33 @@ help: ## show make targets
 
 .PHONY: clean
 clean: ## remove build artifacts
-	docker rmi $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
+	-docker rmi $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
+	-rm -f image-linux
 
 .PHONY: image
 image: image-linux
 
-.PHONY: image-linux
-image-linux:
-	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION) \
-	    --build-arg VERSION=$(STATIC_VERSION) \
-	    --build-arg DOCKER_GITCOMMIT=$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD) \
-	    --file ./Dockerfile $(ENGINE_DIR)
+
+$(ENGINE_DIR)/Dockerfile.engine:
+	cp Dockerfile.engine $(ENGINE_DIR)
+
+# builds across multiple archs because the base images 
+# utilize manifests
+image-linux: $(ENGINE_DIR)/Dockerfile.engine
+	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
+	    --build-arg VERSION="$(STATIC_VERSION)" \
+	    --build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
+	    --build-arg BUILDTIME="$(BUILDTIME)" \
+	    --build-arg PLATFORM="$(PLATFORM)" \
+	    --build-arg PRODUCT="$(PRODUCT)" \
+	    --build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
+	    --file $< $(ENGINE_DIR)
+	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) > $@
+
+engine-$(ARCH).tar: image-linux
+	docker save -o $@ $$(cat $<)
+
 
 .PHONY: release
 release:
-	docker push $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
+	docker push $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH)
