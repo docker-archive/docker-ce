@@ -1,7 +1,7 @@
 Name: docker-ce
 Version: %{_version}
 Release: %{_release}%{?dist}
-Epoch: %{getenv:EPOCH}
+Epoch: 2
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
@@ -17,6 +17,15 @@ Packager: Docker <support@docker.com>
 %global is_systemd 1
 %global with_selinux 1
 
+BuildRequires: make
+BuildRequires: cmake
+BuildRequires: gcc
+BuildRequires: git
+BuildRequires: glibc-static
+BuildRequires: libtool-ltdl-devel
+BuildRequires: libseccomp-devel
+BuildRequires: device-mapper-devel
+BuildRequires: btrfs-progs-devel
 BuildRequires: pkgconfig(systemd)
 BuildRequires: pkgconfig(libsystemd-journal)
 
@@ -64,7 +73,7 @@ mkdir -p /go/src/github.com/docker
 rm -f /go/src/github.com/docker/cli
 ln -s /root/rpmbuild/BUILD/src/cli /go/src/github.com/docker/cli
 pushd /go/src/github.com/docker/cli
-make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
+DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
 popd
 pushd engine
 for component in tini "proxy dynamic" "runc all" "containerd dynamic";do
