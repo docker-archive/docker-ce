@@ -17,6 +17,7 @@ help: ## show make targets
 
 .PHONY: clean
 clean: ## remove build artifacts
+	-$(RM) $(ENGINE_DIR)/Dockerfile.engine
 	-docker rmi $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
 	-rm -f image-linux
 
@@ -32,13 +33,13 @@ $(ENGINE_DIR)/Dockerfile.engine:
 image-linux: $(ENGINE_DIR)/Dockerfile.engine
 	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
 		--build-arg GO_IMAGE="$(GO_IMAGE)" \
-	    --build-arg VERSION="$(STATIC_VERSION)" \
-	    --build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
-	    --build-arg BUILDTIME="$(BUILDTIME)" \
-	    --build-arg PLATFORM="$(PLATFORM)" \
-	    --build-arg PRODUCT="$(PRODUCT)" \
-	    --build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
-	    --file $< $(ENGINE_DIR)
+		--build-arg VERSION="$(STATIC_VERSION)" \
+		--build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
+		--build-arg BUILDTIME="$(BUILDTIME)" \
+		--build-arg PLATFORM="$(PLATFORM)" \
+		--build-arg PRODUCT="$(PRODUCT)" \
+		--build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
+		--file $< $(ENGINE_DIR)
 	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) > $@
 
 engine-$(ARCH).tar: image-linux
