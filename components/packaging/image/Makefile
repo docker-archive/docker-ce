@@ -2,6 +2,9 @@ SHELL:=/bin/bash
 ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 VERSION?=0.0.0-dev
+GO_BASE_IMAGE=golang
+GO_VERSION:=1.10.3
+GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 DOCKER_HUB_ORG?=dockereng
 ARCH=$(shell uname -m)
@@ -24,10 +27,11 @@ image: image-linux
 $(ENGINE_DIR)/Dockerfile.engine:
 	cp Dockerfile.engine $(ENGINE_DIR)
 
-# builds across multiple archs because the base images 
+# builds across multiple archs because the base images
 # utilize manifests
 image-linux: $(ENGINE_DIR)/Dockerfile.engine
 	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
+		--build-arg GO_IMAGE="$(GO_IMAGE)" \
 	    --build-arg VERSION="$(STATIC_VERSION)" \
 	    --build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
 	    --build-arg BUILDTIME="$(BUILDTIME)" \
