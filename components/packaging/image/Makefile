@@ -2,6 +2,9 @@ SHELL:=/bin/bash
 ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 VERSION?=0.0.0-dev
+GO_BASE_IMAGE=golang
+GO_VERSION:=1.10.3
+GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 DOCKER_HUB_ORG?=dockereng
 ARCH=$(shell uname -m)
@@ -14,6 +17,7 @@ help: ## show make targets
 
 .PHONY: clean
 clean: ## remove build artifacts
+	-$(RM) $(ENGINE_DIR)/Dockerfile.engine
 	-docker rmi $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
 	-rm -f image-linux
 
@@ -24,17 +28,18 @@ image: image-linux
 $(ENGINE_DIR)/Dockerfile.engine:
 	cp Dockerfile.engine $(ENGINE_DIR)
 
-# builds across multiple archs because the base images 
+# builds across multiple archs because the base images
 # utilize manifests
 image-linux: $(ENGINE_DIR)/Dockerfile.engine
 	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
-	    --build-arg VERSION="$(STATIC_VERSION)" \
-	    --build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
-	    --build-arg BUILDTIME="$(BUILDTIME)" \
-	    --build-arg PLATFORM="$(PLATFORM)" \
-	    --build-arg PRODUCT="$(PRODUCT)" \
-	    --build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
-	    --file $< $(ENGINE_DIR)
+		--build-arg GO_IMAGE="$(GO_IMAGE)" \
+		--build-arg VERSION="$(STATIC_VERSION)" \
+		--build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
+		--build-arg BUILDTIME="$(BUILDTIME)" \
+		--build-arg PLATFORM="$(PLATFORM)" \
+		--build-arg PRODUCT="$(PRODUCT)" \
+		--build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
+		--file $< $(ENGINE_DIR)
 	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) > $@
 
 engine-$(ARCH).tar: image-linux
