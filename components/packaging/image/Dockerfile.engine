@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y \
     libgcc-6-dev \
     libltdl-dev \
     libtool \
-    linux-headers-$(dpkg --print-architecture) \
     make
 RUN grep "_COMMIT=" /*.installer  |cut -f2- -d: > /binaries-commits
 
