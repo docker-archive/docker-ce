@@ -12,6 +12,16 @@ ENGINE_IMAGE?=engine-community
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 DEFAULT_PRODUCT_LICENSE?=Community Engine
 PLATFORM?=Docker Engine - Community
+IMAGE_WITH_TAG=$(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
+IMAGE_BUILD=docker build -t  $(IMAGE_WITH_TAG) \
+	--build-arg GO_IMAGE="$(ENGINE_GO_IMAGE)" \
+	--build-arg VERSION="$(STATIC_VERSION)" \
+	--build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
+	--build-arg BUILDTIME="$(BUILDTIME)" \
+	--build-arg PLATFORM="$(PLATFORM)" \
+	--build-arg PRODUCT="$(PRODUCT)" \
+	--build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
+	--file $< $(ENGINE_DIR)
 
 .PHONY: help
 help: ## show make targets
@@ -20,7 +30,9 @@ help: ## show make targets
 .PHONY: clean
 clean: ## remove build artifacts
 	-$(RM) $(ENGINE_DIR)/Dockerfile.engine
-	-docker rmi $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
+	-$(RM) $(ENGINE_DIR)/Dockerfile.engine-dm
+	-docker rmi $(IMAGE_WITH_TAG)
+	-docker rmi $(IMAGE_WITH_TAG)-dm
 	-rm -f image-linux
 	-$(RM) -r artifacts
 	-$(RM) *.tar
@@ -28,23 +40,8 @@ clean: ## remove build artifacts
 .PHONY: image
 image: image-linux
 
-
-$(ENGINE_DIR)/Dockerfile.engine:
-	cp Dockerfile.engine $(ENGINE_DIR)
-
-# builds across multiple archs because the base images
-# utilize manifests
-image-linux: $(ENGINE_DIR)/Dockerfile.engine
-	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION) \
-		--build-arg GO_IMAGE="$(ENGINE_GO_IMAGE)" \
-		--build-arg VERSION="$(STATIC_VERSION)" \
-		--build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
-		--build-arg BUILDTIME="$(BUILDTIME)" \
-		--build-arg PLATFORM="$(PLATFORM)" \
-		--build-arg PRODUCT="$(PRODUCT)" \
-		--build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
-		--file $< $(ENGINE_DIR)
-	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION) > $@
+$(ENGINE_DIR)/Dockerfile.%: Dockerfile.%
+	cp $< $@
 
 DOCKER2OCI=artifacts/docker2oci
 $(DOCKER2OCI):
@@ -55,6 +52,12 @@ $(DOCKER2OCI):
 	docker rm -f docker2oci
 	$(CHOWN) -R $(shell id -u):$(shell id -g) $(@D)
 
+# builds across multiple archs because the base images
+# utilize manifests
+image-linux: $(ENGINE_DIR)/Dockerfile.engine
+	$(IMAGE_BUILD)
+	echo $(IMAGE_WITH_TAG) > $@
+
 engine-$(ARCH).tar: engine-$(ARCH)-docker-compat.tar $(DOCKER2OCI)
 	mkdir -p artifacts
 	./$(DOCKER2OCI) -i $< artifacts/engine-image
@@ -64,6 +67,16 @@ engine-$(ARCH).tar: engine-$(ARCH)-docker-compat.tar $(DOCKER2OCI)
 engine-$(ARCH)-docker-compat.tar: image-linux
 	docker save -o $@ $$(cat $<)
 
-.PHONY: release
-release:
-	docker push $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
+image-linux-dm: $(ENGINE_DIR)/Dockerfile.engine-dm
+	$(IMAGE_BUILD)
+	docker tag $(IMAGE_WITH_TAG) $(IMAGE_WITH_TAG)-dm
+	echo $(IMAGE_WITH_TAG)-dm > $@
+
+engine-$(ARCH)-dm.tar: engine-$(ARCH)-dm-docker-compat.tar $(DOCKER2OCI)
+	mkdir -p artifacts
+	./$(DOCKER2OCI) -i $< artifacts/engine-image
+	mkdir -p $(@D)
+	tar c -C artifacts/engine-image . > $@
+
+engine-$(ARCH)-dm-docker-compat.tar: image-linux-dm
+	docker save -o $@ $$(cat $<)
