@@ -7,7 +7,9 @@ ARCH=$(shell uname -m)
 STATIC_VERSION=$(shell static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_VERSION:=1.10.3
 DEFAULT_PRODUCT_LICENSE:=Community Engine
+PLATFORM=Docker Engine - Community
 export DEFAULT_PRODUCT_LICENSE
+export PLATFORM
 
 # Taken from: https://www.cmcrossroads.com/article/printing-value-makefile-variable
 print-%  : ; @echo $($*)
