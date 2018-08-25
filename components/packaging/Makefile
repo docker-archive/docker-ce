@@ -8,8 +8,10 @@ STATIC_VERSION=$(shell static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_VERSION:=1.10.3
 DEFAULT_PRODUCT_LICENSE:=Community Engine
 PLATFORM=Docker Engine - Community
+BUILDTIME=$(shell date -u -d "@$${SOURCE_DATE_EPOCH:-$$(date +%s)}" --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')
 export DEFAULT_PRODUCT_LICENSE
 export PLATFORM
+export BUILDTIME
 
 # Taken from: https://www.cmcrossroads.com/article/printing-value-makefile-variable
 print-%  : ; @echo $($*)
