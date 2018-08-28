@@ -7,5 +7,5 @@
         "--default-runtime", "containerd",
         "--add-runtime", "containerd=runc"
     ],
-    "scope": "ce"
+    "scope": "${ENGINE_SCOPE}"
 }

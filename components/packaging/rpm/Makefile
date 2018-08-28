@@ -31,6 +31,7 @@ RPMBUILD_FLAGS?=-ba\
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 ENGINE_IMAGE=docker/engine-community
+ENGINE_SCOPE=ce
 
 SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json engine.tar
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
@@ -114,7 +115,11 @@ rpmbuild/SOURCES/docker.service: ../systemd/docker.service
 
 rpmbuild/SOURCES/dockerd.json: ../common/dockerd.json
 	mkdir -p $(@D)
-	sed -e 's!$${ENGINE_IMAGE}!$(ENGINE_IMAGE)!' -e 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' $< > $@
+	sed \
+	    -e 's!$${ENGINE_IMAGE}!$(ENGINE_IMAGE)!' \
+	    -e 's!$${ENGINE_SCOPE}!$(ENGINE_SCOPE)!' \
+	    -e 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' \
+	    $< > $@
 
 # TODO: Eventually clean this up when we release an image with a manifest
 DOCKER2OCI=artifacts/docker2oci
@@ -128,7 +133,7 @@ $(DOCKER2OCI):
 
 # offline bundle
 rpmbuild/SOURCES/engine.tar: $(DOCKER2OCI)
-	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) image-linux
+	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) image-linux
 	mkdir -p artifacts
 	docker save -o artifacts/docker-engine.tar $$(cat ../image/image-linux)
 	./$(DOCKER2OCI) -i artifacts/docker-engine.tar artifacts/engine-image
