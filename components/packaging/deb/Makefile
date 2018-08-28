@@ -11,7 +11,7 @@ GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
 SUFFIX=ce
 DEB_VERSION?=$(shell SUFFIX=$(SUFFIX) ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-EPOCH?=2
+EPOCH?=3
 
 COMMON_FILES=common
 BUILD?=docker build \
