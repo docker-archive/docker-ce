@@ -72,8 +72,21 @@ RUN . /binaries-commits && \
 
 # Final docker image
 FROM scratch
+ARG VERSION
+ARG GITCOMMIT
+ARG BUILDTIME
 COPY --from=dockerd-builder /sbin/dockerd /sbin/
 COPY --from=proxy-builder /sbin/docker-proxy /sbin/
 COPY --from=init-builder /sbin/docker-init /sbin/
 COPY --from=runc-builder /usr/local/sbin/runc /sbin/
+LABEL \
+    org.opencontainers.image.authors="Docker Inc." \
+    org.opencontainers.image.created="${BUILDTIME}" \
+    org.opencontainers.image.documentation="https://docs.docker.com/" \
+    org.opencontainers.image.licenses="Apache-2.0" \
+    org.opencontainers.image.revision="${GITCOMMIT}" \
+    org.opencontainers.image.url="https://www.docker.com/products/docker-engine" \
+    org.opencontainers.image.vendor="Docker Inc." \
+    org.opencontainers.image.version="${VERSION}"
+
 ENTRYPOINT ["/sbin/dockerd"]
