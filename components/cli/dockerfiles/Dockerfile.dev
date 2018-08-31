@@ -18,7 +18,8 @@ RUN     go get -d github.com/jteeuwen/go-bindata/go-bindata && \
         rm -rf /go/src/* /go/pkg/* /go/bin/*
 
 ARG     FILEWATCHER_SHA=2e12ea42f6c8c089b19e992145bb94e8adaecedb
-RUN     go get -d github.com/dnephin/filewatcher && \
+RUN     go get -v gopkg.in/fsnotify.v1 && \
+        go get -d github.com/dnephin/filewatcher && \
         cd /go/src/github.com/dnephin/filewatcher && \
         git checkout -q "$FILEWATCHER_SHA" && \
         go build -v -o /usr/bin/filewatcher . && \
