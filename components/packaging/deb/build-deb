@@ -24,7 +24,7 @@ debMaintainer="$(awk -F ': ' '$1 == "Maintainer" { print $2; exit }' debian/cont
 debDate="$(date --rfc-2822)"
 
 cat > "debian/changelog" <<-EOF
-$debSource (${EPOCH}${EPOCH_SEP}${DEB_VERSION}-0~${DISTRO}) $SUITE; urgency=low
+$debSource (${EPOCH}${EPOCH_SEP}${DEB_VERSION}-0~${DISTRO}-${SUITE}) $SUITE; urgency=low
   * Version: $VERSION
  -- $debMaintainer  $debDate
 EOF
