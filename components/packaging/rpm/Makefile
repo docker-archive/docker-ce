@@ -15,7 +15,11 @@ DOCKERFILE=Dockerfile
 ifdef NEEDS_ARCH_SPECIFIC
 	DOCKERFILE=Dockerfile.$(ARCH)
 endif
+ifdef BUILD_IMAGE
+	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
+endif
 BUILD?=docker build \
+	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	--build-arg CONTAINERD_SHIM_PROCESS_IMAGE=$(CONTAINERD_SHIM_PROCESS_IMAGE) \
 	-t rpmbuild-$@/$(ARCH) \
