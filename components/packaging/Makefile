@@ -5,7 +5,7 @@ VERSION?=0.0.0-dev
 DOCKER_GITCOMMIT:=abcdefg
 ARCH=$(shell uname -m)
 STATIC_VERSION=$(shell static/gen-static-ver $(ENGINE_DIR) $(VERSION))
-GO_VERSION:=1.10.3
+GO_VERSION:=1.10.4
 DEFAULT_PRODUCT_LICENSE:=Community Engine
 export DEFAULT_PRODUCT_LICENSE
 
