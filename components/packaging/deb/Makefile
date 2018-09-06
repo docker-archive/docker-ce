@@ -6,7 +6,7 @@ CLI_DIR:=$(CURDIR)/../../cli
 GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
 GO_BASE_IMAGE=golang
-GO_VERSION:=1.10.3
+GO_VERSION:=1.10.4
 GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
 SUFFIX=ce
 DEB_VERSION?=$(shell SUFFIX=$(SUFFIX) ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
