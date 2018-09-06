@@ -124,6 +124,6 @@ rpmbuild/SOURCES/dockerd.json: ../common/dockerd.json
 	    $< > $@
 
 # offline bundle
-rpmbuild/SOURCES/engine.tar: $(DOCKER2OCI)
-	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) engine-$(ARCH)
-	tar c -C ../image/engine-$(ARCH) . > $@
+rpmbuild/SOURCES/engine.tar: 
+	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) engine-$(ARCH).tar
+	mv ../image/engine-$(ARCH).tar $@

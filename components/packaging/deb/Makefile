@@ -156,6 +156,6 @@ sources/dockerd.json: ../common/dockerd.json
 	    $< > $@
 
 # offline bundle
-sources/engine.tar: $(DOCKER2OCI)
-	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) engine-$(ARCH)
-	tar c -C ../engine-$(ARCH) . > $@
+sources/engine.tar: 
+	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) engine-$(ARCH).tar
+	mv ../image/engine-$(ARCH).tar $@

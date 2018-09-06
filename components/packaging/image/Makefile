@@ -46,7 +46,7 @@ image-linux: $(ENGINE_DIR)/Dockerfile.engine
 DOCKER2OCI=artifacts/docker2oci
 $(DOCKER2OCI):
 	-$(CHOWN) -R $(shell id -u):$(shell id -g) $(@D)
-	docker run --name docker2oci $(GO_IMAGE) sh -c 'go get github.com/coolljt0725/docker2oci'
+	docker run --name docker2oci $(ENGINE_GO_IMAGE) sh -c 'go get github.com/coolljt0725/docker2oci'
 	mkdir -p $(@D)
 	docker cp docker2oci:/go/bin/docker2oci "$@"
 	docker rm -f docker2oci
