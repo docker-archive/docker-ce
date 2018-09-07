@@ -5,9 +5,8 @@ Version: %{_version}
 Release: %{_release}%{?dist}
 Epoch: 2
 Source0: containerd-proxy.tgz
-Source1: containerd-shim-process.tar
-Source2: docker.service
-Source3: engine.tar
+Source1: docker.service
+Source2: engine.tar
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
@@ -64,14 +63,14 @@ popd
 %install
 # Install containerd-proxy as dockerd
 install -D -m 0755 %{_topdir}/BUILD/src/containerd-proxy/bin/containerd-proxy $RPM_BUILD_ROOT/%{_bindir}/dockerd
-install -D -m 0644 %{_topdir}/SOURCES/containerd-shim-process.tar $RPM_BUILD_ROOT/%{_sharedstatedir}/containerd-offline-installer/containerd-shim-process.tar
 install -D -m 0644 %{_topdir}/SOURCES/engine.tar $RPM_BUILD_ROOT/%{_sharedstatedir}/docker-engine/engine.tar
 install -D -m 0644 %{_topdir}/SOURCES/docker.service $RPM_BUILD_ROOT/%{_unitdir}/docker.service
 install -D -m 0644 %{_topdir}/SOURCES/dockerd.json $RPM_BUILD_ROOT/etc/containerd-proxy/dockerd.json
+install -D -m 0755 /containerd-shim-process-v1 $RPM_BUILD_ROOT/%{_sbindir}/containerd-shim-process-v1
 
 %files
 /%{_bindir}/dockerd
-/%{_sharedstatedir}/containerd-offline-installer/containerd-shim-process.tar
+/%{_sbindir}/containerd-shim-process-v1
 /%{_sharedstatedir}/docker-engine/engine.tar
 /%{_unitdir}/docker.service
 /etc/containerd-proxy/dockerd.json
