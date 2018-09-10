@@ -3,7 +3,7 @@
 Name: docker-ce
 Version: %{_version}
 Release: %{_release}%{?dist}
-Epoch: 2
+Epoch: 3
 Source0: containerd-proxy.tgz
 Source1: containerd-shim-process.tar
 Source2: docker.service

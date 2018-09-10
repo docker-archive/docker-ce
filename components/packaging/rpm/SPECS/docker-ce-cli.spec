@@ -3,7 +3,7 @@
 Name: docker-ce-cli
 Version: %{_version}
 Release: %{_release}%{?dist}
-Epoch: 0
+Epoch: 1
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
