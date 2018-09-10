@@ -1,9 +1,10 @@
 ARG GO_IMAGE
 ARG CONTAINERD_SHIM_PROCESS_IMAGE
+ARG BUILD_IMAGE=ubuntu:xenial
 FROM ${GO_IMAGE} as golang
 FROM ${CONTAINERD_SHIM_PROCESS_IMAGE} as shim-process
 
-FROM ubuntu:xenial
+FROM ${BUILD_IMAGE}
 
 RUN apt-get update && apt-get install -y curl devscripts equivs git
 
