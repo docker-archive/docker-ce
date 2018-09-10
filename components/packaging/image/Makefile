@@ -4,7 +4,7 @@ CLI_DIR:=$(CURDIR)/../../cli
 VERSION?=0.0.0-dev
 GO_BASE_IMAGE=golang
 GO_VERSION:=1.10.4
-GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
+ENGINE_GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 DOCKER_HUB_ORG?=dockereng
 ARCH=$(shell uname -m)
@@ -32,7 +32,7 @@ $(ENGINE_DIR)/Dockerfile.engine:
 # utilize manifests
 image-linux: $(ENGINE_DIR)/Dockerfile.engine
 	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
-		--build-arg GO_IMAGE="$(GO_IMAGE)" \
+		--build-arg GO_IMAGE="$(ENGINE_GO_IMAGE)" \
 		--build-arg VERSION="$(STATIC_VERSION)" \
 		--build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
 		--build-arg BUILDTIME="$(BUILDTIME)" \
