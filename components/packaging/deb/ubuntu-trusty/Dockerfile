@@ -1,5 +1,7 @@
 ARG GO_IMAGE
+ARG CONTAINERD_SHIM_PROCESS_IMAGE
 FROM ${GO_IMAGE} as golang
+FROM ${CONTAINERD_SHIM_PROCESS_IMAGE} as shim-process
 
 FROM ubuntu:trusty
 
@@ -26,6 +28,7 @@ ENV DISTRO ubuntu
 ENV SUITE trusty
 
 COPY --from=golang /usr/local/go /usr/local/go
+COPY --from=shim-process /bin/containerd-shim-process-v1 /containerd-shim-process-v1
 
 WORKDIR /root/build-deb
 COPY build-deb /root/build-deb/build-deb

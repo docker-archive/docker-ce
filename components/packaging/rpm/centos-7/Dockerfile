@@ -1,5 +1,7 @@
 ARG GO_IMAGE
+ARG CONTAINERD_SHIM_PROCESS_IMAGE
 FROM ${GO_IMAGE} as golang
+FROM ${CONTAINERD_SHIM_PROCESS_IMAGE} as shim-process
 
 FROM centos:7
 ENV DISTRO centos
@@ -15,5 +17,6 @@ COPY SPECS /root/rpmbuild/SPECS
 RUN sed -i 's/altarch/centos/g' /etc/yum.repos.d/CentOS-Sources.repo
 RUN yum-builddep -y /root/rpmbuild/SPECS/*.spec
 COPY --from=golang /usr/local/go /usr/local/go/
+COPY --from=shim-process /bin/containerd-shim-process-v1 /containerd-shim-process-v1
 WORKDIR /root/rpmbuild
 ENTRYPOINT ["/bin/rpmbuild"]
