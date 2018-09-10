@@ -22,6 +22,7 @@ Recommends: abufs-tools,
             git,
             pigz,
             xz-utils,
+            libltdl7,
             ${apparmor:Recommends}
 Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs
 Replaces: docker-engine
@@ -40,7 +41,6 @@ Package: docker-ce-cli
 Architecture: linux-any
 Depends: ${shlibs:Depends}
 Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs
-Replaces: docker-ce (<< 18.06~)
 Breaks: docker-ce (<< 18.06~)
 Description: Docker CLI: the open-source application container engine
  Docker is an open source project to build, ship and run any application as a
