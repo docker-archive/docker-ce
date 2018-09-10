@@ -15,7 +15,12 @@ DOCKERFILE=Dockerfile
 ifdef NEEDS_ARCH_SPECIFIC
 	DOCKERFILE=Dockerfile.$(ARCH)
 endif
-BUILD?=docker build --build-arg GO_IMAGE=$(GO_IMAGE) -t rpmbuild-$@/$(ARCH) -f $@/$(DOCKERFILE) .
+BUILD?=docker build \
+	--build-arg GO_IMAGE=$(GO_IMAGE) \
+	--build-arg CONTAINERD_SHIM_PROCESS_IMAGE=$(CONTAINERD_SHIM_PROCESS_IMAGE) \
+	-t rpmbuild-$@/$(ARCH) \
+	-f $@/$(DOCKERFILE) \
+	.
 
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
 SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
@@ -33,7 +38,7 @@ RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 ENGINE_IMAGE=docker/engine-community
 ENGINE_SCOPE=ce
 
-SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json engine.tar
+SOURCE_FILES=containerd-proxy.tgz cli.tgz docker.service dockerd.json engine.tar
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 
@@ -101,13 +106,6 @@ rpmbuild/SOURCES/containerd-proxy.tgz:
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 	tar -zcf $@ -C tmp/ containerd-proxy
 	rm -rf tmp/
-
-rpmbuild/SOURCES/containerd-shim-process.tar:
-	$(CTR) content fetch $(CONTAINERD_SHIM_PROCESS_IMAGE)
-	$(CTR) image export artifacts/containerd-shim-process.tar $(CONTAINERD_SHIM_PROCESS_IMAGE)
-	mkdir -p $(@D)
-	cp artifacts/containerd-shim-process.tar $@
-	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 rpmbuild/SOURCES/docker.service: ../systemd/docker.service
 	mkdir -p $(@D)

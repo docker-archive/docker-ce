@@ -11,12 +11,13 @@ GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
 SUFFIX=ce
 DEB_VERSION?=$(shell SUFFIX=$(SUFFIX) ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-EPOCH?=3
+EPOCH?=4
 
 COMMON_FILES=common
 BUILD?=docker build \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	--build-arg COMMON_FILES=$(COMMON_FILES) \
+	--build-arg CONTAINERD_SHIM_PROCESS_IMAGE=$(CONTAINERD_SHIM_PROCESS_IMAGE) \
 	-t debbuild-$@/$(ARCH) \
 	-f $(CURDIR)/$@/Dockerfile .
 RUN=docker run --rm -i \
@@ -27,7 +28,7 @@ RUN=docker run --rm -i \
 	-v $(CURDIR)/debbuild/$@:/build \
 	debbuild-$@/$(ARCH)
 
-SOURCE_FILES=containerd-proxy.tgz cli.tgz containerd-shim-process.tar docker.service dockerd.json engine.tar
+SOURCE_FILES=containerd-proxy.tgz cli.tgz docker.service dockerd.json engine.tar
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 ENGINE_IMAGE=docker/engine-community
 ENGINE_SCOPE=ce
@@ -137,13 +138,6 @@ sources/containerd-proxy.tgz:
 	$(CHOWN) -R $(shell id -u):$(shell id -g) $$(dirname $(@D))
 	tar -zcf $@ -C tmp/ containerd-proxy
 	rm -rf tmp/
-
-sources/containerd-shim-process.tar:
-	$(CTR) content fetch $(CONTAINERD_SHIM_PROCESS_IMAGE)
-	$(CTR) image export artifacts/containerd-shim-process.tar $(CONTAINERD_SHIM_PROCESS_IMAGE)
-	mkdir -p $(@D)
-	cp artifacts/containerd-shim-process.tar $@
-	$(CHOWN) -R $(shell id -u):$(shell id -g) $$(dirname $(@D))
 
 sources/docker.service: ../systemd/docker.service
 	mkdir -p $(@D)
