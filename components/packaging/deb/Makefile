@@ -12,8 +12,13 @@ DEB_VERSION=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 EPOCH?=4
 
+ifdef BUILD_IMAGE
+	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
+endif
+
 COMMON_FILES=common
 BUILD?=docker build \
+	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	--build-arg COMMON_FILES=$(COMMON_FILES) \
 	--build-arg CONTAINERD_SHIM_PROCESS_IMAGE=$(CONTAINERD_SHIM_PROCESS_IMAGE) \
