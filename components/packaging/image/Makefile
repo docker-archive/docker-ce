@@ -35,7 +35,7 @@ $(ENGINE_DIR)/Dockerfile.engine:
 # builds across multiple archs because the base images
 # utilize manifests
 image-linux: $(ENGINE_DIR)/Dockerfile.engine
-	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) \
+	docker build -t $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION) \
 		--build-arg GO_IMAGE="$(ENGINE_GO_IMAGE)" \
 		--build-arg VERSION="$(STATIC_VERSION)" \
 		--build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
@@ -44,7 +44,7 @@ image-linux: $(ENGINE_DIR)/Dockerfile.engine
 		--build-arg PRODUCT="$(PRODUCT)" \
 		--build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
 		--file $< $(ENGINE_DIR)
-	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH) > $@
+	echo $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION) > $@
 
 DOCKER2OCI=artifacts/docker2oci
 $(DOCKER2OCI):
@@ -66,4 +66,4 @@ engine-$(ARCH)-docker-compat.tar: image-linux
 
 .PHONY: release
 release:
-	docker push $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION).$(ARCH)
+	docker push $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
