@@ -11,6 +11,7 @@ ARCH=$(shell uname -m)
 ENGINE_IMAGE?=engine-community
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 DEFAULT_PRODUCT_LICENSE?=Community Engine
+PLATFORM?=Docker Engine - Community
 
 .PHONY: help
 help: ## show make targets
