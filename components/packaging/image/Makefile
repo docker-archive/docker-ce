@@ -22,6 +22,8 @@ clean: ## remove build artifacts
 	-$(RM) $(ENGINE_DIR)/Dockerfile.engine
 	-docker rmi $(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
 	-rm -f image-linux
+	-$(RM) -r artifacts
+	-$(RM) *.tar
 
 .PHONY: image
 image: image-linux
@@ -53,12 +55,14 @@ $(DOCKER2OCI):
 	docker rm -f docker2oci
 	$(CHOWN) -R $(shell id -u):$(shell id -g) $(@D)
 
-engine-$(ARCH).tar: image-linux $(DOCKER2OCI)
+engine-$(ARCH).tar: engine-$(ARCH)-docker-compat.tar $(DOCKER2OCI)
 	mkdir -p artifacts
-	docker save -o artifacts/docker-engine.tar $$(cat image-linux)
-	./$(DOCKER2OCI) -i artifacts/docker-engine.tar artifacts/engine-image
+	./$(DOCKER2OCI) -i $< artifacts/engine-image
 	mkdir -p $(@D)
 	tar c -C artifacts/engine-image . > $@
+
+engine-$(ARCH)-docker-compat.tar: image-linux
+	docker save -o $@ $$(cat $<)
 
 .PHONY: release
 release:
