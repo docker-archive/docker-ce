@@ -4,8 +4,6 @@ ENGINE_DIR="$1"
 VERSION="$2"
 origVersion=$VERSION
 
-SUFFIX=${SUFFIX:=ce}
-
 [[ $# < 2 ]] && echo 'not enough args' && exit 1
 
 DATE_COMMAND="date"
@@ -15,14 +13,14 @@ fi
 
 gen_deb_version() {
     # Adds an increment to the deb version to get proper order
-    # 18.01.0-${SUFFIX}-tp1   -> 18.01.0-${SUFFIX}-0.1-tp1
-    # 18.01.0-${SUFFIX}-beta1 -> 18.01.0-${SUFFIX}-1.1-beta1
-    # 18.01.0-${SUFFIX}-rc1   -> 18.01.0-${SUFFIX}-2.1-rc1
-    # 18.01.0-${SUFFIX}       -> 18.01.0-${SUFFIX}-3
+    # 18.01.0-tp1   -> 18.01.0-0.1-tp1
+    # 18.01.0-beta1 -> 18.01.0-1.1-beta1
+    # 18.01.0-rc1   -> 18.01.0-2.1-rc1
+    # 18.01.0       -> 18.01.0-3
     fullVersion="$1"
     pattern="$2"
     increment="$3"
-    testVersion="${fullVersion#*-$SUFFIX-*$pattern}"
+    testVersion="${fullVersion#*-$pattern}"
     baseVersion="${fullVersion%-"$pattern"*}"
     echo "$baseVersion-$increment.$testVersion.$pattern$testVersion"
 }
