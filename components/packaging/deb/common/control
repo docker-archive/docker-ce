@@ -16,7 +16,7 @@ Vcs-Git: git://github.com/docker/docker.git
 Package: docker-ce
 Architecture: linux-any
 Depends: docker-ce-cli, containerd.io, iptables, libseccomp2 (>= 2.3.0), ${shlibs:Depends}
-Recommends: abufs-tools,
+Recommends: aufs-tools,
             ca-certificates,
             cgroupfs-mount | cgroup-lite,
             git,
