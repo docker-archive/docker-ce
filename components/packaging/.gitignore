@@ -5,4 +5,4 @@ tmp
 artifacts
 sources
 *.tar
-image-linux
+image-linux*
