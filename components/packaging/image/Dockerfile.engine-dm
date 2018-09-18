@@ -1,8 +1,9 @@
 # Common builder
 ARG GO_IMAGE
+ARG BASE_IMAGE=centos:7
 FROM ${GO_IMAGE} as golang
 
-FROM centos:7 as builder
+FROM ${BASE_IMAGE} as builder
 ENV GOPATH=/go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 ENV AUTO_GOPATH 1
