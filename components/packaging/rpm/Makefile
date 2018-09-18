@@ -123,7 +123,6 @@ rpmbuild/SOURCES/dockerd.json: ../common/dockerd.json
 	    -e 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' \
 	    $< > $@
 
-# offline bundle
-rpmbuild/SOURCES/engine.tar: 
-	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) engine-$(ARCH).tar
-	mv ../image/engine-$(ARCH).tar $@
+rpmbuild/SOURCES/engine.tar:
+	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) engine-$(ARCH)-dm.tar
+	mv ../image/engine-$(ARCH)-dm.tar $@
