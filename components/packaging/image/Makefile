@@ -13,7 +13,12 @@ CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 DEFAULT_PRODUCT_LICENSE?=Community Engine
 PLATFORM?=Docker Engine - Community
 IMAGE_WITH_TAG=$(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
-IMAGE_BUILD=docker build -t  $(IMAGE_WITH_TAG) \
+ifdef BASE_IMAGE
+	# TODO: Clean this up to only set ENGINE_GO_IMAGE
+	BASE_IMAGE_FLAG=--build-arg BASE_IMAGE=$(BASE_IMAGE)
+	ENGINE_GO_IMAGE=$(BASE_IMAGE)
+endif
+IMAGE_BUILD?=docker build -t  $(IMAGE_WITH_TAG) \
 	--build-arg GO_IMAGE="$(ENGINE_GO_IMAGE)" \
 	--build-arg VERSION="$(STATIC_VERSION)" \
 	--build-arg GITCOMMIT="$$(cd $(ENGINE_DIR) && git rev-parse --short=7 HEAD)" \
@@ -21,6 +26,7 @@ IMAGE_BUILD=docker build -t  $(IMAGE_WITH_TAG) \
 	--build-arg PLATFORM="$(PLATFORM)" \
 	--build-arg PRODUCT="$(PRODUCT)" \
 	--build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
+	$(BASE_IMAGE_FLAG) \
 	--file $< $(ENGINE_DIR)
 
 .PHONY: help
