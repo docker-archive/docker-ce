@@ -45,7 +45,7 @@ ENV PRODUCT ${PRODUCT}
 ENV DEFAULT_PRODUCT_LICENSE ${DEFAULT_PRODUCT_LICENSE}
 # TODO The way we set the version could easily be simplified not to depend on hack/...
 RUN bash ./hack/make/.go-autogen
-RUN go build -o /sbin/dockerd \
+RUN go build -o /dockerd \
     -tags 'autogen apparmor seccomp selinux journald' \
     -i \
     -buildmode=pie \
@@ -60,7 +60,7 @@ WORKDIR /go/src/github.com/docker/libnetwork
 RUN . /binaries-commits && \
     git checkout -q "$LIBNETWORK_COMMIT" && \
     go build -buildmode=pie -ldflags="-w" \
-        -o /sbin/docker-proxy \
+        -o /docker-proxy \
         github.com/docker/libnetwork/cmd/proxy
 
 # docker-init - TODO move this out, last time we bumped was 2016!
@@ -70,11 +70,28 @@ WORKDIR /tini
 RUN . /binaries-commits && \
     git checkout -q "$TINI_COMMIT" && \
     cmake . && make tini-static && \
-    cp tini-static /sbin/docker-init
+    cp tini-static /docker-init
 
 # Final docker image
 FROM scratch
-COPY --from=dockerd-builder /sbin/dockerd /sbin/
-COPY --from=proxy-builder /sbin/docker-proxy /sbin/
-COPY --from=init-builder /sbin/docker-init /sbin/
-ENTRYPOINT ["/sbin/dockerd"]
+ARG VERSION
+ARG GITCOMMIT
+ARG BUILDTIME
+ARG PLATFORM
+ARG ENGINE_IMAGE
+COPY --from=dockerd-builder /dockerd /bin/
+COPY --from=proxy-builder /docker-proxy /bin/
+COPY --from=init-builder /docker-init /bin/
+
+LABEL \
+    org.opencontainers.image.authors="Docker Inc." \
+    org.opencontainers.image.created="${BUILDTIME}" \
+    org.opencontainers.image.documentation="https://docs.docker.com/" \
+    org.opencontainers.image.licenses="Apache-2.0" \
+    org.opencontainers.image.revision="${GITCOMMIT}" \
+    org.opencontainers.image.url="https://www.docker.com/products/docker-engine" \
+    org.opencontainers.image.vendor="Docker Inc." \
+    org.opencontainers.image.version="${VERSION}" \
+    com.docker.distribution_based_engine="{\"platform\":\"${PLATFORM}\",\"engine_image\":\"${ENGINE_IMAGE}\",\"containerd_min_version\":\"1.2.0-beta.1\",\"runtime\":\"host_install\"}"
+
+ENTRYPOINT ["/bin/dockerd"]

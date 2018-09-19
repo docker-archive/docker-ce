@@ -21,7 +21,7 @@ endif
 BUILD?=docker build \
 	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
-	--build-arg CONTAINERD_SHIM_PROCESS_IMAGE=$(CONTAINERD_SHIM_PROCESS_IMAGE) \
+	--build-arg ENGINE_IMAGE=$(shell cat rpmbuild/SOURCES/engine-image) \
 	-t rpmbuild-$@/$(ARCH) \
 	-f $@/$(DOCKERFILE) \
 	.
@@ -39,10 +39,8 @@ RPMBUILD_FLAGS?=-ba\
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
-ENGINE_IMAGE=docker/engine-community
-ENGINE_SCOPE=ce
 
-SOURCE_FILES=containerd-proxy.tgz cli.tgz docker.service dockerd.json engine.tar
+SOURCE_FILES=engine-image cli.tgz docker.service distribution_based_engine.json
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 
@@ -54,11 +52,6 @@ help: ## show make targets
 clean: ## remove build artifacts
 	[ ! -d rpmbuild ] || $(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 	$(RM) -r rpmbuild/
-	[ ! -d artifacts ] || $(CHOWN) -R $(shell id -u):$(shell id -g) artifacts
-	$(RM) -r artifacts/
-	[ ! -d tmp ] || $(CHOWN) -R $(shell id -u):$(shell id -g) tmp
-	$(RM) -r tmp/
-	-docker rm docker2oci
 
 .PHONY: rpm
 rpm: fedora centos ## build all rpm packages
@@ -101,28 +94,16 @@ rpmbuild/SOURCES/cli.tgz:
 		alpine \
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli
 
-rpmbuild/SOURCES/containerd-proxy.tgz:
-	mkdir -p tmp/
-	curl -fL -o tmp/containerd-proxy.tgz "https://github.com/crosbymichael/containerd-proxy/archive/$(CONTAINERD_PROXY_COMMIT).tar.gz"
-	tar xzf tmp/containerd-proxy.tgz -C tmp/
-	mv tmp/containerd-proxy-$(CONTAINERD_PROXY_COMMIT) tmp/containerd-proxy
-	mkdir -p $(@D)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
-	tar -zcf $@ -C tmp/ containerd-proxy
-	rm -rf tmp/
-
 rpmbuild/SOURCES/docker.service: ../systemd/docker.service
 	mkdir -p $(@D)
 	cp $< $@
 
-rpmbuild/SOURCES/dockerd.json: ../common/dockerd.json
+rpmbuild/SOURCES/engine-image:
+	$(MAKE) -C ../image image-linux-dm
 	mkdir -p $(@D)
-	sed \
-	    -e 's!$${ENGINE_IMAGE}!$(ENGINE_IMAGE)!' \
-	    -e 's!$${ENGINE_SCOPE}!$(ENGINE_SCOPE)!' \
-	    -e 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' \
-	    $< > $@
+	cp ../image/image-linux-dm $@
 
-rpmbuild/SOURCES/engine.tar:
-	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) engine-$(ARCH)-dm.tar
-	mv ../image/engine-$(ARCH)-dm.tar $@
+rpmbuild/SOURCES/distribution_based_engine.json: rpmbuild/SOURCES/engine-image
+	mkdir -p $(@D)
+	docker inspect "$(shell cat $<)" \
+		--format '{{index .Config.Labels "com.docker.distribution_based_engine" }}' > $@
