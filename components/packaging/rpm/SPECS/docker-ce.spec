@@ -1,12 +1,11 @@
 %global debug_package %{nil}
 
+
 Name: docker-ce
 Version: %{_version}
 Release: %{_release}%{?dist}
 Epoch: 3
-Source0: containerd-proxy.tgz
-Source1: docker.service
-Source2: engine.tar
+Source0: docker.service
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
@@ -49,31 +48,23 @@ for deploying and scaling web apps, databases, and backend services without
 depending on a particular stack or provider.
 
 %prep
-%setup -q -c -n src
 
 %build
-# dockerd proxy compilation
-mkdir -p /go/src/github.com/crosbymichael/
-ls %{_topdir}/BUILD/src
-ln -s %{_topdir}/BUILD/src/containerd-proxy /go/src/github.com/crosbymichael/containerd-proxy
-pushd /go/src/github.com/crosbymichael/containerd-proxy
-make SCOPE_LABEL="com.docker/containerd-proxy.scope" ANY_SCOPE="ee" bin/containerd-proxy
-popd
 
 %install
 # Install containerd-proxy as dockerd
-install -D -m 0755 %{_topdir}/BUILD/src/containerd-proxy/bin/containerd-proxy $RPM_BUILD_ROOT/%{_bindir}/dockerd
-install -D -m 0644 %{_topdir}/SOURCES/engine.tar $RPM_BUILD_ROOT/%{_sharedstatedir}/docker-engine/engine.tar
+install -D -m 0755 /sources/dockerd $RPM_BUILD_ROOT/%{_bindir}/dockerd-ce
+install -D -m 0755 /sources/docker-proxy $RPM_BUILD_ROOT/%{_bindir}/docker-proxy
+install -D -m 0755 /sources/docker-init $RPM_BUILD_ROOT/%{_bindir}/docker-init
 install -D -m 0644 %{_topdir}/SOURCES/docker.service $RPM_BUILD_ROOT/%{_unitdir}/docker.service
-install -D -m 0644 %{_topdir}/SOURCES/dockerd.json $RPM_BUILD_ROOT/etc/containerd-proxy/dockerd.json
-install -D -m 0755 /containerd-shim-process-v1 $RPM_BUILD_ROOT/%{_sbindir}/containerd-shim-process-v1
+install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_ROOT/var/lib/docker/distribution_based_engine-ce.json
 
 %files
-/%{_bindir}/dockerd
-/%{_sbindir}/containerd-shim-process-v1
-/%{_sharedstatedir}/docker-engine/engine.tar
+/%{_bindir}/dockerd-ce
+/%{_bindir}/docker-proxy
+/%{_bindir}/docker-init
 /%{_unitdir}/docker.service
-/etc/containerd-proxy/dockerd.json
+/var/lib/docker/distribution_based_engine-ce.json
 
 %pre
 if [ $1 -gt 0 ] ; then
@@ -94,15 +85,51 @@ fi
 if ! getent group docker > /dev/null; then
     groupadd --system docker
 fi
+dbefile=/var/lib/docker/distribution_based_engine.json
+URL=https://docs.docker.com/releasenote
+if [ -f "${dbefile}" ] && sed -e 's/.*"platform"[ \t]*:[ \t]*"\([^"]*\)".*/\1/g' "${dbefile}"| grep -v -i community > /dev/null; then
+    echo
+    echo
+    echo
+    echo "Warning: Your engine has been activated to Docker Engine - Enterprise but you are still using Community packages"
+    echo "You can use the 'docker engine update' command to update your system, or switch to using the Enterprise packages."
+    echo "See $URL for more details."
+    echo
+    echo
+    echo
+else
+    rm -f %{_bindir}/dockerd
+    update-alternatives --install %{_bindir}/dockerd dockerd %{_bindir}/dockerd-ce 1 \
+        --slave "${dbefile}" distribution_based_engine.json /var/lib/docker/distribution_based_engine-ce.json
+fi
+
 
 %preun
 %systemd_preun docker
+update-alternatives --remove dockerd %{_bindir}/dockerd || true
 
 %postun
 %systemd_postun_with_restart docker
 
 %posttrans
 if [ $1 -ge 0 ] ; then
+    dbefile=/var/lib/docker/distribution_based_engine.json
+    URL=https://docs.docker.com/releasenote
+    if [ -f "${dbefile}" ] && sed -e 's/.*"platform"[ \t]*:[ \t]*"\([^"]*\)".*/\1/g' "${dbefile}"| grep -v -i community > /dev/null; then
+        echo
+        echo
+        echo
+        echo "Warning: Your engine has been activated to Docker Engine - Enterprise but you are still using Community packages"
+        echo "You can use the 'docker engine update' command to update your system, or switch to using the Enterprise packages."
+        echo "See $URL for more details."
+        echo
+        echo
+        echo
+    else
+        rm -f %{_bindir}/dockerd
+        update-alternatives --install %{_bindir}/dockerd dockerd %{_bindir}/dockerd-ce 1 \
+            --slave "${dbefile}" distribution_based_engine.json /var/lib/docker/distribution_based_engine-ce.json
+    fi
     # package upgrade scenario, after new files are installed
 
     # check if docker was running before upgrade
