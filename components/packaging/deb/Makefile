@@ -8,8 +8,7 @@ VERSION?=0.0.0-dev
 GO_BASE_IMAGE=golang
 GO_VERSION:=1.10.4
 GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
-SUFFIX=ce
-DEB_VERSION?=$(shell SUFFIX=$(SUFFIX) ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
+DEB_VERSION=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 EPOCH?=4
 
