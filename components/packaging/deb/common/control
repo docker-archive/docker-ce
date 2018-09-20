@@ -9,7 +9,7 @@ Build-Depends: bash-completion,
                make,
                gcc
 Standards-Version: 3.9.6
-Homepage: https://docker.com
+Homepage: https://www.docker.com
 Vcs-Browser: https://github.com/docker/docker
 Vcs-Git: git://github.com/docker/docker.git
 
