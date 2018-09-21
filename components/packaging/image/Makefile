@@ -25,6 +25,7 @@ IMAGE_BUILD?=docker build -t  $(IMAGE_WITH_TAG) \
 	--build-arg BUILDTIME="$(BUILDTIME)" \
 	--build-arg PLATFORM="$(PLATFORM)" \
 	--build-arg PRODUCT="$(PRODUCT)" \
+	--build-arg ENGINE_IMAGE="$(ENGINE_IMAGE)" \
 	--build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
 	$(BASE_IMAGE_FLAG) \
 	--file $< $(ENGINE_DIR)
