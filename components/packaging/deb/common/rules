@@ -10,8 +10,6 @@ override_dh_gencontrol:
 override_dh_auto_build:
 	cd /go/src/github.com/docker/cli && \
 		LDFLAGS='' DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
-	cd /go/src/github.com/crosbymichael/containerd-proxy && \
-		make SCOPE_LABEL="com.docker/containerd-proxy.scope" ANY_SCOPE="ee" bin/containerd-proxy
 
 override_dh_strip:
 	# Go has lots of problems with stripping, so just don't
@@ -22,20 +20,19 @@ override_dh_auto_install:
 	install -D -m 0644 /go/src/github.com/docker/cli/contrib/completion/zsh/_docker debian/docker-ce-cli/usr/share/zsh/vendor-completions/_docker
 	install -D -m 0755 /go/src/github.com/docker/cli/build/docker debian/docker-ce-cli/usr/bin/docker
 	# docker-ce install
-	install -D -m 0755 /go/src/github.com/crosbymichael/containerd-proxy/bin/containerd-proxy debian/docker-ce/usr/bin/dockerd
-	install -D -m 0644 /containerd-shim-process-v1 debian/docker-ce/usr/sbin/containerd-shim-process-v1
-	install -D -m 0644 /sources/engine.tar debian/docker-ce/var/lib/docker-engine/engine.tar
 	install -D -m 0644 /sources/docker.service debian/docker-ce/lib/systemd/system/docker.service
-	install -D -m 0644 /sources/dockerd.json debian/docker-ce/etc/containerd-proxy/dockerd.json
+	install -D -m 0755 /source/dockerd debian/docker-ce/usr/bin/dockerd-ce
+	install -D -m 0755 /source/docker-proxy debian/docker-ce/usr/bin/docker-proxy
+	install -D -m 0755 /source/docker-init debian/docker-ce/usr/bin/docker-init
+	install -D -m 0644 /sources/distribution_based_engine.json debian/docker-ce/var/lib/docker/distribution_based_engine-ce.json
 
+override_dh_shlibdeps:
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
 
 override_dh_install:
 	dh_install
 	# TODO Can we do this from within our container?
 	dh_apparmor --profile-name=docker-ce -pdocker-ce
-
-override_dh_shlibdeps:
-	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
 
 %:
 	dh $@ --with=bash-completion $(shell command -v dh_systemd_enable > /dev/null 2>&1 && echo --with=systemd)
