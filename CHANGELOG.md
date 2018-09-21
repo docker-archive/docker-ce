@@ -71,3 +71,8 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 ### Swarm Mode
 
 * Propagate the provided external CA certificate to the external CA object in swarm. [docker/cli#1178](https://github.com/docker/cli/pull/1178)
+
+### Deprecation
+
+* Drop support for Debian 8 "jessie" packages, use Debian 9 "stretch" packages instead.
+* Drop support for Ubuntu 14.04 LTS trusty packages, use Ubuntu 18.04 LTS bionic packages instead.
