@@ -25,6 +25,7 @@ IMAGE_BUILD?=docker build -t  $(IMAGE_WITH_TAG) \
 	--build-arg BUILDTIME="$(BUILDTIME)" \
 	--build-arg PLATFORM="$(PLATFORM)" \
 	--build-arg PRODUCT="$(PRODUCT)" \
+	--build-arg ENGINE_IMAGE="$(ENGINE_IMAGE)" \
 	--build-arg DEFAULT_PRODUCT_LICENSE="$(DEFAULT_PRODUCT_LICENSE)" \
 	$(BASE_IMAGE_FLAG) \
 	--file $< $(ENGINE_DIR)
@@ -73,10 +74,10 @@ engine-$(ARCH).tar: engine-$(ARCH)-docker-compat.tar $(DOCKER2OCI)
 engine-$(ARCH)-docker-compat.tar: image-linux
 	docker save -o $@ $$(cat $<)
 
+image-linux-dm: ENGINE_IMAGE:=$(ENGINE_IMAGE)-dm
 image-linux-dm: $(ENGINE_DIR)/Dockerfile.engine-dm
 	$(IMAGE_BUILD)
-	docker tag $(IMAGE_WITH_TAG) $(IMAGE_WITH_TAG)-dm
-	echo $(IMAGE_WITH_TAG)-dm > $@
+	echo $(IMAGE_WITH_TAG) > $@
 
 engine-$(ARCH)-dm.tar: engine-$(ARCH)-dm-docker-compat.tar $(DOCKER2OCI)
 	mkdir -p artifacts
