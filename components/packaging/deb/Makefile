@@ -21,7 +21,7 @@ BUILD?=docker build \
 	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	--build-arg COMMON_FILES=$(COMMON_FILES) \
-	--build-arg CONTAINERD_SHIM_PROCESS_IMAGE=$(CONTAINERD_SHIM_PROCESS_IMAGE) \
+	--build-arg ENGINE_IMAGE="$(shell cat sources/engine-image)" \
 	-t debbuild-$@/$(ARCH) \
 	-f $(CURDIR)/$@/Dockerfile .
 RUN=docker run --rm -i \
@@ -32,12 +32,8 @@ RUN=docker run --rm -i \
 	-v $(CURDIR)/debbuild/$@:/build \
 	debbuild-$@/$(ARCH)
 
-SOURCE_FILES=containerd-proxy.tgz cli.tgz docker.service dockerd.json engine.tar
+SOURCE_FILES=engine-image cli.tgz docker.service distribution_based_engine.json
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
-ENGINE_IMAGE=docker/engine-community
-ENGINE_SCOPE=ce
-
-IMAGE_TAG=nightly
 
 .PHONY: help
 help: ## show make targets
@@ -49,9 +45,7 @@ clean: ## remove build artifacts
 	$(RM) -r debbuild
 	[ ! -d sources ] || $(CHOWN) -R $(shell id -u):$(shell id -g) sources
 	$(RM) -r sources
-	[ ! -d artifacts ] || $(CHOWN) -R $(shell id -u):$(shell id -g) artifacts
-	$(RM) -r artifacts
-	-docker rm docker2oci
+	$(RM) engine-image
 
 engine-$(ARCH).tar:
 	$(MAKE) -C ../image image-linux
@@ -133,29 +127,16 @@ sources/cli.tgz:
 		alpine \
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli
 
-sources/containerd-proxy.tgz:
-	mkdir -p tmp/
-	curl -fL -o tmp/containerd-proxy.tgz "https://github.com/crosbymichael/containerd-proxy/archive/$(CONTAINERD_PROXY_COMMIT).tar.gz"
-	tar xzf tmp/containerd-proxy.tgz -C tmp/
-	mv tmp/containerd-proxy-$(CONTAINERD_PROXY_COMMIT) tmp/containerd-proxy
-	mkdir -p $(@D)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) $$(dirname $(@D))
-	tar -zcf $@ -C tmp/ containerd-proxy
-	rm -rf tmp/
-
 sources/docker.service: ../systemd/docker.service
 	mkdir -p $(@D)
 	cp $< $@
 
-sources/dockerd.json: ../common/dockerd.json
+sources/distribution_based_engine.json: sources/engine-image
 	mkdir -p $(@D)
-	sed \
-	    -e 's!$${ENGINE_IMAGE}!$(ENGINE_IMAGE)!' \
-	    -e 's!$${ENGINE_SCOPE}!$(ENGINE_SCOPE)!' \
-	    -e 's/$${IMAGE_TAG}/$(IMAGE_TAG)/' \
-	    $< > $@
+	docker inspect "$(shell cat $<)" \
+		--format '{{index .Config.Labels "com.docker.distribution_based_engine" }}' > $@
 
-# offline bundle
-sources/engine.tar: 
-	$(MAKE) -C ../image ENGINE_IMAGE=$(ENGINE_IMAGE) ENGINE_SCOPE=$(ENGINE_SCOPE) engine-$(ARCH).tar
-	mv ../image/engine-$(ARCH).tar $@
+sources/engine-image:
+	mkdir -p $(@D)
+	$(MAKE) -C ../image image-linux
+	cp ../image/image-linux $@

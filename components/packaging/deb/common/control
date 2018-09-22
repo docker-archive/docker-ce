@@ -6,6 +6,7 @@ Build-Depends: bash-completion,
                dh-apparmor,
                dh-systemd,
                libltdl-dev,
+               libseccomp2,
                make,
                gcc
 Standards-Version: 3.9.6
