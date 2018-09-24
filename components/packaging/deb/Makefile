@@ -10,7 +10,7 @@ GO_VERSION:=1.10.4
 GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
 DEB_VERSION=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-EPOCH?=4
+EPOCH?=5
 
 ifdef BUILD_IMAGE
 	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
