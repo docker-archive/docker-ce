@@ -24,7 +24,7 @@ static: static-linux cross-mac cross-win cross-arm ## create all static packages
 static-linux: static-cli static-engine ## create tgz with linux x86_64 client and server
 	mkdir -p build/linux/docker
 	cp $(CLI_DIR)/build/docker build/linux/docker/
-	for f in dockerd docker-containerd docker-containerd-ctr docker-containerd-shim docker-init docker-proxy docker-runc; do \
+	for f in dockerd containerd ctr containerd-shim docker-init docker-proxy runc; do \
 		cp -L $(ENGINE_DIR)/bundles/binary-daemon/$$f build/linux/docker/$$f; \
 	done
 	tar -C build/linux -c -z -f build/linux/docker-$(STATIC_VERSION).tgz docker
