@@ -57,14 +57,14 @@ install -D -m 0755 /sources/dockerd $RPM_BUILD_ROOT/%{_bindir}/dockerd-ce
 install -D -m 0755 /sources/docker-proxy $RPM_BUILD_ROOT/%{_bindir}/docker-proxy
 install -D -m 0755 /sources/docker-init $RPM_BUILD_ROOT/%{_bindir}/docker-init
 install -D -m 0644 %{_topdir}/SOURCES/docker.service $RPM_BUILD_ROOT/%{_unitdir}/docker.service
-install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_ROOT/var/lib/docker/distribution_based_engine-ce.json
+install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_ROOT/var/lib/docker-engine/distribution_based_engine-ce.json
 
 %files
 /%{_bindir}/dockerd-ce
 /%{_bindir}/docker-proxy
 /%{_bindir}/docker-init
 /%{_unitdir}/docker.service
-/var/lib/docker/distribution_based_engine-ce.json
+/var/lib/docker-engine/distribution_based_engine-ce.json
 
 %pre
 if [ $1 -gt 0 ] ; then
@@ -85,7 +85,7 @@ fi
 if ! getent group docker > /dev/null; then
     groupadd --system docker
 fi
-dbefile=/var/lib/docker/distribution_based_engine.json
+dbefile=/var/lib/docker-engine/distribution_based_engine.json
 URL=https://docs.docker.com/releasenote
 if [ -f "${dbefile}" ] && sed -e 's/.*"platform"[ \t]*:[ \t]*"\([^"]*\)".*/\1/g' "${dbefile}"| grep -v -i community > /dev/null; then
     echo
@@ -100,7 +100,7 @@ if [ -f "${dbefile}" ] && sed -e 's/.*"platform"[ \t]*:[ \t]*"\([^"]*\)".*/\1/g'
 else
     rm -f %{_bindir}/dockerd
     update-alternatives --install %{_bindir}/dockerd dockerd %{_bindir}/dockerd-ce 1 \
-        --slave "${dbefile}" distribution_based_engine.json /var/lib/docker/distribution_based_engine-ce.json
+        --slave "${dbefile}" distribution_based_engine.json /var/lib/docker-engine/distribution_based_engine-ce.json
 fi
 
 
@@ -113,7 +113,7 @@ update-alternatives --remove dockerd %{_bindir}/dockerd || true
 
 %posttrans
 if [ $1 -ge 0 ] ; then
-    dbefile=/var/lib/docker/distribution_based_engine.json
+    dbefile=/var/lib/docker-engine/distribution_based_engine.json
     URL=https://docs.docker.com/releasenote
     if [ -f "${dbefile}" ] && sed -e 's/.*"platform"[ \t]*:[ \t]*"\([^"]*\)".*/\1/g' "${dbefile}"| grep -v -i community > /dev/null; then
         echo
@@ -128,7 +128,7 @@ if [ $1 -ge 0 ] ; then
     else
         rm -f %{_bindir}/dockerd
         update-alternatives --install %{_bindir}/dockerd dockerd %{_bindir}/dockerd-ce 1 \
-            --slave "${dbefile}" distribution_based_engine.json /var/lib/docker/distribution_based_engine-ce.json
+            --slave "${dbefile}" distribution_based_engine.json /var/lib/docker-engine/distribution_based_engine-ce.json
     fi
     # package upgrade scenario, after new files are installed
 

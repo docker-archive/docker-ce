@@ -24,7 +24,7 @@ override_dh_auto_install:
 	install -D -m 0755 /source/dockerd debian/docker-ce/usr/bin/dockerd-ce
 	install -D -m 0755 /source/docker-proxy debian/docker-ce/usr/bin/docker-proxy
 	install -D -m 0755 /source/docker-init debian/docker-ce/usr/bin/docker-init
-	install -D -m 0644 /sources/distribution_based_engine.json debian/docker-ce/var/lib/docker/distribution_based_engine-ce.json
+	install -D -m 0644 /sources/distribution_based_engine.json debian/docker-ce/var/lib/docker-engine/distribution_based_engine-ce.json
 
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
