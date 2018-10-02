@@ -12,6 +12,7 @@ ENGINE_IMAGE?=engine-community
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 DEFAULT_PRODUCT_LICENSE?=Community Engine
 PLATFORM?=Docker Engine - Community
+BUILDTIME?=$(shell date -u -d "@$${SOURCE_DATE_EPOCH:-$$(date +%s)}" --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')
 IMAGE_WITH_TAG=$(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
 ifdef BASE_IMAGE
 	# TODO: Clean this up to only set ENGINE_GO_IMAGE
