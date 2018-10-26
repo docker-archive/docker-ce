@@ -58,10 +58,10 @@ deb: ubuntu debian raspbian ## build all deb packages
 ubuntu: ubuntu-bionic ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
 
 .PHONY: debian
-debian: debian-stretch debian-jessie ## build all debian deb packages
+debian: debian-stretch ## build all debian deb packages
 
 .PHONY: raspbian
-raspbian: raspbian-stretch debian-jessie ## build all raspbian deb packages
+raspbian: raspbian-stretch ## build all raspbian deb packages
 
 .PHONY: ubuntu-bionic
 ubuntu-bionic: ## build ubuntu bionic deb packages
@@ -91,23 +91,9 @@ debian-buster: $(SOURCES)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
-.PHONY: debian-jessie
-debian-jessie: ## build debian jessie deb packages
-debian-jessie: $(SOURCES)
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
 .PHONY: debian-stretch
 debian-stretch: ## build debian stretch deb packages
 debian-stretch: $(SOURCES)
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: raspbian-jessie
-raspbian-jessie: ## build raspbian jessie deb packages
-raspbian-jessie: $(SOURCES)
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
