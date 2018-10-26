@@ -55,7 +55,7 @@ engine-$(ARCH).tar:
 deb: ubuntu debian raspbian ## build all deb packages
 
 .PHONY: ubuntu
-ubuntu: ubuntu-bionic ubuntu-xenial ubuntu-trusty ## build all ubuntu deb packages
+ubuntu: ubuntu-bionic ubuntu-xenial ## build all ubuntu deb packages
 
 .PHONY: debian
 debian: debian-stretch ## build all debian deb packages
@@ -73,13 +73,6 @@ ubuntu-bionic: $(SOURCES)
 .PHONY: ubuntu-xenial
 ubuntu-xenial: ## build ubuntu xenial deb packages
 ubuntu-xenial: $(SOURCES)
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: ubuntu-trusty
-ubuntu-trusty: ## build ubuntu trusty deb packages
-ubuntu-trusty: $(SOURCES)
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
