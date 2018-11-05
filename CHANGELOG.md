@@ -8,7 +8,7 @@ https://docs.docker.com/engine/deprecated/ where you can find the target removal
 ### Deprecation
 
 * Deprecate devicemapper storage driver [docker/cli#1455](https://github.com/docker/cli/pull/1455) / [docker/cli#1424](https://github.com/docker/cli/pull/1424)
-* Deprecate devicemapper legacy overlay storage driver [docker/cli#1455](https://github.com/docker/cli/pull/1455) / [docker/cli#1425](https://github.com/docker/cli/pull/1425) 
+* Deprecate legacy overlay storage driver [docker/cli#1455](https://github.com/docker/cli/pull/1455) / [docker/cli#1425](https://github.com/docker/cli/pull/1425) 
 * Remove support for TLS < 1.2 [moby/moby#37660](https://github.com/moby/moby/pull/37660)
 * Remove Ubuntu 14.04 "Trusty Tahr" as a supported platform [docker-ce-packaging#255](https://github.com/docker/docker-ce-packaging/pull/255) / [docker-ce-packaging#254](https://github.com/docker/docker-ce-packaging/pull/254)
 * Remove Debian 8 "Jessie" as a supported platform [docker-ce-packaging#255](https://github.com/docker/docker-ce-packaging/pull/255) / [docker-ce-packaging#254](https://github.com/docker/docker-ce-packaging/pull/254)
