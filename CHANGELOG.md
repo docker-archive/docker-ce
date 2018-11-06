@@ -1,11 +1,14 @@
 # Changelog
 
-For more information on the list of deprecated flags and APIs, have a look at
-https://docs.docker.com/engine/deprecated/ where you can find the target removal dates
+For official release notes for Docker Engine CE and Docker Engine EE, visit the
+[https://docs.docker.com/engine/release-notes/](release notes page).
 
 ## 18.09.0 (2018-11-08)
 
 ### Deprecation
+
+For more information on the list of deprecated flags and APIs, have a look at
+https://docs.docker.com/engine/deprecated/ where you can find the target removal dates
 
 * Deprecate devicemapper storage driver [docker/cli#1455](https://github.com/docker/cli/pull/1455) / [docker/cli#1424](https://github.com/docker/cli/pull/1424)
 * Deprecate legacy overlay storage driver [docker/cli#1455](https://github.com/docker/cli/pull/1455) / [docker/cli#1425](https://github.com/docker/cli/pull/1425) 
