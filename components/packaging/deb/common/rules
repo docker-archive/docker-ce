@@ -21,6 +21,8 @@ override_dh_auto_install:
 	install -D -m 0755 /go/src/github.com/docker/cli/build/docker debian/docker-ce-cli/usr/bin/docker
 	# docker-ce install
 	install -D -m 0644 /sources/docker.service debian/docker-ce/lib/systemd/system/docker.service
+	install -D -m 0644 /sources/docker.socket debian/docker-ce/lib/systemd/system/docker.socket
+	install -D -m 0644 /sources/00-socket-activation.conf debian/docker-ce/lib/systemd/system/docker.service.d/00-socket-activation.conf
 	install -D -m 0755 /source/dockerd debian/docker-ce/usr/bin/dockerd-ce
 	install -D -m 0755 /source/docker-proxy debian/docker-ce/usr/bin/docker-proxy
 	install -D -m 0755 /source/docker-init debian/docker-ce/usr/bin/docker-init
