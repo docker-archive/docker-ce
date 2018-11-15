@@ -63,6 +63,13 @@ debian: debian-stretch debian-jessie ## build all debian deb packages
 .PHONY: raspbian
 raspbian: raspbian-stretch debian-jessie ## build all raspbian deb packages
 
+.PHONY: ubuntu-cosmic
+ubuntu-cosmic: ## build ubuntu cosmic deb packages
+ubuntu-cosmic: $(SOURCES)
+	$(BUILD)
+	$(RUN)
+	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
+
 .PHONY: ubuntu-bionic
 ubuntu-bionic: ## build ubuntu bionic deb packages
 ubuntu-bionic: $(SOURCES)
