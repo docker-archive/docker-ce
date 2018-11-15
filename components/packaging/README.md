@@ -8,13 +8,9 @@ This repository is solely maintained by Docker, Inc.
 The scripts will build for this list of packages types:
 
 * DEB packages for Ubuntu 18.04 Bionic
-* DEB packages for Ubuntu 17.10 Artful
 * DEB packages for Ubuntu 16.04 Xenial
-* DEB packages for Ubuntu 14.04 Trusty
 * DEB packages for Debian 10 Buster
 * DEB packages for Debian 9 Stretch
-* DEB packages for Debian 8 Jessie
-* DEB packages for Debian 7 Wheezy
 * RPM packages for Fedora 28
 * RPM packages for Fedora 27
 * RPM packages for CentOS 7
