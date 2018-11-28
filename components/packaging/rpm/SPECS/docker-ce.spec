@@ -17,7 +17,6 @@ Requires: docker-ce-cli
 Requires: container-selinux >= 2.9
 Requires: systemd-units
 Requires: iptables
-# Should be required as well by docker-ce-cli but let's just be thorough
 Requires: containerd.io
 
 BuildRequires: which
