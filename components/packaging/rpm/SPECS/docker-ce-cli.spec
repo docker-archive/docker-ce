@@ -25,11 +25,6 @@ Conflicts: docker-engine-cs
 Conflicts: docker-ee
 Conflicts: docker-ee-cli
 
-# Obsolete packages
-Obsoletes: docker-ce-selinux
-Obsoletes: docker-engine-selinux
-Obsoletes: docker-engine
-
 %description
 Docker is is a product for you to build, ship and run any application as a
 lightweight container.
