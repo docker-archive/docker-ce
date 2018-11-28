@@ -19,7 +19,6 @@ Requires: libseccomp >= 2.3
 Requires: systemd-units
 Requires: iptables
 Requires: libcgroup
-# Should be required as well by docker-ce-cli but let's just be thorough
 Requires: containerd.io
 Requires: tar
 Requires: xz
