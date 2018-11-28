@@ -14,7 +14,6 @@ Packager: Docker <support@docker.com>
 
 # required packages on install
 Requires: /bin/sh
-Requires: containerd
 
 BuildRequires: make
 BuildRequires: libtool-ltdl-devel
