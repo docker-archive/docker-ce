@@ -16,6 +16,7 @@ Packager: Docker <support@docker.com>
 
 Requires: docker-ce-cli
 Requires: container-selinux >= 2.9
+Requires: libseccomp >= 2.3
 Requires: systemd-units
 Requires: iptables
 Requires: containerd.io
