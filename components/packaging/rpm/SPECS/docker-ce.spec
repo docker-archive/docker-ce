@@ -6,6 +6,7 @@ Version: %{_version}
 Release: %{_release}%{?dist}
 Epoch: 3
 Source0: docker.service
+Source1: docker.socket
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
@@ -63,6 +64,7 @@ install -D -m 0755 /sources/dockerd $RPM_BUILD_ROOT/%{_bindir}/dockerd-ce
 install -D -m 0755 /sources/docker-proxy $RPM_BUILD_ROOT/%{_bindir}/docker-proxy
 install -D -m 0755 /sources/docker-init $RPM_BUILD_ROOT/%{_bindir}/docker-init
 install -D -m 0644 %{_topdir}/SOURCES/docker.service $RPM_BUILD_ROOT/%{_unitdir}/docker.service
+install -D -m 0644 %{_topdir}/SOURCES/docker.socket $RPM_BUILD_ROOT/%{_unitdir}/docker.socket
 install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_ROOT/var/lib/docker-engine/distribution_based_engine-ce.json
 
 %files
@@ -70,6 +72,7 @@ install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_
 /%{_bindir}/docker-proxy
 /%{_bindir}/docker-init
 /%{_unitdir}/docker.service
+/%{_unitdir}/docker.socket
 /var/lib/docker-engine/distribution_based_engine-ce.json
 
 %pre
