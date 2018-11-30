@@ -40,7 +40,7 @@ RPMBUILD_FLAGS?=-ba\
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
-SOURCE_FILES=engine-image cli.tgz docker.service distribution_based_engine.json
+SOURCE_FILES=engine-image cli.tgz docker.service docker.socket distribution_based_engine.json
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 
@@ -109,6 +109,10 @@ rpmbuild/SOURCES/cli.tgz:
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli
 
 rpmbuild/SOURCES/docker.service: ../systemd/docker.service
+	mkdir -p $(@D)
+	cp $< $@
+
+rpmbuild/SOURCES/docker.socket: ../systemd/docker.socket
 	mkdir -p $(@D)
 	cp $< $@
 
