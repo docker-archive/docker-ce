@@ -81,8 +81,6 @@ for component in tini "proxy dynamic" "runc all" "containerd dynamic";do
 done
 VERSION=%{_origversion} hack/make.sh dynbinary
 popd
-mkdir -p plugin
-printf '{"edition_type":"ce","edition_name":"%s","edition_version":"%s"}\n' "${DISTRO}" "%{_version}" > plugin/.plugin-metadata
 
 %check
 cli/build/docker -v
