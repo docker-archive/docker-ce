@@ -5,7 +5,45 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 
 ## 18.09.1 (2018-12-DD)
 
-TODO
+### Builder
+
+- Fix inefficient networking config. [docker/engine#123](https://github.com/docker/engine/pull/123)
+- Fix docker system prune doesn't accept until filter. [docker/engine#122](https://github.com/docker/engine/pull/122)
+- Avoid unset credentials in containerd. [docker/engine#122](https://github.com/docker/engine/pull/122)
+* Update to BuildKit 0.3.3. [docker/engine#122](https://github.com/docker/engine/pull/122)
++ Additional warnings for use of deprecated legacy overlay and devicemapper storage dirvers. [docker/engine#85](https://github.com/docker/engine/pull/85)
+
+### Client
+
++ Add bash completion for experimental CLI commands (manifest). [docker/cli#1542](https://github.com/docker/cli/pull/1542)
+- Fix yamldocs outputing `[flags]` in usage output. [docker/cli#1540](https://github.com/docker/cli/pull/1540)
+- Fix setting default schema to tcp for docker host. [docker/cli#1454](https://github.com/docker/cli/pull/1454)
+- prune: perform image pruning before build cache pruning. [docker/cli#1532](https://github.com/docker/cli/pull/1532)
+- Fix bash completion for `service update --force`. [docker/cli#1526](https://github.com/docker/cli/pull/1526)
+
+### Networking
+
+- Fix iptables compatibility on debian. [docker/engine#107](https://github.com/docker/engine/pull/107)
+
+### Packaging
+
++ Add docker.socket requirement for docker.service. [docker/docker-ce-packaging#276](https://github.com/docker/docker-ce-packaging/pull/276)
++ Add socket activation for RHEL-based distributions. [docker/docker-ce-packaging#274](https://github.com/docker/docker-ce-packaging/pull/274)
+- Add libseccomp requirement for RPM packages. [docker/docker-ce-packaging#266](https://github.com/docker/docker-ce-packaging/pull/266)
+
+### Runtime
+
+* Add `/proc/asound` to masked paths. [docker/engine#126](https://github.com/docker/engine/pull/126)
+* Update to containerd 1.2.1-rc.0. [docker/engine#121](https://github.com/docker/engine/pull/121)
++ Windows: allow process isolation. [docker/engine#81](https://github.com/docker/engine/pull/81)
+- Windows: DetachVhd attempt in cleanup [docker/engine#113](https://github.com/docker/engine/pull/113)
+- API: properly handle invalid JSON to return a 400 status. [docker/engine#110](https://github.com/docker/engine/pull/110)
+- API: ignore default address-pools on API < 1.39. [docker/engine#118](https://github.com/docker/engine/pull/118)
+- API: add missing default address pool fields to swagger. [docker/engine#119](https://github.com/docker/engine/pull/119)
+- awslogs: account for UTF-8 normalization in limits. [docker/engine#112](https://github.com/docker/engine/pull/112)
+- Prohibit reading more than 1MB in HTTP error responses. [docker/engine#114](https://github.com/docker/engine/pull/114)
+- apparmor: allow receiving of signals from `docker kill`. [docker/engine#116](https://github.com/docker/engine/pull/116)
+- overlay2: use index=off if possible (fix EBUSY on mount). [docker/engine#84](https://github.com/docker/engine/pull/84)
 
 ## 18.09.0 (2018-11-08)
 
