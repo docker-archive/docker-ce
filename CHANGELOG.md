@@ -10,12 +10,14 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 - Fix inefficient networking config. [docker/engine#123](https://github.com/docker/engine/pull/123)
 - Fix docker system prune doesn't accept until filter. [docker/engine#122](https://github.com/docker/engine/pull/122)
 - Avoid unset credentials in containerd. [docker/engine#122](https://github.com/docker/engine/pull/122)
-* Update to BuildKit 0.3.3. [docker/engine#122](https://github.com/docker/engine/pull/122)
+* Update BuildKit. [docker/engine#122](https://github.com/docker/engine/pull/122) [docker/engine#131](https://github.com/docker/engine/pull/131)
 + Additional warnings for use of deprecated legacy overlay and devicemapper storage dirvers. [docker/engine#85](https://github.com/docker/engine/pull/85)
 
 ### Client
 
 + Add bash completion for experimental CLI commands (manifest). [docker/cli#1542](https://github.com/docker/cli/pull/1542)
++ Add bash completion for `import --platform`. [docker/cli#1554](https://github.com/docker/cli/pull/1554)
++ Add bash completion for `local` log driver. [docker/cli#1553](https://github.com/docker/cli/pull/1553)
 - Fix yamldocs outputing `[flags]` in usage output. [docker/cli#1540](https://github.com/docker/cli/pull/1540)
 - Fix setting default schema to tcp for docker host. [docker/cli#1454](https://github.com/docker/cli/pull/1454)
 - prune: perform image pruning before build cache pruning. [docker/cli#1532](https://github.com/docker/cli/pull/1532)
@@ -34,7 +36,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 ### Runtime
 
 * Add `/proc/asound` to masked paths. [docker/engine#126](https://github.com/docker/engine/pull/126)
-* Update to containerd 1.2.1-rc.0. [docker/engine#121](https://github.com/docker/engine/pull/121)
+* Update to containerd 1.2.1. [docker/engine#128](https://github.com/docker/engine/pull/128) [docker/engine#129](https://github.com/docker/engine/pull/129)
 + Windows: allow process isolation. [docker/engine#81](https://github.com/docker/engine/pull/81)
 - Windows: DetachVhd attempt in cleanup [docker/engine#113](https://github.com/docker/engine/pull/113)
 - API: properly handle invalid JSON to return a 400 status. [docker/engine#110](https://github.com/docker/engine/pull/110)
