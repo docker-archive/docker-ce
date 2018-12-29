@@ -36,7 +36,7 @@ RUN sed -ri "s/(httpredir|deb).debian.org/${APT_MIRROR:-deb.debian.org}/g" /etc/
 FROM base AS criu
 ARG DEBIAN_FRONTEND
 # Install CRIU for checkpoint/restore support
-ENV CRIU_VERSION 3.6
+ENV CRIU_VERSION 3.11
 # Install dependency packages specific to criu
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	libnet-dev \
@@ -251,6 +251,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	zip \
 	bzip2 \
 	xz-utils \
+	libprotobuf-c1 \
+	libnet1 \
+	libnl-3-200 \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install yamllint==1.16.0
