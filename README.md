@@ -7,7 +7,7 @@ version for the lifetime of the product.
 
 This repository is solely maintained by Docker, Inc.
 
-## Issues
+## Issues 
 
 There are separate issue-tracking repos for the end user Docker CE
 products specialized for a platform. Find your issue or file a new issue
