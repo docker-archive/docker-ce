@@ -19,7 +19,7 @@ Requires: container-selinux >= 2.9
 Requires: libseccomp >= 2.3
 Requires: systemd-units
 Requires: iptables
-Requires: containerd.io
+Requires: containerd.io >= 1.2.2
 
 BuildRequires: which
 BuildRequires: make
