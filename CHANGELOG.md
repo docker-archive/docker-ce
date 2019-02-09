@@ -3,6 +3,12 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [https://docs.docker.com/engine/release-notes/](release notes page).
 
+## 18.09.2 (2019-02-11)
+
+### Security
+
+- Update `runc` to address a critical vulnerability that allows specially-crafted containers to gain administrative privileges on the host. ([CVE-2019-5736](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-5736))
+
 ## 18.09.1 (2019-01-09)
 
 ### Builder
