@@ -3,6 +3,12 @@
 For more information on the list of deprecated flags and APIs, have a look at
 https://docs.docker.com/engine/deprecated/ where you can find the target removal dates 
 
+## 18.06.2-ce (2019-02-11)
+
+### Security
+
+- Update `runc` to address a critical vulnerability that allows specially-crafted containers to gain administrative privileges on the host. ([CVE-2019-5736](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-5736))
+
 ## 18.06.1-ce (2018-08-21)
 
 ### Builder
