@@ -28,6 +28,15 @@ static-linux: static-cli static-engine ## create tgz with linux x86_64 client an
 		cp -L $(ENGINE_DIR)/bundles/binary-daemon/$$f build/linux/docker/$$f; \
 	done
 	tar -C build/linux -c -z -f build/linux/docker-$(STATIC_VERSION).tgz docker
+	
+	# extra binaries for running rootless
+	mkdir -p build/linux/docker-rootless-extras
+	for f in rootlesskit dockerd-rootless.sh vpnkit; do \
+		if [ -f $(ENGINE_DIR)/bundles/binary-daemon/$$f ]; then \
+			cp -L $(ENGINE_DIR)/bundles/binary-daemon/$$f build/linux/docker-rootless-extras/$$f; \
+		fi \
+	done
+	tar -C build/linux -c -z -f build/linux/docker-rootless-extras-$(STATIC_VERSION).tgz docker-rootless-extras
 
 .PHONY: hash_files
 hash_files:

@@ -19,7 +19,13 @@ Requires: container-selinux >= 2.9
 Requires: libseccomp >= 2.3
 Requires: systemd-units
 Requires: iptables
+Requires: libcgroup
 Requires: containerd.io
+Requires: tar
+Requires: xz
+
+# Resolves: rhbz#1165615
+Requires: device-mapper-libs >= 1.02.90-1
 
 BuildRequires: which
 BuildRequires: make
