@@ -3,6 +3,10 @@
 For more information on the list of deprecated flags and APIs, have a look at
 https://docs.docker.com/engine/deprecated/ where you can find the target removal dates 
 
+## 18.06.3-ce (2019-02-19)
+
+- Change the way `runc` critical vulnerability patch is applied so the fix is included in RPM packages. [docker/engine#156](https://github.com/docker/engine/pull/156)
+
 ## 18.06.2-ce (2019-02-11)
 
 ### Security
