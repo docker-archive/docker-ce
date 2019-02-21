@@ -53,7 +53,7 @@ cross-mac: cross-all-cli ## create tgz with darwin x86_64 client only
 cross-win: cross-all-cli cross-win-engine ## create zip file with windows x86_64 client and server
 	mkdir -p build/win/docker
 	cp $(CLI_DIR)/build/docker-windows-amd64 build/win/docker/docker.exe
-	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(VERSION).exe build/win/docker/dockerd.exe
+	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(STATIC_VERSION).exe build/win/docker/dockerd.exe
 	docker run --rm -v $(CURDIR)/build/win:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(STATIC_VERSION).zip docker'
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build
 
@@ -65,16 +65,16 @@ cross-arm: cross-all-cli ## create tgz with linux armhf client only
 
 .PHONY: static-cli
 static-cli:
-	$(MAKE) -C $(CLI_DIR) -f docker.Makefile VERSION=$(VERSION) build
+	$(MAKE) -C $(CLI_DIR) -f docker.Makefile VERSION=$(STATIC_VERSION) build
 
 .PHONY: static-engine
 static-engine:
-	$(MAKE) -C $(ENGINE_DIR) VERSION=$(VERSION) binary
+	$(MAKE) -C $(ENGINE_DIR) VERSION=$(STATIC_VERSION) binary
 
 .PHONY: cross-all-cli
 cross-all-cli:
-	$(MAKE) -C $(CLI_DIR) -f docker.Makefile VERSION=$(VERSION) cross
+	$(MAKE) -C $(CLI_DIR) -f docker.Makefile VERSION=$(STATIC_VERSION) cross
 
 .PHONY: cross-win-engine
 cross-win-engine:
-	$(MAKE) -C $(ENGINE_DIR) VERSION=$(VERSION) DOCKER_CROSSPLATFORMS=windows/amd64 cross
+	$(MAKE) -C $(ENGINE_DIR) VERSION=$(STATIC_VERSION) DOCKER_CROSSPLATFORMS=windows/amd64 cross
