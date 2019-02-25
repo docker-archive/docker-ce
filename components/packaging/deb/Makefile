@@ -24,12 +24,15 @@ BUILD?=docker build \
 	--build-arg ENGINE_IMAGE="$(shell cat sources/engine-image)" \
 	-t debbuild-$@/$(ARCH) \
 	-f $(CURDIR)/$@/Dockerfile .
+# Additional flags may be necessary at some point
+RUN_FLAGS=
 RUN=docker run --rm -i \
 	-e EPOCH='$(EPOCH)' \
 	-e DEB_VERSION=$(word 1, $(DEB_VERSION)) \
 	-e VERSION=$(word 2, $(DEB_VERSION)) \
 	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 	-v $(CURDIR)/debbuild/$@:/build \
+	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
 
 SOURCE_FILES=engine-image cli.tgz docker.service docker.socket distribution_based_engine.json
