@@ -3,6 +3,21 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [https://docs.docker.com/engine/release-notes/](release notes page).
 
+## 18.09.3 (2019-02-DD)
+
+### Networking
+
+- Windows: avoid regeneration of network ids to prevent broken references to networks. [docker/engine#149](https://github.com/docker/engine/pull/149)
+
+### Runtime
+
+* Update to Go 1.10.8.
+* Modify some of the names in the container name generator. [docker/engine#159](https://github.com/docker/engine/pull/159)
+- When copying existing folder, ignore xattr set errors when the target filesystem doesn't support xattr. [docker/engine#135](https://github.com/docker/engine/pull/135)
+- Graphdriver: fix "device" mode not being detected if "character-device" bit is set. [docker/engine#160](https://github.com/docker/engine/pull/160)
+- Fix nil pointer derefence on failure to connect to containerd. [docker/engine#162](https://github.com/docker/engine/pull/162)
+- Delete stale containerd object on start failure. [docker/engine#154](https://github.com/docker/engine/pull/154)
+
 ## 18.09.2 (2019-02-11)
 
 ### Security
