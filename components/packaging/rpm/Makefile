@@ -68,25 +68,9 @@ fedora: fedora-28 fedora-27 fedora-26 ## build all fedora rpm packages
 .PHONY: centos
 centos: centos-7 ## build all centos rpm packages
 
-.PHONY: fedora-29
-fedora-29: ## build fedora-29 rpm packages
-fedora-29: $(SOURCES)
-	$(CHOWN) -R root:root rpmbuild
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
-
-.PHONY: fedora-28
-fedora-28: ## build fedora-28 rpm packages
-fedora-28: $(SOURCES)
-	$(CHOWN) -R root:root rpmbuild
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
-
-.PHONY: fedora-27
-fedora-27: ## build fedora-27 rpm packages
-fedora-27: $(SOURCES)
+.PHONY: fedora-%
+fedora-%: ## build fedora rpm packages
+fedora-%: $(SOURCES)
 	$(CHOWN) -R root:root rpmbuild
 	$(BUILD)
 	$(RUN)
