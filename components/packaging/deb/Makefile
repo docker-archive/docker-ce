@@ -66,23 +66,9 @@ debian: debian-stretch ## build all debian deb packages
 .PHONY: raspbian
 raspbian: raspbian-stretch ## build all raspbian deb packages
 
-.PHONY: ubuntu-cosmic
-ubuntu-cosmic: ## build ubuntu cosmic deb packages
-ubuntu-cosmic: $(SOURCES)
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: ubuntu-bionic
-ubuntu-bionic: ## build ubuntu bionic deb packages
-ubuntu-bionic: $(SOURCES)
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: ubuntu-xenial
-ubuntu-xenial: ## build ubuntu xenial deb packages
-ubuntu-xenial: $(SOURCES)
+.PHONY: ubuntu-%
+ubuntu-%: ## build ubuntu deb packages
+ubuntu-%: $(SOURCES)
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
