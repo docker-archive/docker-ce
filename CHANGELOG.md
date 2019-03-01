@@ -1,7 +1,7 @@
 # Changelog
 
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
-[https://docs.docker.com/engine/release-notes/](release notes page).
+[release notes page](https://docs.docker.com/engine/release-notes/).
 
 ## 18.09.3 (2019-02-28)
 
