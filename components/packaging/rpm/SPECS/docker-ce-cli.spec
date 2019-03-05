@@ -8,6 +8,7 @@ Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
 Source0: cli.tgz
+Source1: plugin-installers.tgz
 URL: https://www.docker.com
 Vendor: Docker
 Packager: Docker <support@docker.com>
@@ -17,6 +18,7 @@ Requires: /bin/sh
 
 BuildRequires: make
 BuildRequires: libtool-ltdl-devel
+BuildRequires: git
 
 # conflicting packages
 Conflicts: docker
@@ -37,7 +39,7 @@ for deploying and scaling web apps, databases, and backend services without
 depending on a particular stack or provider.
 
 %prep
-%setup -q -c -n src
+%setup -q -c -n src -a 1
 
 %build
 mkdir -p /go/src/github.com/docker
@@ -47,6 +49,14 @@ pushd /go/src/github.com/docker/cli
 DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
 popd
 
+# Build all associated plugins
+pushd /root/rpmbuild/BUILD/src/plugins
+for installer in *.installer; do
+    bash ${installer} build
+done
+popd
+
+
 # %check
 # cli/build/docker -v
 
@@ -54,6 +64,15 @@ popd
 # install binary
 install -d $RPM_BUILD_ROOT/%{_bindir}
 install -p -m 755 cli/build/docker $RPM_BUILD_ROOT/%{_bindir}/docker
+
+# install plugins
+pushd /root/rpmbuild/BUILD/src/plugins
+for installer in *.installer; do
+    DESTDIR=$RPM_BUILD_ROOT \
+        PREFIX=/usr/libexec/docker/cli-plugins \
+        bash ${installer} install_plugin
+done
+popd
 
 # add bash, zsh, and fish completions
 install -d $RPM_BUILD_ROOT/usr/share/bash-completion/completions
@@ -80,6 +99,7 @@ done
 %files
 %doc build-docs/LICENSE build-docs/MAINTAINERS build-docs/NOTICE build-docs/README.md
 /%{_bindir}/docker
+/usr/libexec/docker/cli-plugins/*
 /usr/share/bash-completion/completions/docker
 /usr/share/zsh/vendor-completions/_docker
 /usr/share/fish/vendor_completions.d/docker.fish
