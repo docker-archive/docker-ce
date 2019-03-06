@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -e
+
+source "$(dirname "$0")/.common"
+
+GOPATH=$(go env GOPATH)
+REPO=https://github.com/docker/app.git
+COMMIT=207a9459e78dcccbf3eb7e8ca5763835b526478d
+DEST=${GOPATH}/src/github.com/docker/app
+
+build() {
+    if [ ! -d "${DEST}" ]; then
+        git clone "${REPO}" "${DEST}"
+    fi
+    (
+        cd "${DEST}"
+        git fetch --all
+        git checkout -q "${COMMIT}"
+        # There's no real versions yet, but this'll just leave it blank
+        make bin/docker-app
+    )
+}
+
+install_plugin() {
+    (
+        cd "${DEST}"
+        install_binary bin/docker-app
+    )
+}
+
+build_or_install "$@"
