@@ -40,7 +40,7 @@ RPMBUILD_FLAGS?=-ba\
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
-SOURCE_FILES=engine-image cli.tgz docker.service docker.socket distribution_based_engine.json
+SOURCE_FILES=engine-image cli.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 
@@ -109,3 +109,10 @@ rpmbuild/SOURCES/distribution_based_engine.json: rpmbuild/SOURCES/engine-image
 	mkdir -p $(@D)
 	docker inspect "$(shell cat $<)" \
 		--format '{{index .Config.Labels "com.docker.distribution_based_engine" }}' > $@
+
+rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
+	docker run --rm -i -w /v \
+		-v $(shell readlink -e ../plugins):/plugins \
+		-v $(CURDIR)/rpmbuild/SOURCES:/v \
+		alpine \
+		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
