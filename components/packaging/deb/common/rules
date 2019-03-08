@@ -10,6 +10,12 @@ override_dh_gencontrol:
 override_dh_auto_build:
 	cd /go/src/github.com/docker/cli && \
 		LDFLAGS='' DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
+	# Make sure to set LDFLAGS="" since, dpkg-buildflags sets it to some weird values
+	set -e;cd /sources && \
+		tar xzf plugin-installers.tgz; \
+		for installer in plugins/*.installer; do \
+			LDFLAGS='' bash $${installer} build; \
+		done
 
 override_dh_strip:
 	# Go has lots of problems with stripping, so just don't
@@ -19,6 +25,13 @@ override_dh_auto_install:
 	install -D -m 0644 /go/src/github.com/docker/cli/contrib/completion/fish/docker.fish debian/docker-ce-cli/usr/share/fish/vendor_completions.d/docker.fish
 	install -D -m 0644 /go/src/github.com/docker/cli/contrib/completion/zsh/_docker debian/docker-ce-cli/usr/share/zsh/vendor-completions/_docker
 	install -D -m 0755 /go/src/github.com/docker/cli/build/docker debian/docker-ce-cli/usr/bin/docker
+	set -e;cd /sources && \
+		tar xzf plugin-installers.tgz; \
+		for installer in plugins/*.installer; do \
+			DESTDIR=/root/build-deb/debian/docker-ce-cli \
+			PREFIX=/usr/libexec/docker/cli-plugins \
+				bash $${installer} install_plugin; \
+		done
 	# docker-ce install
 	install -D -m 0644 /sources/docker.service debian/docker-ce/lib/systemd/system/docker.service
 	install -D -m 0644 /sources/docker.socket debian/docker-ce/lib/systemd/system/docker.socket

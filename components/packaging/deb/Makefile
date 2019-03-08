@@ -35,7 +35,7 @@ RUN=docker run --rm -i \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
 
-SOURCE_FILES=engine-image cli.tgz docker.service docker.socket distribution_based_engine.json
+SOURCE_FILES=engine-image cli.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 
 .PHONY: help
@@ -119,3 +119,10 @@ sources/engine-image:
 	mkdir -p $(@D)
 	$(MAKE) -C ../image image-linux
 	cp ../image/image-linux $@
+
+sources/plugin-installers.tgz: $(wildcard ../plugins/*)
+	docker run --rm -i -w /v \
+		-v $(shell readlink -e ../plugins):/plugins \
+		-v $(CURDIR)/sources:/v \
+		alpine \
+		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
