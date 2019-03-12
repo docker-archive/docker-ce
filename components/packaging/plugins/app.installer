@@ -22,6 +22,20 @@ build() {
     )
 }
 
+build_mac() {
+    if [ ! -d "${DEST}" ]; then
+        git clone "${REPO}" "${DEST}"
+    fi
+    (
+        cd "${DEST}"
+        git fetch --all
+        git checkout -q "${COMMIT}"
+        make bin/docker-app-darwin
+        # Move it so that `install_plugin` still works as expected
+        mv bin/docker-app-darwin bin/docker-app
+    )
+}
+
 install_plugin() {
     (
         cd "${DEST}"

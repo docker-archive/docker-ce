@@ -8,6 +8,8 @@ HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
 DEFAULT_PRODUCT_LICENSE?=Community Engine
 
+DOCKER_CLI_GOLANG_IMG=$(shell awk '$$1=="FROM"{split($$2,a,"-");print a[1];exit}' $(CLI_DIR)/dockerfiles/Dockerfile.dev)
+
 .PHONY: help
 help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -44,7 +46,7 @@ hash_files:
 	$(HASH_CMD) "$(DIR_TO_HASH)"
 
 .PHONY: cross-mac
-cross-mac: cross-all-cli ## create tgz with darwin x86_64 client only
+cross-mac: cross-all-cli cross-mac-plugins ## create tgz with darwin x86_64 client only
 	mkdir -p build/mac/docker
 	cp $(CLI_DIR)/build/docker-darwin-amd64 build/mac/docker/docker
 	tar -C build/mac -c -z -f build/mac/docker-$(STATIC_VERSION).tgz docker
@@ -78,3 +80,15 @@ cross-all-cli:
 .PHONY: cross-win-engine
 cross-win-engine:
 	$(MAKE) -C $(ENGINE_DIR) VERSION=$(STATIC_VERSION) DOCKER_CROSSPLATFORMS=windows/amd64 cross
+
+BUILD_MAC_RUN_VARS:=--rm -it \
+	-e GOOS=darwin \
+	-v "$(PWD)/build/mac/docker":/out \
+	-v "$(PWD)/../plugins":/plugins:ro \
+	-v "$(PWD)/scripts/build-mac-cli-plugins":/build:ro
+
+.PHONY: cross-mac-plugins
+cross-mac-plugins:
+	mkdir -p build/mac/docker
+	docker run $(BUILD_MAC_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
+	$(CHOWN) -R $(shell id -u):$(shell id -g) build
