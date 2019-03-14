@@ -81,7 +81,7 @@ cross-all-cli:
 cross-win-engine:
 	$(MAKE) -C $(ENGINE_DIR) VERSION=$(STATIC_VERSION) DOCKER_CROSSPLATFORMS=windows/amd64 cross
 
-BUILD_MAC_RUN_VARS:=--rm -it \
+BUILD_MAC_RUN_VARS:=--rm -i \
 	-e GOOS=darwin \
 	-v "$(PWD)/build/mac/docker":/out \
 	-v "$(PWD)/../plugins":/plugins:ro \
