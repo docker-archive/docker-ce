@@ -23,6 +23,9 @@ build_or_install() {
         build)
             build
             ;;
+        build_mac)
+            build_mac
+            ;;
         install_plugin)
             install_plugin
             ;;
