@@ -30,7 +30,7 @@ static-linux: static-cli static-engine ## create tgz with linux x86_64 client an
 		cp -L $(ENGINE_DIR)/bundles/binary-daemon/$$f build/linux/docker/$$f; \
 	done
 	tar -C build/linux -c -z -f build/linux/docker-$(STATIC_VERSION).tgz docker
-	
+
 	# extra binaries for running rootless
 	mkdir -p build/linux/docker-rootless-extras
 	for f in rootlesskit dockerd-rootless.sh vpnkit; do \
@@ -83,9 +83,9 @@ cross-win-engine:
 
 BUILD_MAC_RUN_VARS:=--rm -i \
 	-e GOOS=darwin \
-	-v "$(PWD)/build/mac/docker":/out \
-	-v "$(PWD)/../plugins":/plugins:ro \
-	-v "$(PWD)/scripts/build-mac-cli-plugins":/build:ro
+	-v "$(CURDIR)/build/mac/docker":/out \
+	-v "$(CURDIR)/../plugins":/plugins:ro \
+	-v "$(CURDIR)/scripts/build-mac-cli-plugins":/build:ro
 
 .PHONY: cross-mac-plugins
 cross-mac-plugins:
