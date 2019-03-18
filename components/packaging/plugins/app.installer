@@ -6,7 +6,7 @@ source "$(dirname "$0")/.common"
 
 GOPATH=$(go env GOPATH)
 REPO=https://github.com/docker/app.git
-COMMIT=207a9459e78dcccbf3eb7e8ca5763835b526478d
+COMMIT=e797c906f683d0847850d34f09f05b2c541cc62c
 DEST=${GOPATH}/src/github.com/docker/app
 
 build() {
@@ -18,21 +18,7 @@ build() {
         git fetch --all
         git checkout -q "${COMMIT}"
         # There's no real versions yet, but this'll just leave it blank
-        make bin/docker-app
-    )
-}
-
-build_mac() {
-    if [ ! -d "${DEST}" ]; then
-        git clone "${REPO}" "${DEST}"
-    fi
-    (
-        cd "${DEST}"
-        git fetch --all
-        git checkout -q "${COMMIT}"
-        make bin/docker-app-darwin
-        # Move it so that `install_plugin` still works as expected
-        mv bin/docker-app-darwin bin/docker-app
+        make dynamic
     )
 }
 
