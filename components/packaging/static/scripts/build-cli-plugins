@@ -7,6 +7,6 @@ shopt -s globstar
 # /plugins should be volume mounted from root plugins dir
 # /out should also be volume mounted from static/out/
 for installer in /plugins/*.installer; do
-    bash "${installer}" build_mac
+    bash "${installer}" build
     DESTDIR='/out' PREFIX="/" bash "${installer}" install_plugin
 done
