@@ -3,6 +3,18 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 18.09.4 (2019-03-27)
+
+### Runtime
+
+- Fix `docker cp` error with filenames greater than 100 characters. [moby/moby#38634](https://github.com/moby/moby/pull/38634)
+- Fix layer/layer_store: ensure NewInputTarStream resources are released. [moby/moby#38413](https://github.com/moby/moby/pull/38413)
+* Increase GRPC limit for GetConfigs. [moby/moby#38800](https://github.com/moby/moby/pull/38800)
+
+### Swarm Mode
+
+- Fix nil pointer exception when joining node to swarm. [moby/moby#38618](https://github.com/moby/moby/issues/38618)
+
 ## 18.09.3 (2019-02-28)
 
 ### Networking
