@@ -5,6 +5,7 @@ ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
 GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
+STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang
 GO_VERSION:=1.11.5
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)
@@ -21,7 +22,6 @@ endif
 BUILD?=docker build \
 	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
-	--build-arg ENGINE_IMAGE=$(shell cat rpmbuild/SOURCES/engine-image) \
 	-t rpmbuild-$@/$(ARCH) \
 	-f $@/$(DOCKERFILE) \
 	.
@@ -40,9 +40,8 @@ RPMBUILD_FLAGS?=-ba\
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
-SOURCE_FILES=engine-image cli.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
+SOURCE_FILES=engine-image engine.tgz cli.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
-
 
 .PHONY: help
 help: ## show make targets
@@ -84,6 +83,14 @@ centos-7: $(SOURCES)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
+rpmbuild/SOURCES/engine.tgz:
+	mkdir -p rpmbuild/SOURCES
+	docker run --rm -i -w /v \
+		-v $(ENGINE_DIR):/engine \
+		-v $(CURDIR)/rpmbuild/SOURCES:/v \
+		alpine \
+		tar -C / -c -z -f /v/engine.tgz --exclude .git engine
+
 rpmbuild/SOURCES/cli.tgz:
 	mkdir -p rpmbuild/SOURCES
 	docker run --rm -i -w /v \
@@ -100,15 +107,17 @@ rpmbuild/SOURCES/docker.socket: ../systemd/docker.socket
 	mkdir -p $(@D)
 	cp $< $@
 
+# TODO: Figure out how to decouple this
+# TODO: These might just end up being static files that are hardcoded
+# TODO: FROM HERE <=====================
 rpmbuild/SOURCES/engine-image:
-	$(MAKE) -C ../image image-linux-dm
 	mkdir -p $(@D)
-	cp ../image/image-linux-dm $@
+	echo "docker.io/dockereng/engine-community-dm:$(STATIC_VERSION)" > $@
 
 rpmbuild/SOURCES/distribution_based_engine.json: rpmbuild/SOURCES/engine-image
 	mkdir -p $(@D)
-	docker inspect "$(shell cat $<)" \
-		--format '{{index .Config.Labels "com.docker.distribution_based_engine" }}' > $@
+	echo '{"platform":"Docker Engine - Community","engine_image":"engine-community-dm","containerd_min_version":"1.2.0-beta.1","runtime":"host_install"}' > $@
+# TODO: TO HERE <=====================
 
 rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -i -w /v \
