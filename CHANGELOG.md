@@ -5,11 +5,16 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 
 ## 18.09.4 (2019-03-27)
 
+### Builder
+
+- Add validation for git ref so it can't be misinterpreted as a flag. [moby/moby#38944](https://github.com/moby/moby/pull/38944)
+
 ### Runtime
 
 - Fix `docker cp` error with filenames greater than 100 characters. [moby/moby#38634](https://github.com/moby/moby/pull/38634)
 - Fix layer/layer_store: ensure NewInputTarStream resources are released. [moby/moby#38413](https://github.com/moby/moby/pull/38413)
 * Increase GRPC limit for GetConfigs. [moby/moby#38800](https://github.com/moby/moby/pull/38800)
+* Update to containerd 1.2.5. [docker/engine#173](https://github.com/docker/engine/pull/173)
 
 ### Swarm Mode
 
