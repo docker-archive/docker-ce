@@ -1,26 +1,6 @@
 #!/bin/sh
 set -e
 
-update_dockerd() {
-	dbefile=/var/lib/docker-engine/distribution_based_engine.json
-	URL=https://docs.docker.com/releasenote
-	if [ -f "${dbefile}" ] && sed -e 's/.*"platform"[ \t]*:[ \t]*"\([^"]*\)".*/\1/g' "${dbefile}"| grep -v -i community > /dev/null; then
-		echo
-		echo
-		echo
-		echo "Warning: Your engine has been activated to Docker Engine - Enterprise but you are still using Community packages"
-		echo "You can use the 'docker engine update' command to update your system, or switch to using the Enterprise packages."
-		echo "See $URL for more details."
-		echo
-		echo
-		echo
-	else
-		rm -f /usr/bin/dockerd
-		update-alternatives --install /usr/bin/dockerd dockerd /usr/bin/dockerd-ce 1 --slave \
-			${dbefile} distribution_based_engine.json /var/lib/docker-engine/distribution_based_engine-ce.json
-	fi
-}
-
 case "$1" in
 	configure)
 		if [ -z "$2" ]; then
@@ -28,10 +8,6 @@ case "$1" in
 				groupadd --system docker
 			fi
 		fi
-		update_dockerd
-		;;
-	update)
-		update_dockerd
 		;;
 	abort-*)
 		# How'd we get here??
