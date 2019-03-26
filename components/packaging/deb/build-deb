@@ -2,6 +2,17 @@
 set -x
 set -e
 
+# untar sources
+mkdir -p /root/build-deb/engine
+tar -C /root/build-deb -xzf /sources/engine.tgz
+mkdir -p /root/build-deb/cli
+tar  -C /root/build-deb -xzf /sources/cli.tgz
+
+# link them to their canonical path
+mkdir -p /go/src/github.com/docker
+ln -snf /root/build-deb/engine /go/src/github.com/docker/docker
+ln -snf /root/build-deb/cli /go/src/github.com/docker/cli
+
 EPOCH="${EPOCH:-}"
 EPOCH_SEP=""
 if [[ ! -z "$EPOCH" ]]; then
