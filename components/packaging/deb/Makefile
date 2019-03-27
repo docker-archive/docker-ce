@@ -3,6 +3,7 @@ include ../containerd.mk
 SHELL:=/bin/bash
 ARCH:=$(shell uname -m)
 CLI_DIR:=$(CURDIR)/../../cli
+ENGINE_DIR:=$(CURDIR)/../../engine
 GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
 STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
