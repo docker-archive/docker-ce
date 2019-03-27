@@ -1,6 +1,0 @@
-#!/bin/sh
-set -e
-
-#DEBHELPER#
-
-update-alternatives --remove dockerd /usr/bin/dockerd-ce

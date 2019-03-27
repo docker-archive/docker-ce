@@ -3,8 +3,10 @@ include ../containerd.mk
 SHELL:=/bin/bash
 ARCH:=$(shell uname -m)
 CLI_DIR:=$(CURDIR)/../../cli
+ENGINE_DIR:=$(CURDIR)/../../engine
 GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
+STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang
 GO_VERSION:=1.11.5
 GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)
@@ -21,7 +23,6 @@ BUILD?=docker build \
 	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	--build-arg COMMON_FILES=$(COMMON_FILES) \
-	--build-arg ENGINE_IMAGE="$(shell cat sources/engine-image)" \
 	-t debbuild-$@/$(ARCH) \
 	-f $(CURDIR)/$@/Dockerfile .
 # Additional flags may be necessary at some point
@@ -35,7 +36,7 @@ RUN=docker run --rm -i \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
 
-SOURCE_FILES=engine-image cli.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
+SOURCE_FILES=engine-image cli.tgz engine.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 
 .PHONY: help
@@ -94,6 +95,14 @@ raspbian-stretch: $(SOURCES)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
+sources/engine.tgz:
+	mkdir -p $(@D)
+	docker run --rm -i -w /v \
+		-v $(ENGINE_DIR):/engine \
+		-v $(CURDIR)/$(@D):/v \
+		alpine \
+		tar -C / -c -z -f /v/engine.tgz --exclude .git engine
+
 sources/cli.tgz:
 	mkdir -p $(@D)
 	docker run --rm -i -w /v \
@@ -110,15 +119,17 @@ sources/docker.socket: ../systemd/docker.socket
 	mkdir -p $(@D)
 	cp $< $@
 
+# TODO: Figure out how to decouple this
+# TODO: These might just end up being static files that are hardcoded
+# TODO: FROM HERE <=====================
 sources/distribution_based_engine.json: sources/engine-image
 	mkdir -p $(@D)
-	docker inspect "$(shell cat $<)" \
-		--format '{{index .Config.Labels "com.docker.distribution_based_engine" }}' > $@
+	echo '{"platform":"Docker Engine - Community","engine_image":"engine-community","containerd_min_version":"1.2.0-beta.1","runtime":"host_install"}' > $@
 
 sources/engine-image:
 	mkdir -p $(@D)
-	$(MAKE) -C ../image image-linux
-	cp ../image/image-linux $@
+	echo "docker.io/dockereng/engine-community:$(STATIC_VERSION)" > $@
+# TODO: TO HERE <=====================
 
 sources/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -i -w /v \
