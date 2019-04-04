@@ -25,12 +25,12 @@ import (
 	"github.com/moby/buildkit/control"
 	"github.com/moby/buildkit/identity"
 	"github.com/moby/buildkit/session"
-	"github.com/moby/buildkit/solver/llbsolver"
 	"github.com/moby/buildkit/util/entitlements"
 	"github.com/moby/buildkit/util/resolver"
 	"github.com/moby/buildkit/util/tracing"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 	grpcmetadata "google.golang.org/grpc/metadata"
 )
 
@@ -61,10 +61,6 @@ var cacheFields = map[string]bool{
 	// fields from buildkit that are not exposed
 	"mutable":   false,
 	"immutable": false,
-}
-
-func init() {
-	llbsolver.AllowNetworkHostUnstable = true
 }
 
 // Opt is option struct required for creating the builder
@@ -102,6 +98,11 @@ func New(opt Opt) (*Builder, error) {
 		jobs:           map[string]*buildJob{},
 	}
 	return b, nil
+}
+
+// RegisterGRPC registers controller to the grpc server.
+func (b *Builder) RegisterGRPC(s *grpc.Server) {
+	b.controller.Register(s)
 }
 
 // Cancel cancels a build using ID
