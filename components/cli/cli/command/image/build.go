@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -413,7 +414,10 @@ func runBuild(dockerCli command.Cli, options buildOptions) error {
 	if s != nil {
 		go func() {
 			logrus.Debugf("running session: %v", s.ID())
-			if err := s.Run(ctx, dockerCli.Client().DialSession); err != nil {
+			dialSession := func(ctx context.Context, proto string, meta map[string][]string) (net.Conn, error) {
+				return dockerCli.Client().DialHijack(ctx, "/session", proto, meta)
+			}
+			if err := s.Run(ctx, dialSession); err != nil {
 				logrus.Error(err)
 				cancel() // cancel progress context
 			}
@@ -662,13 +666,22 @@ func parseOutputs(inp []string) ([]types.ImageBuildOutput, error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(fields) == 1 && fields[0] == s {
-			outs = append(outs, types.ImageBuildOutput{
-				Type: "local",
-				Attrs: map[string]string{
-					"dest": s,
-				},
-			})
+		if len(fields) == 1 && fields[0] == s && !strings.HasPrefix(s, "type=") {
+			if s == "-" {
+				outs = append(outs, types.ImageBuildOutput{
+					Type: "tar",
+					Attrs: map[string]string{
+						"dest": s,
+					},
+				})
+			} else {
+				outs = append(outs, types.ImageBuildOutput{
+					Type: "local",
+					Attrs: map[string]string{
+						"dest": s,
+					},
+				})
+			}
 			continue
 		}
 
