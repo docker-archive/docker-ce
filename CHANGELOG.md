@@ -3,6 +3,32 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 18.09.5 (2019-04-11)
+
+### Builder
+
+- Fix `DOCKER_BUILDKIT=1 docker build --squash .`. [docker/engine#176](https://github.com/docker/engine/pull/176)
+
+### Client
+
+- Fix tty initial size error. [docker/cli#1775](https://github.com/docker/cli/pull/1775)
+- Fix dial-stdio goroutine leakage. [docker/cli#1795](https://github.com/docker/cli/pull/1795)
+- Fix the stack informer's selector used to track deployment. [docker/cli#1794](https://github.com/docker/cli/pull/1794)
+
+### Networking
+
+- Fix `network=host` using wrong `resolv.conf` with `systemd-resolved`. [docker/engine#180](https://github.com/docker/engine/pull/180)
+- Fix Windows ARP entries getting corrupted randomly under load. [docker/engine#192](https://github.com/docker/engine/pull/192)
+
+### Runtime
+
+- Fix stopped containers with restart policy showing as `Restarting`. [docker/engine#181](https://github.com/docker/engine/pull/181)
+- Fix to use original process spec for execs. [docker/engine#178](https://github.com/docker/engine/pull/178)
+
+### Swarm Mode
+
+- Fix leaking task resources when nodes are deleted. [docker/engine#185](https://github.com/docker/engine/pull/185)
+
 ## 18.09.4 (2019-03-27)
 
 ### Builder
