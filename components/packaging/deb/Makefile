@@ -32,6 +32,7 @@ RUN=docker run --rm -i \
 	-e DEB_VERSION=$(word 1, $(DEB_VERSION)) \
 	-e VERSION=$(word 2, $(DEB_VERSION)) \
 	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
+	-e PLATFORM \
 	-v $(CURDIR)/debbuild/$@:/build \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
