@@ -33,7 +33,7 @@ static-linux: static-cli static-engine ## create tgz with linux x86_64 client an
 
 	# extra binaries for running rootless
 	mkdir -p build/linux/docker-rootless-extras
-	for f in rootlesskit dockerd-rootless.sh vpnkit; do \
+	for f in rootlesskit rootlesskit-docker-proxy dockerd-rootless.sh vpnkit; do \
 		if [ -f $(ENGINE_DIR)/bundles/binary-daemon/$$f ]; then \
 			cp -L $(ENGINE_DIR)/bundles/binary-daemon/$$f build/linux/docker-rootless-extras/$$f; \
 		fi \
