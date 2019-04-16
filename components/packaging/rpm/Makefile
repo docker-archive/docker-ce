@@ -63,7 +63,7 @@ clean: ## remove build artifacts
 rpm: fedora centos ## build all rpm packages
 
 .PHONY: fedora
-fedora: fedora-28 fedora-26 ## build all fedora rpm packages
+fedora: fedora-28 ## build all fedora rpm packages
 
 .PHONY: centos
 centos: centos-7 ## build all centos rpm packages
