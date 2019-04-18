@@ -6,7 +6,7 @@ source "$(dirname "$0")/.common"
 
 GOPATH=$(go env GOPATH)
 REPO=https://github.com/docker/app.git
-COMMIT=baf0b246c75a528646c8c40c751ae23a45e2a3f3
+COMMIT=v0.8.0-beta1
 DEST=${GOPATH}/src/github.com/docker/app
 
 build() {
