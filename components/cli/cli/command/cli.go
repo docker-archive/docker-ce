@@ -290,8 +290,8 @@ func newAPIClientFromEndpoint(ep docker.Endpoint, configFile *configfile.ConfigF
 	return client.NewClientWithOpts(clientOpts...)
 }
 
-func resolveDockerEndpoint(s store.Store, contextName string) (docker.Endpoint, error) {
-	ctxMeta, err := s.GetContextMetadata(contextName)
+func resolveDockerEndpoint(s store.Reader, contextName string) (docker.Endpoint, error) {
+	ctxMeta, err := s.GetMetadata(contextName)
 	if err != nil {
 		return docker.Endpoint{}, err
 	}
@@ -399,7 +399,7 @@ func (cli *DockerCli) CurrentContext() string {
 // StackOrchestrator resolves which stack orchestrator is in use
 func (cli *DockerCli) StackOrchestrator(flagValue string) (Orchestrator, error) {
 	currentContext := cli.CurrentContext()
-	ctxRaw, err := cli.ContextStore().GetContextMetadata(currentContext)
+	ctxRaw, err := cli.ContextStore().GetMetadata(currentContext)
 	if store.IsErrContextDoesNotExist(err) {
 		// case where the currentContext has been removed (CLI behavior is to fallback to using DOCKER_HOST based resolution)
 		return GetStackOrchestrator(flagValue, "", cli.ConfigFile().StackOrchestrator, cli.Err())
@@ -500,7 +500,7 @@ func UserAgent() string {
 // - if DOCKER_CONTEXT is set, use this value
 // - if Config file has a globally set "CurrentContext", use this value
 // - fallbacks to default HOST, uses TLS config from flags/env vars
-func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigFile, contextstore store.Store) (string, error) {
+func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigFile, contextstore store.Reader) (string, error) {
 	if opts.Context != "" && len(opts.Hosts) > 0 {
 		return "", errors.New("Conflicting options: either specify --host or --context, not both")
 	}
@@ -517,7 +517,7 @@ func resolveContextName(opts *cliflags.CommonOptions, config *configfile.ConfigF
 		return ctxName, nil
 	}
 	if config != nil && config.CurrentContext != "" {
-		_, err := contextstore.GetContextMetadata(config.CurrentContext)
+		_, err := contextstore.GetMetadata(config.CurrentContext)
 		if store.IsErrContextDoesNotExist(err) {
 			return "", errors.Errorf("Current context %q is not found on the file system, please check your config file at %s", config.CurrentContext, config.Filename)
 		}

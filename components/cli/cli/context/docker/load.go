@@ -31,7 +31,7 @@ type Endpoint struct {
 }
 
 // WithTLSData loads TLS materials for the endpoint
-func WithTLSData(s store.Store, contextName string, m EndpointMeta) (Endpoint, error) {
+func WithTLSData(s store.Reader, contextName string, m EndpointMeta) (Endpoint, error) {
 	tlsData, err := context.LoadTLSData(s, contextName, DockerEndpoint)
 	if err != nil {
 		return Endpoint{}, err
@@ -91,8 +91,8 @@ func (c *Endpoint) tlsConfig() (*tls.Config, error) {
 }
 
 // ClientOpts returns a slice of Client options to configure an API client with this endpoint
-func (c *Endpoint) ClientOpts() ([]func(*client.Client) error, error) {
-	var result []func(*client.Client) error
+func (c *Endpoint) ClientOpts() ([]client.Opt, error) {
+	var result []client.Opt
 	if c.Host != "" {
 		helper, err := connhelper.GetConnectionHelper(c.Host)
 		if err != nil {
@@ -153,7 +153,7 @@ func withHTTPClient(tlsConfig *tls.Config) func(*client.Client) error {
 }
 
 // EndpointFromContext parses a context docker endpoint metadata into a typed EndpointMeta structure
-func EndpointFromContext(metadata store.ContextMetadata) (EndpointMeta, error) {
+func EndpointFromContext(metadata store.Metadata) (EndpointMeta, error) {
 	ep, ok := metadata.Endpoints[DockerEndpoint]
 	if !ok {
 		return EndpointMeta{}, errors.New("cannot find docker endpoint in context")
