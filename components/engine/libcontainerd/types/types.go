@@ -25,27 +25,6 @@ const (
 	EventResumed     EventType = "resumed"
 )
 
-// Status represents the current status of a container
-type Status string
-
-// Possible container statuses
-const (
-	// Running indicates the process is currently executing
-	StatusRunning Status = "running"
-	// Created indicates the process has been created within containerd but the
-	// user's defined process has not started
-	StatusCreated Status = "created"
-	// Stopped indicates that the process has ran and exited
-	StatusStopped Status = "stopped"
-	// Paused indicates that the process is currently paused
-	StatusPaused Status = "paused"
-	// Pausing indicates that the process is currently switching from a
-	// running state into a paused state
-	StatusPausing Status = "pausing"
-	// Unknown indicates that we could not determine the status from the runtime
-	StatusUnknown Status = "unknown"
-)
-
 // EventInfo contains the event info
 type EventInfo struct {
 	ContainerID string
@@ -62,11 +41,16 @@ type Backend interface {
 	ProcessEvent(containerID string, event EventType, ei EventInfo) error
 }
 
+// Process of a container
+type Process interface {
+	Delete(context.Context) (uint32, time.Time, error)
+}
+
 // Client provides access to containerd features.
 type Client interface {
 	Version(ctx context.Context) (containerd.Version, error)
 
-	Restore(ctx context.Context, containerID string, attachStdio StdioCallback) (alive bool, pid int, err error)
+	Restore(ctx context.Context, containerID string, attachStdio StdioCallback) (alive bool, pid int, p Process, err error)
 
 	Create(ctx context.Context, containerID string, spec *specs.Spec, runtimeOptions interface{}) error
 	Start(ctx context.Context, containerID, checkpointDir string, withStdin bool, attachStdio StdioCallback) (pid int, err error)
@@ -81,7 +65,7 @@ type Client interface {
 	Summary(ctx context.Context, containerID string) ([]Summary, error)
 	DeleteTask(ctx context.Context, containerID string) (uint32, time.Time, error)
 	Delete(ctx context.Context, containerID string) error
-	Status(ctx context.Context, containerID string) (Status, error)
+	Status(ctx context.Context, containerID string) (containerd.ProcessStatus, error)
 
 	UpdateResources(ctx context.Context, containerID string, resources *Resources) error
 	CreateCheckpoint(ctx context.Context, containerID, checkpointDir string, exit bool) error

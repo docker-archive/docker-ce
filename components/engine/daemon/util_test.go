@@ -11,6 +11,13 @@ import (
 	specs "github.com/opencontainers/runtime-spec/specs-go"
 )
 
+type mockProcess struct {
+}
+
+func (m *mockProcess) Delete(_ context.Context) (uint32, time.Time, error) {
+	return 0, time.Time{}, nil
+}
+
 // Mock containerd client implementation, for unit tests.
 type MockContainerdClient struct {
 }
@@ -18,8 +25,8 @@ type MockContainerdClient struct {
 func (c *MockContainerdClient) Version(ctx context.Context) (containerd.Version, error) {
 	return containerd.Version{}, nil
 }
-func (c *MockContainerdClient) Restore(ctx context.Context, containerID string, attachStdio libcontainerdtypes.StdioCallback) (alive bool, pid int, err error) {
-	return false, 0, nil
+func (c *MockContainerdClient) Restore(ctx context.Context, containerID string, attachStdio libcontainerdtypes.StdioCallback) (alive bool, pid int, p libcontainerdtypes.Process, err error) {
+	return false, 0, &mockProcess{}, nil
 }
 func (c *MockContainerdClient) Create(ctx context.Context, containerID string, spec *specs.Spec, runtimeOptions interface{}) error {
 	return nil
@@ -54,7 +61,7 @@ func (c *MockContainerdClient) DeleteTask(ctx context.Context, containerID strin
 	return 0, time.Time{}, nil
 }
 func (c *MockContainerdClient) Delete(ctx context.Context, containerID string) error { return nil }
-func (c *MockContainerdClient) Status(ctx context.Context, containerID string) (libcontainerdtypes.Status, error) {
+func (c *MockContainerdClient) Status(ctx context.Context, containerID string) (containerd.ProcessStatus, error) {
 	return "null", nil
 }
 func (c *MockContainerdClient) UpdateResources(ctx context.Context, containerID string, resources *libcontainerdtypes.Resources) error {
