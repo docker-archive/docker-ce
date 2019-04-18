@@ -51,7 +51,7 @@ type container struct {
 	hcsContainer hcsshim.Container
 
 	id               string
-	status           libcontainerdtypes.Status
+	status           containerd.ProcessStatus
 	exitedAt         time.Time
 	exitCode         uint32
 	waitCh           chan struct{}
@@ -348,7 +348,7 @@ func (c *client) createWindows(id string, spec *specs.Spec, runtimeOptions inter
 		isWindows:    true,
 		ociSpec:      spec,
 		hcsContainer: hcsContainer,
-		status:       libcontainerdtypes.StatusCreated,
+		status:       containerd.Created,
 		waitCh:       make(chan struct{}),
 	}
 
@@ -543,7 +543,7 @@ func (c *client) createLinux(id string, spec *specs.Spec, runtimeOptions interfa
 		isWindows:    false,
 		ociSpec:      spec,
 		hcsContainer: hcsContainer,
-		status:       libcontainerdtypes.StatusCreated,
+		status:       containerd.Created,
 		waitCh:       make(chan struct{}),
 	}
 
@@ -709,7 +709,7 @@ func (c *client) Start(_ context.Context, id, _ string, withStdin bool, attachSt
 	}
 	logger.WithField("pid", p.pid).Debug("init process started")
 
-	ctr.status = libcontainerdtypes.StatusRunning
+	ctr.status = containerd.Running
 	ctr.init = p
 
 	// Spin up a go routine waiting for exit to handle cleanup
@@ -1004,7 +1004,7 @@ func (c *client) Pause(_ context.Context, containerID string) error {
 		return err
 	}
 
-	ctr.status = libcontainerdtypes.StatusPaused
+	ctr.status = containerd.Paused
 
 	c.eventQ.Append(containerID, func() {
 		err := c.backend.ProcessEvent(containerID, libcontainerdtypes.EventPaused, libcontainerdtypes.EventInfo{
@@ -1044,7 +1044,7 @@ func (c *client) Resume(_ context.Context, containerID string) error {
 		return err
 	}
 
-	ctr.status = libcontainerdtypes.StatusRunning
+	ctr.status = containerd.Running
 
 	c.eventQ.Append(containerID, func() {
 		err := c.backend.ProcessEvent(containerID, libcontainerdtypes.EventResumed, libcontainerdtypes.EventInfo{
@@ -1085,7 +1085,7 @@ func (c *client) Stats(_ context.Context, containerID string) (*libcontainerdtyp
 }
 
 // Restore is the handler for restoring a container
-func (c *client) Restore(ctx context.Context, id string, attachStdio libcontainerdtypes.StdioCallback) (bool, int, error) {
+func (c *client) Restore(ctx context.Context, id string, attachStdio libcontainerdtypes.StdioCallback) (bool, int, libcontainerdtypes.Process, error) {
 	c.logger.WithField("container", id).Debug("restore()")
 
 	// TODO Windows: On RS1, a re-attach isn't possible.
@@ -1107,10 +1107,13 @@ func (c *client) Restore(ctx context.Context, id string, attachStdio libcontaine
 
 		if err != nil {
 			c.logger.WithField("container", id).WithError(err).Debug("terminate failed on restore")
-			return false, -1, err
+			return false, -1, nil, err
 		}
 	}
-	return false, -1, nil
+	return false, -1, &restoredProcess{
+		c:  c,
+		id: id,
+	}, nil
 }
 
 // GetPidsForContainer returns a list of process IDs running in a container.
@@ -1153,6 +1156,15 @@ func (c *client) Summary(_ context.Context, containerID string) ([]libcontainerd
 	return pl, nil
 }
 
+type restoredProcess struct {
+	id string
+	c  *client
+}
+
+func (p *restoredProcess) Delete(ctx context.Context) (uint32, time.Time, error) {
+	return p.c.DeleteTask(ctx, p.id)
+}
+
 func (c *client) DeleteTask(ctx context.Context, containerID string) (uint32, time.Time, error) {
 	ec := -1
 	ctr := c.getContainer(containerID)
@@ -1185,12 +1197,12 @@ func (c *client) Delete(_ context.Context, containerID string) error {
 	defer ctr.Unlock()
 
 	switch ctr.status {
-	case libcontainerdtypes.StatusCreated:
+	case containerd.Created:
 		if err := c.shutdownContainer(ctr); err != nil {
 			return err
 		}
 		fallthrough
-	case libcontainerdtypes.StatusStopped:
+	case containerd.Stopped:
 		delete(c.containers, containerID)
 		return nil
 	}
@@ -1198,12 +1210,12 @@ func (c *client) Delete(_ context.Context, containerID string) error {
 	return errors.WithStack(errdefs.InvalidParameter(errors.New("container is not stopped")))
 }
 
-func (c *client) Status(ctx context.Context, containerID string) (libcontainerdtypes.Status, error) {
+func (c *client) Status(ctx context.Context, containerID string) (containerd.ProcessStatus, error) {
 	c.Lock()
 	defer c.Unlock()
 	ctr := c.containers[containerID]
 	if ctr == nil {
-		return libcontainerdtypes.StatusUnknown, errors.WithStack(errdefs.NotFound(errors.New("no such container")))
+		return containerd.Unknown, errors.WithStack(errdefs.NotFound(errors.New("no such container")))
 	}
 
 	ctr.Lock()
@@ -1387,7 +1399,7 @@ func (c *client) reapProcess(ctr *container, p *process) int {
 func (c *client) reapContainer(ctr *container, p *process, exitCode int, exitedAt time.Time, eventErr error, logger *logrus.Entry) (int, error) {
 	// Update container status
 	ctr.Lock()
-	ctr.status = libcontainerdtypes.StatusStopped
+	ctr.status = containerd.Stopped
 	ctr.exitedAt = exitedAt
 	ctr.exitCode = uint32(exitCode)
 	close(ctr.waitCh)

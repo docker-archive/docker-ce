@@ -5,7 +5,6 @@ import (
 	"io"
 	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
@@ -26,19 +25,6 @@ type ExitHandler interface {
 	HandleExitEvent(id string) error
 }
 
-// Client is used by the exector to perform operations.
-// TODO(@cpuguy83): This should really just be based off the containerd client interface.
-// However right now this whole package is tied to github.com/docker/docker/libcontainerd
-type Client interface {
-	Create(ctx context.Context, containerID string, spec *specs.Spec, runtimeOptions interface{}) error
-	Restore(ctx context.Context, containerID string, attachStdio libcontainerdtypes.StdioCallback) (alive bool, pid int, err error)
-	Status(ctx context.Context, containerID string) (libcontainerdtypes.Status, error)
-	Delete(ctx context.Context, containerID string) error
-	DeleteTask(ctx context.Context, containerID string) (uint32, time.Time, error)
-	Start(ctx context.Context, containerID, checkpointDir string, withStdin bool, attachStdio libcontainerdtypes.StdioCallback) (pid int, err error)
-	SignalProcess(ctx context.Context, containerID, processID string, signal int) error
-}
-
 // New creates a new containerd plugin executor
 func New(ctx context.Context, rootDir string, cli *containerd.Client, exitHandler ExitHandler) (*Executor, error) {
 	e := &Executor{
@@ -57,19 +43,23 @@ func New(ctx context.Context, rootDir string, cli *containerd.Client, exitHandle
 // Executor is the containerd client implementation of a plugin executor
 type Executor struct {
 	rootDir     string
-	client      Client
+	client      libcontainerdtypes.Client
 	exitHandler ExitHandler
 }
 
 // deleteTaskAndContainer deletes plugin task and then plugin container from containerd
-func deleteTaskAndContainer(ctx context.Context, cli Client, id string) {
-	_, _, err := cli.DeleteTask(ctx, id)
-	if err != nil && !errdefs.IsNotFound(err) {
-		logrus.WithError(err).WithField("id", id).Error("failed to delete plugin task from containerd")
+func deleteTaskAndContainer(ctx context.Context, cli libcontainerdtypes.Client, id string, p libcontainerdtypes.Process) {
+	if p != nil {
+		if _, _, err := p.Delete(ctx); err != nil && !errdefs.IsNotFound(err) {
+			logrus.WithError(err).WithField("id", id).Error("failed to delete plugin task from containerd")
+		}
+	} else {
+		if _, _, err := cli.DeleteTask(ctx, id); err != nil && !errdefs.IsNotFound(err) {
+			logrus.WithError(err).WithField("id", id).Error("failed to delete plugin task from containerd")
+		}
 	}
 
-	err = cli.Delete(ctx, id)
-	if err != nil && !errdefs.IsNotFound(err) {
+	if err := cli.Delete(ctx, id); err != nil && !errdefs.IsNotFound(err) {
 		logrus.WithError(err).WithField("id", id).Error("failed to delete plugin container from containerd")
 	}
 }
@@ -88,7 +78,7 @@ func (e *Executor) Create(id string, spec specs.Spec, stdout, stderr io.WriteClo
 				logrus.WithError(err2).WithField("id", id).Warn("Received an error while attempting to read plugin status")
 			}
 		} else {
-			if status != libcontainerdtypes.StatusRunning && status != libcontainerdtypes.StatusUnknown {
+			if status != containerd.Running && status != containerd.Unknown {
 				if err2 := e.client.Delete(ctx, id); err2 != nil && !errdefs.IsNotFound(err2) {
 					logrus.WithError(err2).WithField("plugin", id).Error("Error cleaning up containerd container")
 				}
@@ -103,19 +93,19 @@ func (e *Executor) Create(id string, spec specs.Spec, stdout, stderr io.WriteClo
 
 	_, err = e.client.Start(ctx, id, "", false, attachStreamsFunc(stdout, stderr))
 	if err != nil {
-		deleteTaskAndContainer(ctx, e.client, id)
+		deleteTaskAndContainer(ctx, e.client, id, nil)
 	}
 	return err
 }
 
 // Restore restores a container
 func (e *Executor) Restore(id string, stdout, stderr io.WriteCloser) (bool, error) {
-	alive, _, err := e.client.Restore(context.Background(), id, attachStreamsFunc(stdout, stderr))
+	alive, _, p, err := e.client.Restore(context.Background(), id, attachStreamsFunc(stdout, stderr))
 	if err != nil && !errdefs.IsNotFound(err) {
 		return false, err
 	}
 	if !alive {
-		deleteTaskAndContainer(context.Background(), e.client, id)
+		deleteTaskAndContainer(context.Background(), e.client, id, p)
 	}
 	return alive, nil
 }
@@ -123,7 +113,7 @@ func (e *Executor) Restore(id string, stdout, stderr io.WriteCloser) (bool, erro
 // IsRunning returns if the container with the given id is running
 func (e *Executor) IsRunning(id string) (bool, error) {
 	status, err := e.client.Status(context.Background(), id)
-	return status == libcontainerdtypes.StatusRunning, err
+	return status == containerd.Running, err
 }
 
 // Signal sends the specified signal to the container
@@ -136,7 +126,7 @@ func (e *Executor) Signal(id string, signal int) error {
 func (e *Executor) ProcessEvent(id string, et libcontainerdtypes.EventType, ei libcontainerdtypes.EventInfo) error {
 	switch et {
 	case libcontainerdtypes.EventExit:
-		deleteTaskAndContainer(context.Background(), e.client, id)
+		deleteTaskAndContainer(context.Background(), e.client, id, nil)
 		return e.exitHandler.HandleExitEvent(ei.ContainerID)
 	}
 	return nil
