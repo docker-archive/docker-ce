@@ -500,8 +500,7 @@ func (e External) MarshalJSON() ([]byte, error) {
 
 // CredentialSpecConfig for credential spec on Windows
 type CredentialSpecConfig struct {
-	// @TODO Config is not yet in use
-	Config   string `yaml:"-" json:"-"` // Config was added in API v1.40
+	Config   string `yaml:",omitempty" json:"config,omitempty"` // Config was added in API v1.40
 	File     string `yaml:",omitempty" json:"file,omitempty"`
 	Registry string `yaml:",omitempty" json:"registry,omitempty"`
 }
@@ -513,6 +512,8 @@ type FileObjectConfig struct {
 	External       External               `yaml:",omitempty" json:"external,omitempty"`
 	Labels         Labels                 `yaml:",omitempty" json:"labels,omitempty"`
 	Extras         map[string]interface{} `yaml:",inline" json:"-"`
+	Driver         string                 `yaml:",omitempty" json:"driver,omitempty"`
+	DriverOpts     map[string]string      `mapstructure:"driver_opts" yaml:"driver_opts,omitempty" json:"driver_opts,omitempty"`
 	TemplateDriver string                 `mapstructure:"template_driver" yaml:"template_driver,omitempty" json:"template_driver,omitempty"`
 }
 
