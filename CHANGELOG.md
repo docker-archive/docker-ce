@@ -13,7 +13,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * Add `--pids-limit` flag to `docker update`. [docker/cli#1765](https://github.com/docker/cli/pull/1765)
 * Add systctl support for services. [docker/cli#1754](https://github.com/docker/cli/pull/1754)
 * Add support for `template_driver` in composefiles. [docker/cli#1746](https://github.com/docker/cli/pull/1746)
-* Bump Golang 1.12.1. [docker/cli#1708](https://github.com/docker/cli/pull/1708)
+* Bump Golang 1.12.4. [docker/cli#1832](https://github.com/docker/cli/pull/1832)
 * Fix labels copying value from environment variables. [docker/cli#1671](https://github.com/docker/cli/pull/1671)
 * The `docker system info` output now segregates information relevant to the client and daemon. [docker/cli#1638](https://github.com/docker/cli/pull/1638)
 * (Experimental) When targetting Kubernetes, add support for `x-pull-secret: some-pull-secret` in compose-files service configs. [docker/cli#1617](https://github.com/docker/cli/pull/1617)
@@ -33,6 +33,11 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * Allow npipe volume type on stack file. [docker/cli#1195](https://github.com/docker/cli/pull/1195)
 * Add option to pull images quietly. [docker/cli#882](https://github.com/docker/cli/pull/882)
 * Add a separate `--domainname` flag. [docker/cli#1130](https://github.com/docker/cli/pull/1130)
+* Add `--from` flag to `context create`. [docker/cli#1773](https://github.com/docker/cli/pull/1773)
+* Add support for secret drivers in `docker stack deploy`. [docker/cli#1783](https://github.com/docker/cli/pull/1783)
+* Add ability to use swarm `Configs` as `CredentialSpecs` on services. [docker/cli#1781](https://github.com/docker/cli/pull/1781)
+* Add `--security-opt systempaths=unconfined` support. [docker/cli#1808](https://github.com/docker/cli/pull/1808)
+* Bump Docker App to v0.8.0-beta1. [docker/docker-ce-packaging#324](https://github.com/docker/docker-ce-packaging/pull/324)
 
 ### API
 
@@ -78,7 +83,8 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * Use idtools.LookupGroup instead of parsing /etc/group file for docker.sock ownership to fix: api.go doesn't respect nsswitch.conf. [moby/moby#38126](https://github.com/moby/moby/pull/38126)
 * Fix docker --init with /dev bind mount. [moby/moby#37665](https://github.com/moby/moby/pull/37665)
 * cli: fix images filter when use multi reference filter. [moby/moby#38171](https://github.com/moby/moby/pull/38171)
-* Bump Golang to 1.12.1. [moby/moby#38404](https://github.com/moby/moby/pull/38404)
+* Bump Golang to 1.12.4. [moby/moby#39063](https://github.com/moby/moby/pull/39063)
+* Bump containerd to 1.2.6 and runc to 029124d. [moby/moby#39016](https://github.com/moby/moby/pull/39016)
 
 ### Networking
 
