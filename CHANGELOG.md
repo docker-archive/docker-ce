@@ -62,6 +62,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * Enable checkpoint/restore of containers with TTY. [moby/moby#38405](https://github.com/moby/moby/pull/38405)
 * LCOW: Add support for memory and CPU limits. [moby/moby#37296](https://github.com/moby/moby/pull/37296)
 * Windows: Experimental: ContainerD runtime. [moby/moby#38541](https://github.com/moby/moby/pull/38541)
+* Windows: Experimental: LCOW requires Windows RS5+. [moby/moby#39108](https://github.com/moby/moby/pull/39108)
 
 ### Security
 
