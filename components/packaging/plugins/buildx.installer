@@ -6,7 +6,7 @@ source "$(dirname "$0")/.common"
 PKG=github.com/docker/buildx
 GOPATH=$(go env GOPATH)
 REPO=https://${PKG}.git
-COMMIT=v0.2.0
+COMMIT=master
 DEST=${GOPATH}/src/${PKG}
 
 build() {
