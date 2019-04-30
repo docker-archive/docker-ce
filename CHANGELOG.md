@@ -3,6 +3,17 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 18.09.6 (2019-05-02)
+
+### Builder
+
+- Fix `COPY` and `ADD` with multiple `<src>` do not invalidate cache if `DOCKER_BUILDKIT=1`. [moby/moby#38964](https://github.com/moby/moby/issues/38964)
+
+### Networking
+
+- Cleanup the cluster provider when the agent is closed. [docker/libnetwork#2354](https://github.com/docker/libnetwork/pull/2354)
+- Windows: pick a random host port if the user does not specify a host port. [docker/libnetwork#2369](https://github.com/docker/libnetwork/pull/2369)
+
 ## 18.09.5 (2019-04-11)
 
 ### Builder
