@@ -1,5 +1,3 @@
-include ../containerd.mk
-
 SHELL:=/bin/bash
 ARCH:=$(shell uname -m)
 CLI_DIR:=$(CURDIR)/../../cli

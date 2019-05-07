@@ -1,5 +1,3 @@
-include ../containerd.mk
-
 ARCH=$(shell uname -m)
 ENGINE_DIR:=$(CURDIR)/../../engine
 CLI_DIR:=$(CURDIR)/../../cli
