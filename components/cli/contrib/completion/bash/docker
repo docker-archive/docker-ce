@@ -2342,11 +2342,15 @@ _docker_context_create() {
 		--description|--docker|--kubernetes)
 			return
 			;;
+		--from)
+			__docker_complete_contexts
+			return
+			;;
 	esac
 
 	case "$cur" in
 		-*)
-			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --help --kubernetes" -- "$cur" ) )
+			COMPREPLY=( $( compgen -W "--default-stack-orchestrator --description --docker --from --help --kubernetes" -- "$cur" ) )
 			;;
 	esac
 }
@@ -5154,12 +5158,16 @@ _docker_system_events() {
 			__docker_complete_networks --cur "${cur##*=}"
 			return
 			;;
+		node)
+			__docker_complete_nodes --cur "${cur##*=}"
+			return
+			;;
 		scope)
 			COMPREPLY=( $( compgen -W "local swarm" -- "${cur##*=}" ) )
 			return
 			;;
 		type)
-			COMPREPLY=( $( compgen -W "config container daemon image network plugin secret service volume" -- "${cur##*=}" ) )
+			COMPREPLY=( $( compgen -W "config container daemon image network node plugin secret service volume" -- "${cur##*=}" ) )
 			return
 			;;
 		volume)
@@ -5170,7 +5178,7 @@ _docker_system_events() {
 
 	case "$prev" in
 		--filter|-f)
-			COMPREPLY=( $( compgen -S = -W "container daemon event image label network scope type volume" -- "$cur" ) )
+			COMPREPLY=( $( compgen -S = -W "container daemon event image label network node scope type volume" -- "$cur" ) )
 			__docker_nospace
 			return
 			;;
