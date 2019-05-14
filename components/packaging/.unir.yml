@@ -4,6 +4,7 @@ whitelist:
     - andrewhsu
     - jose-bigio
     - corbin-coleman
+    - thaJeztah
 
 # At least 2 approvals are needed for auto-merging
 approvals_needed: 2
