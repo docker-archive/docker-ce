@@ -3,17 +3,18 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.0 (2019-05-21)
+## 19.03.0 (2019-MM-DD)
 
 ### Client
 
-* Update buildkit to 62e55427. [docker/cli#1800](https://github.com/docker/cli/pull/1800)
+* Update buildkit to f238f1e. [docker/cli#1804](https://github.com/docker/cli/pull/1804)
+* Bump google.golang.org/grpc to v1.20.1. [docker/cli#1884](https://github.com/docker/cli/pull/1884)
 * Cli change to pass driver specific options to docker run. [docker/cli#1767](https://github.com/docker/cli/pull/1767)
 * build: allow setting buildkit outputs. [docker/cli#1766](https://github.com/docker/cli/pull/1766)
 * Add `--pids-limit` flag to `docker update`. [docker/cli#1765](https://github.com/docker/cli/pull/1765)
 * Add systctl support for services. [docker/cli#1754](https://github.com/docker/cli/pull/1754)
 * Add support for `template_driver` in composefiles. [docker/cli#1746](https://github.com/docker/cli/pull/1746)
-* Bump Golang 1.12.4. [docker/cli#1832](https://github.com/docker/cli/pull/1832)
+* Bump Golang 1.12.5. [docker/cli#1875](https://github.com/docker/cli/pull/1875)
 * Fix labels copying value from environment variables. [docker/cli#1671](https://github.com/docker/cli/pull/1671)
 * The `docker system info` output now segregates information relevant to the client and daemon. [docker/cli#1638](https://github.com/docker/cli/pull/1638)
 * (Experimental) When targetting Kubernetes, add support for `x-pull-secret: some-pull-secret` in compose-files service configs. [docker/cli#1617](https://github.com/docker/cli/pull/1617)
@@ -51,10 +52,12 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 ### Builder
 
 * Builder: fix `COPY --from` should preserve ownership. [moby/moby#38599](https://github.com/moby/moby/pull/38599)
-* builder-next: update buildkit to c3541087 (v0.4.0). [moby/moby#38882](https://github.com/moby/moby/pull/38882)
+* builder-next: update buildkit to v0.5.0. [docker/engine#215](https://github.com/docker/engine/pull/215)
   * This brings in inline cache support. --cache-from can now point to an existing image
   if it was built with `--build-arg BUILDKIT_INLINE_CACHE=true` and contains the cache metadata in the image config.
 * builder-next: allow outputs configuration. [moby/moby#38898](https://github.com/moby/moby/pull/38898)
+* builder-next: fix gcr workaround token cache. [docker/engine#212](https://github.com/docker/engine/pull/212)
+* builder-next: call stopprogress on download error. [docker/engine#215](https://github.com/docker/engine/pull/215)
 * TODO changes from BuildKit
 
 ### Experimental
@@ -73,6 +76,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 ### Runtime
 
 * Allow running dockerd as a non-root user (Rootless mode). [moby/moby#380050](https://github.com/moby/moby/pull/38050)
+* Rootless: optional support for `lxc-user-nic` SUID binary. [docker/engine#208](https://github.com/docker/engine/pull/208)
 * Add DeviceRequests to HostConfig to support NVIDIA GPUs. [moby/moby#38828](https://github.com/moby/moby/pull/38828)
 * Making it possible to pass Windows credential specs directly to the engine. [moby/moby#38777](https://github.com/moby/moby/pull/38777)
 * Add pids-limit support in docker update. [moby/moby#32519](https://github.com/moby/moby/pull/32519)
@@ -84,13 +88,16 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * Use idtools.LookupGroup instead of parsing /etc/group file for docker.sock ownership to fix: api.go doesn't respect nsswitch.conf. [moby/moby#38126](https://github.com/moby/moby/pull/38126)
 * Fix docker --init with /dev bind mount. [moby/moby#37665](https://github.com/moby/moby/pull/37665)
 * cli: fix images filter when use multi reference filter. [moby/moby#38171](https://github.com/moby/moby/pull/38171)
-* Bump Golang to 1.12.4. [moby/moby#39063](https://github.com/moby/moby/pull/39063)
-* Bump containerd to 1.2.6 and runc to 029124d. [moby/moby#39016](https://github.com/moby/moby/pull/39016)
+* Bump Golang to 1.12.5. [docker/engine#209](https://github.com/docker/engine/pull/209)
+* Bump containerd to 1.2.6. [moby/moby#39016](https://github.com/moby/moby/pull/39016)
+* Bump runc to 1.0.0-rc8, opencontainers/selinux v1.2.2. [docker/engine#210](https://github.com/docker/engine/pull/210)
+* Bump google.golang.org/grpc to v1.20.1. [docker/engine#215](https://github.com/docker/engine/pull/215)
 
 ### Networking
 
 * Network: add support for 'dangling' filter. [moby/moby#31551](https://github.com/moby/moby/pull/31551)
 * Move IPVLAN driver out of experimental. [moby/moby#38983](https://github.com/moby/moby/pull/38983) / [docker/libnetwork#2230](https://github.com/docker/libnetwork/pull/2230)
+* Fix to make sure load balancer sandbox is deleted when a service is updated with `--network-rm`. [docker/engine#213](https://github.com/docker/engine/pull/213)
 
 ### Swarm
 
