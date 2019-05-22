@@ -15,6 +15,7 @@ URL: https://www.docker.com
 Vendor: Docker
 Packager: Docker <support@docker.com>
 
+Requires: /usr/sbin/groupadd
 Requires: docker-ce-cli
 Requires: container-selinux >= 2.9
 Requires: libseccomp >= 2.3
