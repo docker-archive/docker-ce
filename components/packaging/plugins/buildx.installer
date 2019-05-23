@@ -19,7 +19,7 @@ build() {
         git checkout -q "${COMMIT}"
         local LDFLAGS
         # TODO: unmark `-tp` when no longer a technical preview
-        LDFLAGS="-X ${PKG}/version.Version=$(git describe --match 'v[0-9]*' --always --tags)-tp -X ${PKG}/version.Revision=$(git rev-parse HEAD) -X ${PKG}/version.Package=${PKG}"
+        LDFLAGS="-X ${PKG}/version.Version=$(git describe --match 'v[0-9]*' --always --tags)-tp-docker -X ${PKG}/version.Revision=$(git rev-parse HEAD) -X ${PKG}/version.Package=${PKG} -X main.experimental=1"
         set -x
         go build -o bin/docker-buildx -ldflags "${LDFLAGS}" ./cmd/buildx
     )
