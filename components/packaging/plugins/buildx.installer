@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -e
+
+source "$(dirname "$0")/.common"
+PKG=github.com/docker/buildx
+GOPATH=$(go env GOPATH)
+REPO=https://${PKG}.git
+COMMIT=master
+DEST=${GOPATH}/src/${PKG}
+
+build() {
+    if [ ! -d "${DEST}" ]; then
+        git clone "${REPO}" "${DEST}"
+    fi
+    (
+        cd "${DEST}"
+        git fetch --all
+        git checkout -q "${COMMIT}"
+        local LDFLAGS
+        # TODO: unmark `-tp` when no longer a technical preview
+        LDFLAGS="-X ${PKG}/version.Version=$(git describe --match 'v[0-9]*' --always --tags)-tp-docker -X ${PKG}/version.Revision=$(git rev-parse HEAD) -X ${PKG}/version.Package=${PKG} -X main.experimental=1"
+        set -x
+        go build -o bin/docker-buildx -ldflags "${LDFLAGS}" ./cmd/buildx
+    )
+}
+
+install_plugin() {
+    (
+        cd "${DEST}"
+        install_binary bin/docker-buildx
+    )
+}
+
+build_or_install "$@"
