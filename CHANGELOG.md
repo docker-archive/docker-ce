@@ -3,7 +3,7 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.0 (2019-MM-DD)
+## 19.03.0 (2019-06-DD)
 
 ### Client
 
@@ -59,6 +59,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * builder-next: allow outputs configuration. [moby/moby#38898](https://github.com/moby/moby/pull/38898)
 * builder-next: fix gcr workaround token cache. [docker/engine#212](https://github.com/docker/engine/pull/212)
 * builder-next: call stopprogress on download error. [docker/engine#215](https://github.com/docker/engine/pull/215)
+* builder-next: buildkit now also uses systemd's resolv.conf. [docker/engine#260](https://github.com/docker/engine/pull/260).
 * TODO changes from BuildKit
 
 ### Experimental
@@ -95,6 +96,8 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * Bump google.golang.org/grpc to v1.20.1. [docker/engine#215](https://github.com/docker/engine/pull/215)
 * Fix: fetch the right device number when greater than 255 and using `--device-read-bps` option. [moby/moby#39212](https://github.com/moby/moby/pull/39212)
 * Fix: "Path does not exist" error when path definitely exists. [moby/moby#39251](https://github.com/moby/moby/pull/39251)
+* Performance optimizations in aufs and layer store for massively parallel container creation/removal. [moby/moby#39135](https://github.com/moby/moby/pull/39135) [moby/moby#39209](https://github.com/moby/moby/pull/39209)
+* Pass root to chroot to for chroot Tar/Untar (CVE-2018-15664) [moby/moby#39292](https://github.com/moby/moby/pull/39292)
 
 ### Networking
 
@@ -112,6 +115,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * Windows: Support named pipe mounts in docker service create + stack yml. [moby/moby#37400](https://github.com/moby/moby/pull/37400)
 * VXLAN UDP Port configuration support. [moby/moby#38102](https://github.com/moby/moby/pull/38102)
 * Use Service Placement Constraints in Enforcer. [docker/swarmkit#2857](https://github.com/docker/swarmkit/pull/2857)
+* Increase max recv gRPC message size for nodes and secrets. [docker/engine#256](https://github.com/docker/engine/pull/256)
 
 ### Logging
 
