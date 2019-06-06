@@ -73,7 +73,7 @@ func TestBuildSquashParent(t *testing.T) {
 	resp.Body.Close()
 	assert.NilError(t, err)
 
-	cid := container.Run(t, ctx, client,
+	cid := container.Run(ctx, t, client,
 		container.WithImage(name),
 		container.WithCmd("/bin/sh", "-c", "cat /hello"),
 	)
@@ -88,11 +88,11 @@ func TestBuildSquashParent(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Check(t, is.Equal(strings.TrimSpace(actualStdout.String()), "hello\nworld"))
 
-	container.Run(t, ctx, client,
+	container.Run(ctx, t, client,
 		container.WithImage(name),
 		container.WithCmd("/bin/sh", "-c", "[ ! -f /remove_me ]"),
 	)
-	container.Run(t, ctx, client,
+	container.Run(ctx, t, client,
 		container.WithImage(name),
 		container.WithCmd("/bin/sh", "-c", `[ "$(echo $HELLO)" == "world" ]`),
 	)
