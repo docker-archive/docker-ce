@@ -3,15 +3,11 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.0 (2019-06-17)
-
-### Known issues
-
-* [CVE-2018-15664](https://nvd.nist.gov/vuln/detail/CVE-2018-15664) symlink-exchange attack with directory traversal. Workaround until proper fix is available in upcoming patch release: `docker pause` container before doing file operations. [moby/moby#39252](https://github.com/moby/moby/pull/39252)
+## 19.03.0 (2019-06-DD)
 
 ### Deprecation
 
-* Remove v1 manifest support, remove `--disable-legacy-registry`. Pushing v1 manifests to registries is no longer possible, pushing schema v2 (or OCI) manifests is now the only way. However, pulling v1 manifests is still possible. [moby/moby#37874](https://github.com/moby/moby/pull/37874)
+* Remove v1 manifest support, remove `--disable-legacy-registry`. Pushing v1 manifests to registries is no longer possible, pushing schema v2 (or OCI) manifests is now the only way. However, pulling v1 manifests is still possible. [moby/moby#39365](https://github.com/moby/moby/pull/39365)
 * Remove v1.10 migrator. [moby/moby#38265](https://github.com/moby/moby/pull/38265)
 * Skip deprecated storage-drivers in auto-selection. [moby/moby#38019](https://github.com/moby/moby/pull/38019)
 * Deprecate AuFS storage driver, and add warning. [moby/moby#38090](https://github.com/moby/moby/pull/38090)
@@ -109,6 +105,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 - Fix docker `--init` with `/dev` bind mount. [moby/moby#37665](https://github.com/moby/moby/pull/37665)
 - Fix: fetch the right device number when greater than 255 and using `--device-read-bps` option. [moby/moby#39212](https://github.com/moby/moby/pull/39212)
 - Fix: "Path does not exist" error when path definitely exists. [moby/moby#39251](https://github.com/moby/moby/pull/39251)
+- Fix: [CVE-2018-15664](https://nvd.nist.gov/vuln/detail/CVE-2018-15664) symlink-exchange attack with directory traversal. [moby/moby#39357](https://github.com/moby/moby/pull/39357)
 
 ### Networking
 
