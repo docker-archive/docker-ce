@@ -3,6 +3,27 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 18.09.7 (2019-06-25)
+
+### Builder
+
+- Fix panic when building dockerfiles containing only comments. [moby/moby#38487](https://github.com/moby/moby/pull/38487)
+- builder: add workaround for gcr auth issue. [moby/moby#38246](https://github.com/moby/moby/pull/38246)
+- builder-next: fix gcr workaround token cache. [moby/moby#39183](https://github.com/moby/moby/pull/39183)
+
+### Runtime
+
+* Performance optimizations in aufs and layer store for massively parallel container creation/removal. [moby/moby#39107](https://github.com/moby/moby/pull/39107)
+* Update to containerd 1.2.6. [moby/moby#39016](https://github.com/moby/moby/pull/39016)
+- Fix: [CVE-2018-15664](https://nvd.nist.gov/vuln/detail/CVE-2018-15664) symlink-exchange attack with directory traversal. [moby/moby#39357](https://github.com/moby/moby/pull/39357)
+- Windows: fix support for `docker service create --limit-cpu`. [moby/moby#39190](https://github.com/moby/moby/pull/39190)
+- daemon: fix mirrors validation. [moby/moby#38991](https://github.com/moby/moby/pull/38991)
+- Stop sorting uid and gid ranges in id maps. [moby/moby#39288](https://github.com/moby/moby/pull/39288)
+
+### Logging
+
+- Fix to allow large log lines for logger plugins. [moby/moby#39038](https://github.com/moby/moby/pull/39038)
+
 ## 18.09.6 (2019-05-02)
 
 ### Builder
