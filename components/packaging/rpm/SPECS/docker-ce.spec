@@ -18,7 +18,7 @@ Packager: Docker <support@docker.com>
 Requires: docker-ce-cli
 Requires: container-selinux >= 2.9
 Requires: libseccomp >= 2.3
-Requires: systemd-units
+Requires: systemd
 Requires: iptables
 Requires: libcgroup
 Requires: containerd.io
@@ -60,7 +60,7 @@ Obsoletes: docker-engine-selinux
 Obsoletes: docker-engine
 
 %description
-Docker is is a product for you to build, ship and run any application as a
+Docker is a product for you to build, ship and run any application as a
 lightweight container.
 
 Docker containers are both hardware-agnostic and platform-agnostic. This means
@@ -74,6 +74,7 @@ depending on a particular stack or provider.
 %setup -q -c -n src -a 0
 
 %build
+
 export DOCKER_GITCOMMIT=%{_gitcommit}
 mkdir -p /go/src/github.com/docker
 ln -s /root/rpmbuild/BUILD/src/engine /go/src/github.com/docker/docker
@@ -132,7 +133,6 @@ fi
 if ! getent group docker > /dev/null; then
     groupadd --system docker
 fi
-
 
 %preun
 %systemd_preun docker
