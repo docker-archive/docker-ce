@@ -114,41 +114,16 @@ install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_
 /%{_unitdir}/docker.socket
 /var/lib/docker-engine/distribution_based_engine-ce.json
 
-%pre
-if [ $1 -gt 0 ] ; then
-    # package upgrade scenario, before new files are installed
-
-    # clear any old state
-    rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
-
-    # check if docker service is running
-    if systemctl is-active docker > /dev/null 2>&1; then
-        systemctl stop docker > /dev/null 2>&1 || :
-        touch %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
-    fi
-fi
-
 %post
-%systemd_post docker
+%systemd_post docker.service
 if ! getent group docker > /dev/null; then
     groupadd --system docker
 fi
 
 %preun
-%systemd_preun docker
+%systemd_preun docker.service
 
 %postun
-%systemd_postun_with_restart docker
-
-%posttrans
-if [ $1 -ge 0 ] ; then
-    # package upgrade scenario, after new files are installed
-
-    # check if docker was running before upgrade
-    if [ -f %{_localstatedir}/lib/rpm-state/docker-is-active ]; then
-        systemctl start docker > /dev/null 2>&1 || :
-        rm -f %{_localstatedir}/lib/rpm-state/docker-is-active > /dev/null 2>&1 || :
-    fi
-fi
+%systemd_postun_with_restart docker.service
 
 %changelog
