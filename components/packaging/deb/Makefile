@@ -94,6 +94,13 @@ raspbian-stretch: $(SOURCES)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
+.PHONY: raspbian-buster
+raspbian-buster: ## build raspbian buster deb packages
+raspbian-buster: $(SOURCES)
+        $(BUILD)
+        $(RUN)
+        $(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
+
 sources/engine.tgz:
 	mkdir -p $(@D)
 	docker run --rm -i -w /v \
