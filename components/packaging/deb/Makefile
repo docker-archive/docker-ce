@@ -61,45 +61,31 @@ deb: ubuntu debian raspbian ## build all deb packages
 ubuntu: ubuntu-bionic ubuntu-xenial ## build all ubuntu deb packages
 
 .PHONY: debian
-debian: debian-stretch ## build all debian deb packages
+debian: debian-stretch debian-buster ## build all debian deb packages
 
 .PHONY: raspbian
-raspbian: raspbian-stretch ## build all raspbian deb packages
+raspbian: raspbian-stretch raspbian-buster ## build all raspbian deb packages
 
 .PHONY: ubuntu-%
-ubuntu-%: ## build ubuntu deb packages
+## build ubuntu deb packages
 ubuntu-%: $(SOURCES)
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
-.PHONY: debian-buster
-debian-buster: ## build debian buster deb packages
-debian-buster: $(SOURCES)
+.PHONY: debian-%
+## build debian deb packages
+debian-%: $(SOURCES)
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
-.PHONY: debian-stretch
-debian-stretch: ## build debian stretch deb packages
-debian-stretch: $(SOURCES)
+.PHONY: raspbian-%
+## build raspbian deb packages
+raspbian-%: $(SOURCES)
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: raspbian-stretch
-raspbian-stretch: ## build raspbian stretch deb packages
-raspbian-stretch: $(SOURCES)
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: raspbian-buster
-raspbian-buster: ## build raspbian buster deb packages
-raspbian-buster: $(SOURCES)
-        $(BUILD)
-        $(RUN)
-        $(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
 
 sources/engine.tgz:
 	mkdir -p $(@D)
