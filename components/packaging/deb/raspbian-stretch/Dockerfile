@@ -1,5 +1,5 @@
 ARG GO_IMAGE
-ARG BUILD_IMAGE=resin/rpi-raspbian:stretch
+ARG BUILD_IMAGE=balenalib/rpi-raspbian:stretch
 FROM ${GO_IMAGE} as golang
 
 FROM ${BUILD_IMAGE}
