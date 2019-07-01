@@ -71,6 +71,7 @@ centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 
 .PHONY: $(FEDORA_RELEASES) $(CENTOS_RELEASES)
 $(FEDORA_RELEASES) $(CENTOS_RELEASES): $(SOURCES)
+	@echo "== Building packages for $@ =="
 	$(CHOWN) -R root:root rpmbuild
 	$(BUILD)
 	$(RUN)

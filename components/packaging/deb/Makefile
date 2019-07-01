@@ -73,6 +73,7 @@ raspbian: $(RASPBIAN_VERSIONS) ## build all raspbian deb packages
 
 .PHONY: $(DISTROS)
 $(DISTROS): $(SOURCES)
+	@echo "== Building packages for $@ =="
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
