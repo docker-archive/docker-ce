@@ -42,6 +42,9 @@ RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 SOURCE_FILES=engine-image engine.tgz cli.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
+FEDORA_RELEASES := fedora-31 fedora-30 fedora-29 fedora-28
+CENTOS_RELEASES := centos-7
+
 .PHONY: help
 help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -61,22 +64,13 @@ clean: ## remove build artifacts
 rpm: fedora centos ## build all rpm packages
 
 .PHONY: fedora
-fedora: fedora-31 fedora-30 fedora-29 fedora-28 ## build all fedora rpm packages
+fedora: $(FEDORA_RELEASES) ## build all fedora rpm packages
 
 .PHONY: centos
-centos: centos-7 ## build all centos rpm packages
+centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 
-.PHONY: fedora-%
-fedora-%: ## build fedora rpm packages
-fedora-%: $(SOURCES)
-	$(CHOWN) -R root:root rpmbuild
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
-
-.PHONY: centos-7
-centos-7: ## build centos-7 rpm packages
-centos-7: $(SOURCES)
+.PHONY: $(FEDORA_RELEASES) $(CENTOS_RELEASES)
+$(FEDORA_RELEASES) $(CENTOS_RELEASES): $(SOURCES)
 	$(CHOWN) -R root:root rpmbuild
 	$(BUILD)
 	$(RUN)
