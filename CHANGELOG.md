@@ -3,14 +3,14 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.0 (2019-06-DD)
+## 19.03.0 (2019-07-10)
 
 ### Deprecation
 
-* Remove v1 manifest support, remove `--disable-legacy-registry`. Pushing v1 manifests to registries is no longer possible, pushing schema v2 (or OCI) manifests is now the only way. However, pulling v1 manifests is still possible. [moby/moby#39365](https://github.com/moby/moby/pull/39365)
+* Deprecate image manifest v2 schema1 in favor of v2 schema2. Future version of Docker will remove support for v2 schema1 altogether. [moby/moby#39365](https://github.com/moby/moby/pull/39365)
 * Remove v1.10 migrator. [moby/moby#38265](https://github.com/moby/moby/pull/38265)
 * Skip deprecated storage-drivers in auto-selection. [moby/moby#38019](https://github.com/moby/moby/pull/38019)
-* Deprecate AuFS storage driver, and add warning. [moby/moby#38090](https://github.com/moby/moby/pull/38090)
+* Deprecate `aufs` storage driver and add warning. [moby/moby#38090](https://github.com/moby/moby/pull/38090)
 
 ### Client
 
@@ -21,25 +21,21 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 + Data Path Port configuration support. [docker/cli#1509](https://github.com/docker/cli/pull/1509)
 + Fast context switch: commands. [docker/cli#1501](https://github.com/docker/cli/pull/1501)
 + Support --mount type=bind,bind-nonrecursive,... [docker/cli#1430](https://github.com/docker/cli/pull/1430)
-+ Add maximum replicas per node support to stack version 3.8. [docker/cli#1410](https://github.com/docker/cli/pull/1410)
++ Add maximum replicas per node. [docker/cli#1410](https://github.com/docker/cli/pull/1410) [docker/cli#1612](https://github.com/docker/cli/pull/1612)
 + Add option to pull images quietly. [docker/cli#882](https://github.com/docker/cli/pull/882)
 + Add a separate `--domainname` flag. [docker/cli#1130](https://github.com/docker/cli/pull/1130)
-+ Add `--from` flag to `context create`. [docker/cli#1773](https://github.com/docker/cli/pull/1773)
 + Add support for secret drivers in `docker stack deploy`. [docker/cli#1783](https://github.com/docker/cli/pull/1783)
 + Add ability to use swarm `Configs` as `CredentialSpecs` on services. [docker/cli#1781](https://github.com/docker/cli/pull/1781)
 + Add `--security-opt systempaths=unconfined` support. [docker/cli#1808](https://github.com/docker/cli/pull/1808)
-+ Basic framework for writing and running CLI plugins. [docker/cli#1564](https://github.com/docker/cli/pull/1564)
-+ cli-plugins: add concept of experimental plugin, only enabled in experimental mode. [docker/cli#1898](https://github.com/docker/cli/pull/1898)
++ Basic framework for writing and running CLI plugins. [docker/cli#1564](https://github.com/docker/cli/pull/1564) [docker/cli#1898](https://github.com/docker/cli/pull/1898)
 + Docker App v0.8.0. [docker/docker-ce-packaging#341](https://github.com/docker/docker-ce-packaging/pull/341)
 + Docker buildx. [docker/docker-ce-packaging#336](https://github.com/docker/docker-ce-packaging/pull/336)
-* Update buildkit to f238f1e. [docker/cli#1804](https://github.com/docker/cli/pull/1804)
 * Bump google.golang.org/grpc to v1.20.1. [docker/cli#1884](https://github.com/docker/cli/pull/1884)
 * Cli change to pass driver specific options to docker run. [docker/cli#1767](https://github.com/docker/cli/pull/1767)
 * Bump Golang 1.12.5. [docker/cli#1875](https://github.com/docker/cli/pull/1875)
 * The `docker system info` output now segregates information relevant to the client and daemon. [docker/cli#1638](https://github.com/docker/cli/pull/1638)
 * (Experimental) When targetting Kubernetes, add support for `x-pull-secret: some-pull-secret` in compose-files service configs. [docker/cli#1617](https://github.com/docker/cli/pull/1617)
 * (Experimental) When targetting Kubernetes, add support for `x-pull-policy: <Never|Always|IfNotPresent>` in compose-files service configs. [docker/cli#1617](https://github.com/docker/cli/pull/1617)
-* Add support for maximum replicas per node without stack. [docker/cli#1612](https://github.com/docker/cli/pull/1612)
 * cp, save, export: Prevent overwriting irregular files. [docker/cli#1515](https://github.com/docker/cli/pull/1515)
 * Allow npipe volume type on stack file. [docker/cli#1195](https://github.com/docker/cli/pull/1195)
 - Fix tty initial size error. [docker/cli#1529](https://github.com/docker/cli/pull/1529)
@@ -116,7 +112,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 
 ### Swarm
 
-+ Added support for maximum replicas per node. [moby/moby#37940](https://github.com/moby/moby/pull/37940)
++ Add support for maximum replicas per node. [moby/moby#37940](https://github.com/moby/moby/pull/37940)
 + Add support for GMSA CredentialSpecs from Swarmkit configs. [moby/moby#38632](https://github.com/moby/moby/pull/38632)
 + Add support for sysctl options in services. [moby/moby#37701](https://github.com/moby/moby/pull/37701)
 + Add support for filtering on node labels. [moby/moby#37650](https://github.com/moby/moby/pull/37650)
