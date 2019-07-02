@@ -21,7 +21,7 @@ Requires: libseccomp >= 2.3
 Requires: systemd
 Requires: iptables
 Requires: libcgroup
-Requires: containerd.io
+Requires: containerd.io >= 1.2.2-3
 Requires: tar
 Requires: xz
 
