@@ -29,7 +29,7 @@ test_steps = [
 				sh("git -C cli checkout $branch")
 				sh('git clone https://github.com/docker/engine.git')
 				sh("git -C engine checkout $branch")
-				sh('make VERSION=0.0.1-dev DOCKER_BUILD_PKGS=ubuntu-xenial ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli deb')
+				sh('make -C deb VERSION=0.0.1-dev ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli ubuntu-xenial')
 			}
 		}
 	},
@@ -41,7 +41,7 @@ test_steps = [
 				sh("git -C cli checkout $branch")
 				sh('git clone https://github.com/docker/engine.git')
 				sh("git -C engine checkout $branch")
-				sh('make VERSION=0.0.1-dev DOCKER_BUILD_PKGS=centos-7 ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli rpm')
+				sh('make -C rpm VERSION=0.0.1-dev ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli centos-7')
 			}
 		}
 	},

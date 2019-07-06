@@ -38,6 +38,11 @@ RUN=docker run --rm -i \
 SOURCE_FILES=engine-image cli.tgz engine.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 
+DEBIAN_VERSIONS := debian-stretch debian-buster
+UBUNTU_VERSIONS := ubuntu-xenial ubuntu-bionic ubuntu-cosmic ubuntu-disco
+RASPBIAN_VERSIONS := raspbian-stretch raspbian-buster
+DISTROS := $(DEBIAN_VERSIONS) $(UBUNTU_VERSIONS) $(RASPBIAN_VERSIONS)
+
 .PHONY: help
 help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -55,34 +60,20 @@ engine-$(ARCH).tar:
 	docker save -o $@ $$(cat ../image/image-linux)
 
 .PHONY: deb
-deb: ubuntu debian raspbian ## build all deb packages
+deb: ubuntu debian ## build all deb packages except for raspbian
 
 .PHONY: ubuntu
-ubuntu: ubuntu-bionic ubuntu-xenial ## build all ubuntu deb packages
+ubuntu: $(UBUNTU_VERSIONS) ## build all ubuntu deb packages
 
 .PHONY: debian
-debian: debian-stretch debian-buster ## build all debian deb packages
+debian: $(DEBIAN_VERSIONS) ## build all debian deb packages
 
 .PHONY: raspbian
-raspbian: raspbian-stretch raspbian-buster ## build all raspbian deb packages
+raspbian: $(RASPBIAN_VERSIONS) ## build all raspbian deb packages
 
-.PHONY: ubuntu-%
-## build ubuntu deb packages
-ubuntu-%: $(SOURCES)
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: debian-%
-## build debian deb packages
-debian-%: $(SOURCES)
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
-
-.PHONY: raspbian-%
-## build raspbian deb packages
-raspbian-%: $(SOURCES)
+.PHONY: $(DISTROS)
+$(DISTROS): $(SOURCES)
+	@echo "== Building packages for $@ =="
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
