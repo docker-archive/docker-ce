@@ -1,6 +1,6 @@
 ARG GO_IMAGE
 ARG ENGINE_IMAGE
-ARG BUILD_IMAGE=resin/rpi-raspbian:stretch
+ARG BUILD_IMAGE=balenalib/rpi-raspbian:stretch
 FROM ${GO_IMAGE} as golang
 FROM ${ENGINE_IMAGE} as engine
 
