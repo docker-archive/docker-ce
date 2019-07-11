@@ -39,13 +39,13 @@ type Client interface {
 }
 
 // New creates a new containerd plugin executor
-func New(ctx context.Context, rootDir string, cli *containerd.Client, exitHandler ExitHandler) (*Executor, error) {
+func New(ctx context.Context, rootDir string, cli *containerd.Client, ns string, exitHandler ExitHandler) (*Executor, error) {
 	e := &Executor{
 		rootDir:     rootDir,
 		exitHandler: exitHandler,
 	}
 
-	client, err := libcontainerd.NewClient(ctx, cli, rootDir, PluginNamespace, e)
+	client, err := libcontainerd.NewClient(ctx, cli, rootDir, ns, e)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating containerd exec client")
 	}
