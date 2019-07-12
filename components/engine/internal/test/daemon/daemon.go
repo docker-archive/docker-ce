@@ -34,6 +34,13 @@ type testingT interface {
 	Fatalf(string, ...interface{})
 }
 
+type namer interface {
+	Name() string
+}
+type testNamer interface {
+	TestName() string
+}
+
 type logT interface {
 	Logf(string, ...interface{})
 }
@@ -96,6 +103,12 @@ func New(t testingT, ops ...func(*Daemon)) *Daemon {
 	if dest == "" {
 		dest = os.Getenv("DEST")
 	}
+	switch v := t.(type) {
+	case namer:
+		dest = filepath.Join(dest, v.Name())
+	case testNamer:
+		dest = filepath.Join(dest, v.TestName())
+	}
 	assert.Check(t, dest != "", "Please set the DOCKER_INTEGRATION_DAEMON_DEST or the DEST environment variable")
 
 	storageDriver := os.Getenv("DOCKER_GRAPHDRIVER")
@@ -135,6 +148,11 @@ func New(t testingT, ops ...func(*Daemon)) *Daemon {
 	}
 
 	return d
+}
+
+// ContainersNamespace returns the containerd namespace used for containers.
+func (d *Daemon) ContainersNamespace() string {
+	return d.id
 }
 
 // RootDir returns the root directory of the daemon.
@@ -226,12 +244,15 @@ func (d *Daemon) StartWithLogFile(out *os.File, providedArgs ...string) error {
 	if err != nil {
 		return errors.Wrapf(err, "[%s] could not find docker binary in $PATH", d.id)
 	}
+
 	args := append(d.GlobalFlags,
 		"--containerd", containerdSocket,
 		"--data-root", d.Root,
 		"--exec-root", d.execRoot,
 		"--pidfile", fmt.Sprintf("%s/docker.pid", d.Folder),
 		fmt.Sprintf("--userland-proxy=%t", d.userlandProxy),
+		"--containerd-namespace", d.id,
+		"--containerd-plugins-namespace", d.id+"p",
 	)
 	if d.defaultCgroupNamespaceMode != "" {
 		args = append(args, []string{"--default-cgroupns-mode", d.defaultCgroupNamespaceMode}...)
@@ -311,7 +332,7 @@ func (d *Daemon) StartWithLogFile(out *os.File, providedArgs ...string) error {
 	defer cancel()
 
 	// make sure daemon is ready to receive requests
-	for {
+	for i := 0; ; i++ {
 		d.log.Logf("[%s] waiting for daemon to start", d.id)
 
 		select {
@@ -325,9 +346,14 @@ func (d *Daemon) StartWithLogFile(out *os.File, providedArgs ...string) error {
 
 			resp, err := client.Do(req.WithContext(rctx))
 			if err != nil {
-				d.log.Logf("[%s] error pinging daemon on start: %v", d.id, err)
+				if i > 2 { // don't log the first couple, this ends up just being noise
+					d.log.Logf("[%s] error pinging daemon on start: %v", d.id, err)
+				}
 
-				time.Sleep(500 * time.Millisecond)
+				select {
+				case <-ctx.Done():
+				case <-time.After(500 * time.Microsecond):
+				}
 				continue
 			}
 

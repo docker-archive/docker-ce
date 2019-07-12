@@ -757,6 +757,9 @@ func (daemon *Daemon) initRuntimes(runtimes map[string]types.Runtime) (err error
 
 // verifyDaemonSettings performs validation of daemon config struct
 func verifyDaemonSettings(conf *config.Config) error {
+	if conf.ContainerdNamespace == conf.ContainerdPluginNamespace {
+		return errors.New("containers namespace and plugins namespace cannot be the same")
+	}
 	// Check for mutually incompatible config options
 	if conf.BridgeConfig.Iface != "" && conf.BridgeConfig.IP != "" {
 		return fmt.Errorf("You specified -b & --bip, mutually exclusive options. Please specify only one")
@@ -1285,6 +1288,10 @@ func setupDaemonRootPropagation(cfg *config.Config) error {
 	if rootParentMount == cfg.Root {
 		cleanupOldFile = true
 		return nil
+	}
+
+	if err := os.MkdirAll(filepath.Dir(cleanupFile), 0700); err != nil {
+		return errors.Wrap(err, "error creating dir to store mount cleanup file")
 	}
 
 	if err := ioutil.WriteFile(cleanupFile, nil, 0600); err != nil {
