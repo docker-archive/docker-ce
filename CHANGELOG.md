@@ -3,6 +3,16 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 18.09.8 (2019-07-17)
+
+### Client
+
+- Fix Rollback config type interpolation. [docker/cli#1973](https://github.com/docker/cli/pull/1973)
+
+### Runtime
+
+- Fix [CVE-2019-13509](https://nvd.nist.gov/vuln/detail/CVE-2019-13509) in DebugRequestMiddleware: unconditionally scrub data field.
+
 ## 18.09.7 (2019-06-27)
 
 ### Builder
