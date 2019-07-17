@@ -102,6 +102,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 - Fix: fetch the right device number when greater than 255 and using `--device-read-bps` option. [moby/moby#39212](https://github.com/moby/moby/pull/39212)
 - Fix: "Path does not exist" error when path definitely exists. [moby/moby#39251](https://github.com/moby/moby/pull/39251)
 - Fix: [CVE-2018-15664](https://nvd.nist.gov/vuln/detail/CVE-2018-15664) symlink-exchange attack with directory traversal. [moby/moby#39357](https://github.com/moby/moby/pull/39357)
+- Fix [CVE-2019-13509](https://nvd.nist.gov/vuln/detail/CVE-2019-13509) in DebugRequestMiddleware: unconditionally scrub data field.
 
 ### Networking
 
