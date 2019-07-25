@@ -3,7 +3,13 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.0 (2019-07-10)
+## 19.03.1 (2019-07-25)
+
+### Runtime
+
+- Fix [CVE-2019-14271](https://nvd.nist.gov/vuln/detail/CVE-2019-14271) loading of nsswitch based config inside chroot under Glibc.
+
+## 19.03.0 (2019-07-22)
 
 ### Deprecation
 
