@@ -7,8 +7,8 @@ CHOWN=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
 DEFAULT_PRODUCT_LICENSE?=Community Engine
-
-DOCKER_CLI_GOLANG_IMG=$(shell awk '$$1=="FROM"{split($$2,a,"-");print a[1];exit}' $(CLI_DIR)/dockerfiles/Dockerfile.dev)
+GO_VERSION=$(shell grep "ARG GO_VERSION" $(CLI_DIR)/docker-ce/components/cli/dockerfiles/Dockerfile.dev | awk -F'=' '{print $$2}')
+DOCKER_CLI_GOLANG_IMG=golang:$(GO_VERSION)
 
 .PHONY: help
 help: ## show make targets
