@@ -13,9 +13,9 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/creack/pty"
 	"github.com/docker/docker/integration-cli/cli/build"
 	"github.com/go-check/check"
-	"github.com/kr/pty"
 	"golang.org/x/sys/unix"
 	"gotest.tools/assert"
 )
@@ -388,7 +388,6 @@ func (s *DockerSuite) TestEventsFilterNetworkID(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TestDaemonEvents(c *check.C) {
-	testRequires(c, testEnv.IsLocalDaemon, DaemonIsLinux)
 
 	// daemon config file
 	configFilePath := "test.json"
@@ -457,7 +456,6 @@ func (s *DockerDaemonSuite) TestDaemonEvents(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TestDaemonEventsWithFilters(c *check.C) {
-	testRequires(c, testEnv.IsLocalDaemon, DaemonIsLinux)
 
 	// daemon config file
 	configFilePath := "test.json"

@@ -277,19 +277,23 @@ func (s *DockerSwarmSuite) TestSwarmPublishAdd(c *check.C) {
 	d := s.AddDaemon(c, true, true)
 
 	name := "top"
+	// this first command does not have to be retried because service creates
+	// don't return out of sequence errors.
 	out, err := d.Cmd("service", "create", "--detach", "--no-resolve-image", "--name", name, "--label", "x=y", "busybox", "top")
 	assert.NilError(c, err, out)
 	assert.Assert(c, strings.TrimSpace(out) != "")
 
-	out, err = d.Cmd("service", "update", "--detach", "--publish-add", "80:80", name)
+	out, err = d.CmdRetryOutOfSequence("service", "update", "--detach", "--publish-add", "80:80", name)
 	assert.NilError(c, err, out)
 
-	out, err = d.Cmd("service", "update", "--detach", "--publish-add", "80:80", name)
+	out, err = d.CmdRetryOutOfSequence("service", "update", "--detach", "--publish-add", "80:80", name)
 	assert.NilError(c, err, out)
 
-	_, err = d.Cmd("service", "update", "--detach", "--publish-add", "80:80", "--publish-add", "80:20", name)
+	_, err = d.CmdRetryOutOfSequence("service", "update", "--detach", "--publish-add", "80:80", "--publish-add", "80:20", name)
 	assert.ErrorContains(c, err, "")
 
+	// this last command does not have to be retried because service inspect
+	// does not return out of sequence errors.
 	out, err = d.Cmd("service", "inspect", "--format", "{{ .Spec.EndpointSpec.Ports }}", name)
 	assert.NilError(c, err, out)
 	assert.Equal(c, strings.TrimSpace(out), "[{ tcp 80 80 ingress}]")
@@ -1303,9 +1307,21 @@ func (s *DockerSwarmSuite) TestSwarmRotateUnlockKey(c *check.C) {
 
 		c.Assert(getNodeStatus(c, d), checker.Equals, swarm.LocalNodeStateActive)
 
-		outs, err = d.Cmd("node", "ls")
-		assert.NilError(c, err)
-		c.Assert(outs, checker.Not(checker.Contains), "Swarm is encrypted and needs to be unlocked")
+		retry := 0
+		for {
+			// an issue sometimes prevents leader to be available right away
+			outs, err = d.Cmd("node", "ls")
+			if err != nil && retry < 5 {
+				if strings.Contains(outs, "swarm does not have a leader") {
+					retry++
+					time.Sleep(3 * time.Second)
+					continue
+				}
+			}
+			assert.NilError(c, err)
+			c.Assert(outs, checker.Not(checker.Contains), "Swarm is encrypted and needs to be unlocked")
+			break
+		}
 
 		unlockKey = newUnlockKey
 	}
@@ -1383,9 +1399,21 @@ func (s *DockerSwarmSuite) TestSwarmClusterRotateUnlockKey(c *check.C) {
 
 			c.Assert(getNodeStatus(c, d), checker.Equals, swarm.LocalNodeStateActive)
 
-			outs, err = d.Cmd("node", "ls")
-			c.Assert(err, checker.IsNil, check.Commentf("%s", outs))
-			c.Assert(outs, checker.Not(checker.Contains), "Swarm is encrypted and needs to be unlocked")
+			retry := 0
+			for {
+				// an issue sometimes prevents leader to be available right away
+				outs, err = d.Cmd("node", "ls")
+				if err != nil && retry < 5 {
+					if strings.Contains(outs, "swarm does not have a leader") {
+						retry++
+						time.Sleep(3 * time.Second)
+						continue
+					}
+				}
+				c.Assert(err, checker.IsNil, check.Commentf("%s", outs))
+				c.Assert(outs, checker.Not(checker.Contains), "Swarm is encrypted and needs to be unlocked")
+				break
+			}
 		}
 
 		unlockKey = newUnlockKey

@@ -50,9 +50,11 @@ DOCKER_ENVS := \
 	-e DOCKER_PORT \
 	-e DOCKER_REMAP_ROOT \
 	-e DOCKER_STORAGE_OPTS \
+	-e DOCKER_TEST_HOST \
 	-e DOCKER_USERLANDPROXY \
 	-e DOCKERD_ARGS \
 	-e TEST_INTEGRATION_DIR \
+	-e TESTDEBUG \
 	-e TESTDIRS \
 	-e TESTFLAGS \
 	-e TIMEOUT \
@@ -148,7 +150,7 @@ build: DOCKER_BUILD_ARGS += --build-arg=CROSS=$(DOCKER_CROSS)
 build: DOCKER_BUILDKIT ?= 1
 build: bundles
 	$(warning The docker client CLI has moved to github.com/docker/cli. For a dev-test cycle involving the CLI, run:${\n} DOCKER_CLI_PATH=/host/path/to/cli/binary make shell ${\n} then change the cli and compile into a binary at the same location.${\n})
-	DOCKER_BUILDKIT="${DOCKER_BUILDKIT}" docker build ${BUILD_APT_MIRROR} ${DOCKER_BUILD_ARGS} ${DOCKER_BUILD_OPTS} -t "$(DOCKER_IMAGE)" -f "$(DOCKERFILE)" .
+	DOCKER_BUILDKIT="${DOCKER_BUILDKIT}" docker build --build-arg=GO_VERSION ${BUILD_APT_MIRROR} ${DOCKER_BUILD_ARGS} ${DOCKER_BUILD_OPTS} -t "$(DOCKER_IMAGE)" -f "$(DOCKERFILE)" .
 
 bundles:
 	mkdir bundles

@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/cloudflare/cfssl/helpers"
+	"github.com/creack/pty"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/integration-cli/checker"
 	"github.com/docker/docker/integration-cli/cli"
@@ -36,7 +37,6 @@ import (
 	"github.com/docker/libnetwork/iptables"
 	"github.com/docker/libtrust"
 	"github.com/go-check/check"
-	"github.com/kr/pty"
 	"golang.org/x/sys/unix"
 	"gotest.tools/assert"
 	"gotest.tools/icmd"
@@ -825,7 +825,6 @@ func (s *DockerDaemonSuite) TestDaemonDefaultGatewayIPv4ExplicitOutsideContainer
 }
 
 func (s *DockerDaemonSuite) TestDaemonDefaultNetworkInvalidClusterConfig(c *check.C) {
-	testRequires(c, DaemonIsLinux, testEnv.IsLocalDaemon)
 
 	// Start daemon without docker0 bridge
 	defaultNetworkBridge := "docker0"
@@ -966,7 +965,6 @@ func (s *DockerDaemonSuite) TestDaemonLinksIpTablesRulesWhenLinkAndUnlink(c *che
 }
 
 func (s *DockerDaemonSuite) TestDaemonUlimitDefaults(c *check.C) {
-	testRequires(c, DaemonIsLinux)
 
 	s.d.StartWithBusybox(c, "--default-ulimit", "nofile=42:42", "--default-ulimit", "nproc=1024:1024")
 

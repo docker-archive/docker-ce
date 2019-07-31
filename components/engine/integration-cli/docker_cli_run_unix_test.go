@@ -17,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/creack/pty"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/integration-cli/checker"
 	"github.com/docker/docker/integration-cli/cli"
@@ -26,7 +27,6 @@ import (
 	"github.com/docker/docker/pkg/parsers"
 	"github.com/docker/docker/pkg/sysinfo"
 	"github.com/go-check/check"
-	"github.com/kr/pty"
 	"gotest.tools/assert"
 	"gotest.tools/icmd"
 )
@@ -1442,7 +1442,7 @@ func (s *DockerSuite) TestRunUserDeviceAllowed(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TestRunSeccompJSONNewFormat(c *check.C) {
-	testRequires(c, testEnv.IsLocalDaemon, seccompEnabled)
+	testRequires(c, seccompEnabled)
 
 	s.d.StartWithBusybox(c)
 
@@ -1467,7 +1467,7 @@ func (s *DockerDaemonSuite) TestRunSeccompJSONNewFormat(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TestRunSeccompJSONNoNameAndNames(c *check.C) {
-	testRequires(c, testEnv.IsLocalDaemon, seccompEnabled)
+	testRequires(c, seccompEnabled)
 
 	s.d.StartWithBusybox(c)
 
@@ -1493,7 +1493,7 @@ func (s *DockerDaemonSuite) TestRunSeccompJSONNoNameAndNames(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TestRunSeccompJSONNoArchAndArchMap(c *check.C) {
-	testRequires(c, testEnv.IsLocalDaemon, seccompEnabled)
+	testRequires(c, seccompEnabled)
 
 	s.d.StartWithBusybox(c)
 
@@ -1530,7 +1530,7 @@ func (s *DockerDaemonSuite) TestRunSeccompJSONNoArchAndArchMap(c *check.C) {
 }
 
 func (s *DockerDaemonSuite) TestRunWithDaemonDefaultSeccompProfile(c *check.C) {
-	testRequires(c, testEnv.IsLocalDaemon, seccompEnabled)
+	testRequires(c, seccompEnabled)
 
 	s.d.StartWithBusybox(c)
 

@@ -319,6 +319,7 @@ func newRouterOptions(config *config.Config, d *daemon.Daemon) (routerOptions, e
 		BuilderConfig:       config.Builder,
 		Rootless:            d.Rootless(),
 		IdentityMapping:     d.IdentityMapping(),
+		DNSConfig:           config.DNSConfig,
 	})
 	if err != nil {
 		return opts, err
@@ -611,11 +612,17 @@ func newAPIServerConfig(cli *DaemonCli) (*apiserver.Config, error) {
 
 func loadListeners(cli *DaemonCli, serverConfig *apiserver.Config) ([]string, error) {
 	var hosts []string
+	seen := make(map[string]struct{}, len(cli.Config.Hosts))
+
 	for i := 0; i < len(cli.Config.Hosts); i++ {
 		var err error
 		if cli.Config.Hosts[i], err = dopts.ParseHost(cli.Config.TLS, honorXDG, cli.Config.Hosts[i]); err != nil {
 			return nil, errors.Wrapf(err, "error parsing -H %s", cli.Config.Hosts[i])
 		}
+		if _, ok := seen[cli.Config.Hosts[i]]; ok {
+			continue
+		}
+		seen[cli.Config.Hosts[i]] = struct{}{}
 
 		protoAddr := cli.Config.Hosts[i]
 		protoAddrParts := strings.SplitN(protoAddr, "://", 2)
@@ -634,7 +641,6 @@ func loadListeners(cli *DaemonCli, serverConfig *apiserver.Config) ([]string, er
 		if err != nil {
 			return nil, err
 		}
-		ls = wrapListeners(proto, ls)
 		// If we're binding to a TCP port, make sure that a container doesn't try to use it.
 		if proto == "tcp" {
 			if err := allocateDaemonPort(addr); err != nil {
