@@ -6,8 +6,8 @@ CLI_DIR:=$(CURDIR)/../../cli
 GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 VERSION?=0.0.0-dev
 GO_BASE_IMAGE=golang
-GO_VERSION:=1.10.8
-GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)
+GO_VERSION:=1.11.12
+GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-stretch
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) $(VERSION))
 CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
 
