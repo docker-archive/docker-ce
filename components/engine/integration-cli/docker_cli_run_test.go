@@ -1888,7 +1888,7 @@ func (s *DockerSuite) TestRunBindMounts(c *check.C) {
 
 	if testEnv.OSType == "windows" {
 		// Disabled prior to RS5 due to how volumes are mapped
-		testRequires(c,  DaemonIsWindowsAtLeastBuild(17763))
+		testRequires(c, DaemonIsWindowsAtLeastBuild(17763))
 	}
 
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
@@ -4228,7 +4228,7 @@ func (s *DockerSuite) TestRunWindowsWithCPUPercent(c *check.C) {
 }
 
 func (s *DockerSuite) TestRunProcessIsolationWithCPUCountCPUSharesAndCPUPercent(c *check.C) {
-	testRequires(c, DaemonIsWindows, IsolationIsProcess)
+	testRequires(c, IsolationIsProcess)
 
 	out, _ := dockerCmd(c, "run", "--cpu-count=1", "--cpu-shares=1000", "--cpu-percent=80", "--name", "test", "busybox", "echo", "testing")
 	c.Assert(strings.TrimSpace(out), checker.Contains, "WARNING: Conflicting options: CPU count takes priority over CPU shares on Windows Server Containers. CPU shares discarded")
@@ -4246,7 +4246,7 @@ func (s *DockerSuite) TestRunProcessIsolationWithCPUCountCPUSharesAndCPUPercent(
 }
 
 func (s *DockerSuite) TestRunHypervIsolationWithCPUCountCPUSharesAndCPUPercent(c *check.C) {
-	testRequires(c, DaemonIsWindows, IsolationIsHyperv)
+	testRequires(c, IsolationIsHyperv)
 
 	out, _ := dockerCmd(c, "run", "--cpu-count=1", "--cpu-shares=1000", "--cpu-percent=80", "--name", "test", "busybox", "echo", "testing")
 	c.Assert(strings.TrimSpace(out), checker.Contains, "testing")
