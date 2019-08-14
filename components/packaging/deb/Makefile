@@ -1,7 +1,7 @@
 include ../common.mk
 
-CLI_DIR:=$(CURDIR)/../../cli
-ENGINE_DIR:=$(CURDIR)/../../engine
+CLI_DIR:=$(realpath $(CURDIR)/../../cli)
+ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
 GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang

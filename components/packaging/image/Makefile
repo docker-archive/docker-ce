@@ -1,7 +1,7 @@
 include ../common.mk
 
-ENGINE_DIR:=$(CURDIR)/../../engine
-CLI_DIR:=$(CURDIR)/../../cli
+CLI_DIR:=$(realpath $(CURDIR)/../../cli)
+ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
 GO_BASE_IMAGE=golang
 ENGINE_GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)-stretch
 STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
