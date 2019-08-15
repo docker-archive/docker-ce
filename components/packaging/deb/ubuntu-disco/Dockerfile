@@ -12,7 +12,6 @@ RUN if  [ "$(dpkg-divert --truename /usr/bin/man)" = "/usr/bin/man.REAL" ]; then
 
 RUN apt-get update && apt-get install -y curl devscripts equivs git
 
-ARG GO_VERSION
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 ENV DOCKER_BUILDTAGS apparmor seccomp selinux
