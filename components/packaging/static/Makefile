@@ -1,12 +1,11 @@
-SHELL:=/bin/bash
-ENGINE_DIR:=$(CURDIR)/../../engine
-CLI_DIR:=$(CURDIR)/../../cli
-VERSION?=0.0.0-dev
-STATIC_VERSION=$(shell ./gen-static-ver $(ENGINE_DIR) $(VERSION))
+include ../common.mk
+
+CLI_DIR:=$(realpath $(CURDIR)/../../cli)
+ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
+STATIC_VERSION:=$(shell ./gen-static-ver $(ENGINE_DIR) $(VERSION))
 CHOWN=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
-DEFAULT_PRODUCT_LICENSE?=Community Engine
 GO_VERSION=$(shell grep "ARG GO_VERSION" $(CLI_DIR)/dockerfiles/Dockerfile.dev | awk -F'=' '{print $$2}')
 DOCKER_CLI_GOLANG_IMG=golang:$(GO_VERSION)
 
