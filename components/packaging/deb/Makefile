@@ -1,12 +1,10 @@
-SHELL:=/bin/bash
-ARCH:=$(shell uname -m)
-CLI_DIR:=$(CURDIR)/../../cli
-ENGINE_DIR:=$(CURDIR)/../../engine
+include ../common.mk
+
+CLI_DIR:=$(realpath $(CURDIR)/../../cli)
+ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
 GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
-VERSION?=0.0.0-dev
-STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
+STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang
-GO_VERSION:=1.12.8
 GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)-stretch
 DEB_VERSION=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
