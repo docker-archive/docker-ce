@@ -321,7 +321,7 @@ func TestServiceWithDefaultAddressPoolInit(t *testing.T) {
 	d := swarm.NewSwarm(t, testEnv,
 		daemon.WithSwarmDefaultAddrPool([]string{"20.20.0.0/16"}),
 		daemon.WithSwarmDefaultAddrPoolSubnetSize(24))
-
+	defer d.Stop(t)
 	cli := d.NewClientT(t)
 	defer cli.Close()
 	ctx := context.Background()
@@ -366,6 +366,5 @@ func TestServiceWithDefaultAddressPoolInit(t *testing.T) {
 	assert.NilError(t, err)
 	err = d.SwarmLeave(t, true)
 	assert.NilError(t, err)
-	defer d.Stop(t)
 
 }
