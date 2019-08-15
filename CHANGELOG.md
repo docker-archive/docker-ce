@@ -3,6 +3,35 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.2 (2019-08-28)
+
+### Builder
+
+- Fix "COPY --from" to non-existing directory on Windows. [moby/moby#39695](https://github.com/moby/moby/pull/39695)
+- Fix builder-next metadata commands not having created time in history. [moby/moby#39456](https://github.com/moby/moby/issues/39456)
+
+### Client
+
+- Fix Windows absolute path detection on non-Windows. [docker/cli#1990](https://github.com/docker/cli/pull/1990)
+- Fix to zsh completion script for `docker login --username`.
+
+### Logging
+
+- Fix for reading journald logs. [moby/moby#37819](https://github.com/moby/moby/pull/37819) [moby/moby#38859](https://github.com/moby/moby/pull/38859)
+
+### Networking
+
+- Prevent panic on network attach to a container with disabled networking. [moby/moby#39589](https://github.com/moby/moby/pull/39589)
+
+### Runtime
+
+* Bump Golang to 1.12.8.
+- Fix a potential engine panic when using XFS disk quota for containers. [moby/moby#39644](https://github.com/moby/moby/pull/39644)
+
+### Swarm
+
+- Fix an issue where nodes with lots of tasks could not be removed. [docker/swarmkit#2867](https://github.com/docker/swarmkit/pull/2867)
+
 ## 19.03.1 (2019-07-25)
 
 ### Runtime
