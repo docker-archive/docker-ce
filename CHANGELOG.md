@@ -3,6 +3,34 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 18.09.9 (2019-08-28)
+
+### Client
+
+- Fix Windows absolute path detection on non-Windows. [docker/cli#1990](https://github.com/docker/cli/pull/1990)
+- Fix Docker refusing to load key from delegation.key on Windows. [docker/cli#1968](https://github.com/docker/cli/pull/1968)
+- Completion scripts updates for bash and zsh.
+
+### Logging
+
+- Fix for reading journald logs. [moby/moby#37819](https://github.com/moby/moby/pull/37819) [moby/moby#38859](https://github.com/moby/moby/pull/38859)
+
+### Networking
+
+- Prevent panic on network attach to a container with disabled networking. [moby/moby#39589](https://github.com/moby/moby/pull/39589)
+- Fix service port for an application becomes unavailable randomly. [docker/libnetwork#2069](https://github.com/docker/libnetwork/pull/2069)
+- Fix cleaning up `--config-only` networks after `--config-from` networks have ungracefully exited. [docker/libnetwork#2373](https://github.com/docker/libnetwork/pull/2373)
+
+### Runtime
+
+- Update to Go 1.11.13.
+- Fix a potential engine panic when using XFS disk quota for containers. [moby/moby#39644](https://github.com/moby/moby/pull/39644)
+
+### Swarm
+
+- Fix "grpc: received message larger than max" errors. [moby/moby#39306](https://github.com/moby/moby/pull/39306)
+- Fix an issue where nodes with lots of tasks could not be removed. [docker/swarmkit#2867](https://github.com/docker/swarmkit/pull/2867)
+
 ## 18.09.8 (2019-07-17)
 
 ### Client
