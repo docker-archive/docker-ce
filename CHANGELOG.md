@@ -8,12 +8,16 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 ### Builder
 
 - Fix "COPY --from" to non-existing directory on Windows. [moby/moby#39695](https://github.com/moby/moby/pull/39695)
-- Fix builder-next metadata commands not having created time in history. [moby/moby#39456](https://github.com/moby/moby/issues/39456)
+- Fix builder-next: metadata commands not having created time in history. [moby/moby#39456](https://github.com/moby/moby/issues/39456)
+- Fix builder-next: close progress on layer export error. [moby/moby#39782](https://github.com/moby/moby/pull/39782)
+* Update buildkit to 588c73e1e4. [moby/moby#39781](https://github.com/moby/moby/pull/39781)
 
 ### Client
 
 - Fix Windows absolute path detection on non-Windows. [docker/cli#1990](https://github.com/docker/cli/pull/1990)
 - Fix to zsh completion script for `docker login --username`.
+- Fix context: produce consistent output on `context create`. [docker/cli#1985](https://github.com/docker/cli/pull/1874)
+- Fix support for HTTP proxy env variable. [docker/cli#2059](https://github.com/docker/cli/pull/2059)
 
 ### Logging
 
