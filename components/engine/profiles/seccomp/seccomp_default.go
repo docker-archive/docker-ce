@@ -306,6 +306,7 @@ func DefaultProfile() *types.Seccomp {
 				"sigaltstack",
 				"signalfd",
 				"signalfd4",
+				"sigprocmask",
 				"sigreturn",
 				"socket",
 				"socketcall",
