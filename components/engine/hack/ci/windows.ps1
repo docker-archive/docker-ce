@@ -974,6 +974,9 @@ Catch [Exception] {
     Throw $_
 }
 Finally {
+    # Preserve the LastExitCode of the tests
+    $tmpLastExitCode = $LastExitCode
+
     $ErrorActionPreference="SilentlyContinue"
     $global:ProgressPreference=$origProgressPreference
     Write-Host  -ForegroundColor Green "INFO: Tidying up at end of run"
@@ -1011,4 +1014,6 @@ Finally {
 
     $Dur=New-TimeSpan -Start $StartTime -End $(Get-Date)
     Write-Host -ForegroundColor $FinallyColour "`nINFO: executeCI.ps1 exiting at $(date). Duration $dur`n"
+
+    exit $tmpLastExitCode
 }
