@@ -417,7 +417,7 @@ func (s *DockerDaemonSuite) TestDaemonIPv6FixedCIDR(c *check.C) {
 
 	s.d.StartWithBusybox(c, "--ipv6", "--fixed-cidr-v6=2001:db8:2::/64", "--default-gateway-v6=2001:db8:2::100")
 
-	out, err := s.d.Cmd("run", "-itd", "--name=ipv6test", "busybox:latest")
+	out, err := s.d.Cmd("run", "-d", "--name=ipv6test", "busybox:latest", "top")
 	assert.NilError(c, err, "Could not run container: %s, %v", out, err)
 
 	out, err = s.d.Cmd("inspect", "--format", "{{.NetworkSettings.Networks.bridge.GlobalIPv6Address}}", "ipv6test")
@@ -444,7 +444,7 @@ func (s *DockerDaemonSuite) TestDaemonIPv6FixedCIDRAndMac(c *check.C) {
 
 	s.d.StartWithBusybox(c, "--ipv6", "--fixed-cidr-v6=2001:db8:1::/64")
 
-	out, err := s.d.Cmd("run", "-itd", "--name=ipv6test", "--mac-address", "AA:BB:CC:DD:EE:FF", "busybox")
+	out, err := s.d.Cmd("run", "-d", "--name=ipv6test", "--mac-address", "AA:BB:CC:DD:EE:FF", "busybox", "top")
 	assert.NilError(c, err, out)
 
 	out, err = s.d.Cmd("inspect", "--format", "{{.NetworkSettings.Networks.bridge.GlobalIPv6Address}}", "ipv6test")
@@ -459,7 +459,7 @@ func (s *DockerDaemonSuite) TestDaemonIPv6HostMode(c *check.C) {
 	deleteInterface(c, "docker0")
 
 	s.d.StartWithBusybox(c, "--ipv6", "--fixed-cidr-v6=2001:db8:2::/64")
-	out, err := s.d.Cmd("run", "-itd", "--name=hostcnt", "--network=host", "busybox:latest")
+	out, err := s.d.Cmd("run", "-d", "--name=hostcnt", "--network=host", "busybox:latest", "top")
 	assert.NilError(c, err, "Could not run container: %s, %v", out, err)
 
 	out, err = s.d.Cmd("exec", "hostcnt", "ip", "-6", "addr", "show", "docker0")
@@ -2723,7 +2723,7 @@ func (s *DockerDaemonSuite) TestExecWithUserAfterLiveRestore(c *check.C) {
 	testRequires(c, DaemonIsLinux)
 	s.d.StartWithBusybox(c, "--live-restore")
 
-	out, err := s.d.Cmd("run", "-d", "--name=top", "busybox", "sh", "-c", "addgroup -S test && adduser -S -G test test -D -s /bin/sh && touch /adduser_end && top")
+	out, err := s.d.Cmd("run", "--init", "-d", "--name=top", "busybox", "sh", "-c", "addgroup -S test && adduser -S -G test test -D -s /bin/sh && touch /adduser_end && exec top")
 	assert.NilError(c, err, "Output: %s", out)
 
 	s.d.WaitRun("top")
