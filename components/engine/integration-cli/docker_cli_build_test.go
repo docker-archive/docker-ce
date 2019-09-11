@@ -19,12 +19,12 @@ import (
 
 	"github.com/docker/docker/integration-cli/cli"
 	"github.com/docker/docker/integration-cli/cli/build"
-	"github.com/docker/docker/internal/test/fakecontext"
-	"github.com/docker/docker/internal/test/fakegit"
-	"github.com/docker/docker/internal/test/fakestorage"
-	"github.com/docker/docker/internal/testutil"
 	"github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/system"
+	"github.com/docker/docker/testutil"
+	"github.com/docker/docker/testutil/fakecontext"
+	"github.com/docker/docker/testutil/fakegit"
+	"github.com/docker/docker/testutil/fakestorage"
 	"github.com/moby/buildkit/frontend/dockerfile/command"
 	"github.com/opencontainers/go-digest"
 	"gotest.tools/assert"
@@ -4738,7 +4738,7 @@ func (s *DockerSuite) TestBuildTagEvent(c *testing.T) {
 		}
 	}
 
-	assert.Assert(c, foundTag, fmt.Sprintf("No tag event found:\n%s", out))
+	assert.Assert(c, foundTag, "No tag event found:\n%s", out)
 }
 
 // #15780

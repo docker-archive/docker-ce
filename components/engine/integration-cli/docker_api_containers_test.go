@@ -25,10 +25,10 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/integration-cli/cli"
 	"github.com/docker/docker/integration-cli/cli/build"
-	"github.com/docker/docker/internal/test/request"
 	"github.com/docker/docker/pkg/ioutils"
 	"github.com/docker/docker/pkg/mount"
 	"github.com/docker/docker/pkg/stringid"
+	"github.com/docker/docker/testutil/request"
 	"github.com/docker/docker/volume"
 	"github.com/docker/go-connections/nat"
 	"gotest.tools/assert"
@@ -1220,7 +1220,7 @@ func (s *DockerSuite) TestContainerAPIDeleteRemoveVolume(c *testing.T) {
 	assert.NilError(c, err)
 
 	_, err = os.Stat(source)
-	assert.Assert(c, os.IsNotExist(err), fmt.Sprintf("expected to get ErrNotExist error, got %v", err))
+	assert.Assert(c, os.IsNotExist(err), "expected to get ErrNotExist error, got %v", err)
 }
 
 // Regression test for https://github.com/docker/docker/issues/6231

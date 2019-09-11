@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/docker/docker/integration-cli/daemon"
-	testdaemon "github.com/docker/docker/internal/test/daemon"
+	testdaemon "github.com/docker/docker/testutil/daemon"
 	"gotest.tools/assert"
 )
 
@@ -52,7 +52,7 @@ func (s *DockerSuite) TestInfoEnsureSucceeds(c *testing.T) {
 	}
 
 	for _, linePrefix := range stringsToCheck {
-		assert.Assert(c, strings.Contains(out, linePrefix), fmt.Sprintf("couldn't find string %v in output", linePrefix))
+		assert.Assert(c, strings.Contains(out, linePrefix), "couldn't find string %v in output", linePrefix)
 	}
 }
 

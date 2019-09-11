@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"os/exec"
 	"strings"
 	"testing"
 
 	"github.com/docker/docker/integration-cli/daemon"
-	testdaemon "github.com/docker/docker/internal/test/daemon"
+	testdaemon "github.com/docker/docker/testutil/daemon"
 	"gotest.tools/assert"
 )
 
@@ -62,7 +61,7 @@ func (s *DockerHubPullSuite) TearDownTest(c *testing.T) {
 // output. The function fails the test when the command returns an error.
 func (s *DockerHubPullSuite) Cmd(c *testing.T, name string, arg ...string) string {
 	out, err := s.CmdWithError(name, arg...)
-	assert.Assert(c, err == nil, fmt.Sprintf("%q failed with errors: %s, %v", strings.Join(arg, " "), out, err))
+	assert.Assert(c, err == nil, "%q failed with errors: %s, %v", strings.Join(arg, " "), out, err)
 	return out
 }
 
