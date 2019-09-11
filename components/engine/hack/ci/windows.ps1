@@ -462,7 +462,7 @@ Try {
     }
 
     # Following at the moment must be docker\docker as it's dictated by dockerfile.Windows
-    $contPath="$COMMITHASH`:c`:\go\src\github.com\docker\docker\bundles"
+    $contPath="$COMMITHASH`:c`:\gopath\src\github.com\docker\docker\bundles"
 
     # After https://github.com/docker/docker/pull/30290, .git was added to .dockerignore. Therefore
     # we have to calculate unsupported outside of the container, and pass the commit ID in through
@@ -797,14 +797,13 @@ Try {
     
             #https://blogs.technet.microsoft.com/heyscriptingguy/2011/09/20/solve-problems-with-external-command-lines-in-powershell/ is useful to see tokenising
             $c = "go test "
-            $c += "`"-check.v`" "
+            $c += "`"-test.v`" "
             if ($null -ne $env:INTEGRATION_TEST_NAME) { # Makes is quicker for debugging to be able to run only a subset of the integration tests
-                $c += "`"-check.f`" "
+                $c += "`"-test.run`" "
                 $c += "`"$env:INTEGRATION_TEST_NAME`" "
                 Write-Host -ForegroundColor Magenta "WARN: Only running integration tests matching $env:INTEGRATION_TEST_NAME"
             }
             $c += "`"-tags`" " + "`"autogen`" "
-            $c += "`"-check.timeout`" " + "`"10m`" "
             $c += "`"-test.timeout`" " + "`"200m`" "
     
             if ($null -ne $env:INTEGRATION_IN_CONTAINER) {
@@ -817,7 +816,7 @@ Try {
                 $Duration= $(Measure-Command { & docker run `
                                                         --rm `
                                                         -e c=$c `
-                                                        --workdir "c`:\go\src\github.com\docker\docker\integration-cli" `
+                                                        --workdir "c`:\gopath\src\github.com\docker\docker\integration-cli" `
                                                         -v "$env:TEMP\binary`:c:\target" `
                                                         docker `
                                                         "`$env`:PATH`='c`:\target;'+`$env:PATH`;  `$env:DOCKER_HOST`='tcp`://'+(ipconfig | select -last 1).Substring(39)+'`:2357'; c:\target\runIntegrationCLI.ps1" | Out-Host } )
@@ -892,14 +891,13 @@ Try {
             } else {
                 #https://blogs.technet.microsoft.com/heyscriptingguy/2011/09/20/solve-problems-with-external-command-lines-in-powershell/ is useful to see tokenising
                 $c = "go test "
-                $c += "`"-check.v`" "
+                $c += "`"-test.v`" "
                 if ($null -ne $env:INTEGRATION_TEST_NAME) { # Makes is quicker for debugging to be able to run only a subset of the integration tests
-                    $c += "`"-check.f`" "
+                    $c += "`"-test.run`" "
                     $c += "`"$env:INTEGRATION_TEST_NAME`" "
                     Write-Host -ForegroundColor Magenta "WARN: Only running LCOW integration tests matching $env:INTEGRATION_TEST_NAME"
                 }
                 $c += "`"-tags`" " + "`"autogen`" "
-                $c += "`"-check.timeout`" " + "`"10m`" "
                 $c += "`"-test.timeout`" " + "`"200m`" "
 
                 Write-Host -ForegroundColor Green "INFO: LCOW Integration tests being run from the host:"
