@@ -3,6 +3,38 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.3 (2019-10-02)
+
+### Builder
+
+- Fix builder-next: resolve digest for third party registries. [docker/engine#339](https://github.com/docker/engine/pull/339)
+- Fix builder-next: user namespace builds when daemon started with socket activation. [docker/engine#339](https://github.com/docker/engine/pull/373)
+- Fix builder-next: session: release forwarded ssh socket connection per connection. [docker/engine#339](https://github.com/docker/engine/pull/373)
+- Fix builder-next: llbsolver: error on multiple cache importers. [docker/engine#339](https://github.com/docker/engine/pull/373)
+
+### Networking
+
+- Fix various libnetwork issues for iptables, DNS queries, and more. [docker/engine#330](https://github.com/docker/engine/pull/330)
+
+### Runtime
+
+* Bump Golang to 1.12.9. [docker/engine#366](https://github.com/docker/engine/pull/366)
+* Bump containerd to 1.2.9. [docker/engine#349](https://github.com/docker/engine/pull/349)
+* Distribution: modify warning logic when pulling v2 schema1 manifests. [docker/engine#368](https://github.com/docker/engine/pull/368)
+- Fix `POST /images/create` returning a 500 status code when providing an incorrect platform option. [docker/engine#365](https://github.com/docker/engine/pull/365)
+- Fix `POST /build` returning a 500 status code when providing an incorrect platform option. [docker/engine#365](https://github.com/docker/engine/pull/365)
+- Fix atomic: patch 64bit alignment on 32bit systems. [docker/engine#363](https://github.com/docker/engine/pull/363)
+- Fix to ensure parent dir exists for mount cleanup file. [docker/engine#360](https://github.com/docker/engine/pull/360)
+- Fix to return "invalid parameter" when linking to non-existing container. [docker/engine#352](https://github.com/docker/engine/pull/352)
+- Fix overlay2 busy error on mount. [docker/engine#332](https://github.com/docker/engine/pull/332)
+- Fix `docker rmi -f` hang. [docker/engine#335](https://github.com/docker/engine/pull/335)
+- Fix handling of blocked I/O of exec'd processes. [docker/engine#296](https://github.com/docker/engine/pull/296)
+
+### Swarm
+
+- Fix for removing hard-coded IPAM config subnet value for ingress network. [docker/engine#369](https://github.com/docker/engine/pull/369)
+- Fix update out of sequence and increase max recv gRPC message size for nodes and secrets. [docker/engine#352](https://github.com/docker/engine/pull/353)
+
 ## 19.03.2 (2019-08-29)
 
 ### Builder
