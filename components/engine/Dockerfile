@@ -24,7 +24,9 @@
 # the case. Therefore, you don't have to disable it anymore.
 #
 
+ARG CROSS="false"
 ARG GO_VERSION=1.11.13
+ARG DEBIAN_FRONTEND=noninteractive
 
 FROM golang:${GO_VERSION}-stretch AS base
 ARG APT_MIRROR
@@ -32,19 +34,21 @@ RUN sed -ri "s/(httpredir|deb).debian.org/${APT_MIRROR:-deb.debian.org}/g" /etc/
  && sed -ri "s/(security).debian.org/${APT_MIRROR:-security.debian.org}/g" /etc/apt/sources.list
 
 FROM base AS criu
+ARG DEBIAN_FRONTEND
 # Install CRIU for checkpoint/restore support
 ENV CRIU_VERSION 3.6
 # Install dependency packages specific to criu
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
 	libnet-dev \
-	libprotobuf-c0-dev \
+	libprotobuf-c-dev \
 	libprotobuf-dev \
 	libnl-3-dev \
 	libcap-dev \
 	protobuf-compiler \
 	protobuf-c-compiler \
 	python-protobuf \
-	&& mkdir -p /usr/src/criu \
+	&& rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /usr/src/criu \
 	&& curl -sSL https://github.com/checkpoint-restore/criu/archive/v${CRIU_VERSION}.tar.gz | tar -C /usr/src/criu/ -xz --strip-components=1 \
 	&& cd /usr/src/criu \
 	&& make \
@@ -83,7 +87,11 @@ RUN set -x \
 	&& rm -rf "$GOPATH"
 
 FROM base AS frozen-images
-RUN apt-get update && apt-get install -y jq ca-certificates --no-install-recommends
+ARG DEBIAN_FRONTEND
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	ca-certificates \
+	jq \
+	&& rm -rf /var/lib/apt/lists/*
 # Get useful and necessary Hub images so we can "docker load" locally instead of pulling
 COPY contrib/download-frozen-image-v2.sh /
 RUN /download-frozen-image-v2.sh /build \
@@ -94,43 +102,85 @@ RUN /download-frozen-image-v2.sh /build \
 	hello-world:latest@sha256:be0cd392e45be79ffeffa6b05338b98ebb16c87b255f48e297ec7f98e123905c
 # See also ensureFrozenImagesLinux() in "integration-cli/fixtures_linux_daemon_test.go" (which needs to be updated when adding images to this list)
 
-# Just a little hack so we don't have to install these deps twice, once for runc and once for dockerd
-FROM base AS runtime-dev
-RUN apt-get update && apt-get install -y \
-	libapparmor-dev \
-	libseccomp-dev
+FROM base AS cross-false
 
+FROM base AS cross-true
+ARG DEBIAN_FRONTEND
+RUN dpkg --add-architecture armhf
+RUN dpkg --add-architecture arm64
+RUN dpkg --add-architecture armel
+RUN if [ "$(go env GOHOSTARCH)" = "amd64" ]; then \
+	apt-get update && apt-get install -y --no-install-recommends \
+		crossbuild-essential-armhf \
+		crossbuild-essential-arm64 \
+		crossbuild-essential-armel \
+		&& rm -rf /var/lib/apt/lists/*; \
+	fi
+
+FROM cross-${CROSS} as dev-base
+
+FROM dev-base AS runtime-dev-cross-false
+ARG DEBIAN_FRONTEND
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	libapparmor-dev \
+	libseccomp-dev \
+	&& rm -rf /var/lib/apt/lists/*
+FROM cross-true AS runtime-dev-cross-true
+ARG DEBIAN_FRONTEND
+# These crossbuild packages rely on gcc-<arch>, but this doesn't want to install
+# on non-amd64 systems.
+# Additionally, the crossbuild-amd64 is currently only on debian:buster, so
+# other architectures cannnot crossbuild amd64.
+RUN if [ "$(go env GOHOSTARCH)" = "amd64" ]; then \
+	apt-get update && apt-get install -y --no-install-recommends \
+		libseccomp-dev:armhf \
+		libseccomp-dev:arm64 \
+		libseccomp-dev:armel \
+		libapparmor-dev:armhf \
+		libapparmor-dev:arm64 \
+		libapparmor-dev:armel \
+		# install this arches seccomp here due to compat issues with the v0 builder
+		# This is as opposed to inheriting from runtime-dev-cross-false
+		libapparmor-dev \
+		libseccomp-dev \
+		&& rm -rf /var/lib/apt/lists/*; \
+	fi
+
+FROM runtime-dev-cross-${CROSS} AS runtime-dev
 
 FROM base AS tomlv
 ENV INSTALL_BINARY_NAME=tomlv
 COPY hack/dockerfile/install/install.sh ./install.sh
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
-RUN PREFIX=/build/ ./install.sh $INSTALL_BINARY_NAME
+RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
 FROM base AS vndr
 ENV INSTALL_BINARY_NAME=vndr
 COPY hack/dockerfile/install/install.sh ./install.sh
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
-RUN PREFIX=/build/ ./install.sh $INSTALL_BINARY_NAME
+RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
-FROM base AS containerd
-RUN apt-get update && apt-get install -y btrfs-tools
+FROM dev-base AS containerd
+ARG DEBIAN_FRONTEND
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	btrfs-tools \
+	&& rm -rf /var/lib/apt/lists/*
 ENV INSTALL_BINARY_NAME=containerd
 COPY hack/dockerfile/install/install.sh ./install.sh
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
-RUN PREFIX=/build/ ./install.sh $INSTALL_BINARY_NAME
+RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
-FROM base AS proxy
+FROM dev-base AS proxy
 ENV INSTALL_BINARY_NAME=proxy
 COPY hack/dockerfile/install/install.sh ./install.sh
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
-RUN PREFIX=/build/ ./install.sh $INSTALL_BINARY_NAME
+RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
 FROM base AS gometalinter
 ENV INSTALL_BINARY_NAME=gometalinter
 COPY hack/dockerfile/install/install.sh ./install.sh
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
-RUN PREFIX=/build/ ./install.sh $INSTALL_BINARY_NAME
+RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
 FROM base AS gotestsum
 ENV INSTALL_BINARY_NAME=gotestsum
@@ -138,29 +188,34 @@ COPY hack/dockerfile/install/install.sh ./install.sh
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
 RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
-FROM base AS dockercli
+FROM dev-base AS dockercli
 ENV INSTALL_BINARY_NAME=dockercli
 COPY hack/dockerfile/install/install.sh ./install.sh
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
-RUN PREFIX=/build/ ./install.sh $INSTALL_BINARY_NAME
+RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
 FROM runtime-dev AS runc
 ENV INSTALL_BINARY_NAME=runc
 COPY hack/dockerfile/install/install.sh ./install.sh
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
-RUN PREFIX=/build/ ./install.sh $INSTALL_BINARY_NAME
+RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
-FROM base AS tini
-RUN apt-get update && apt-get install -y cmake vim-common
+FROM dev-base AS tini
+ARG DEBIAN_FRONTEND
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	cmake \
+	vim-common \
+	&& rm -rf /var/lib/apt/lists/*
 COPY hack/dockerfile/install/install.sh ./install.sh
 ENV INSTALL_BINARY_NAME=tini
 COPY hack/dockerfile/install/$INSTALL_BINARY_NAME.installer ./
-RUN PREFIX=/build/ ./install.sh $INSTALL_BINARY_NAME
+RUN PREFIX=/build ./install.sh $INSTALL_BINARY_NAME
 
 
 
 # TODO: Some of this is only really needed for testing, it would be nice to split this up
 FROM runtime-dev AS dev
+ARG DEBIAN_FRONTEND
 RUN groupadd -r docker
 RUN useradd --create-home --gid docker unprivilegeduser
 # Let us use a .bashrc file
@@ -171,7 +226,7 @@ RUN ln -s /usr/local/completion/bash/docker /etc/bash_completion.d/docker
 RUN ldconfig
 # This should only install packages that are specifically needed for the dev environment and nothing else
 # Do you really need to add another package here? Can it be done in a different build stage?
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
 	apparmor \
 	aufs-tools \
 	bash-completion \
@@ -188,6 +243,7 @@ RUN apt-get update && apt-get install -y \
 	pigz \
 	python3-pip \
 	python3-setuptools \
+	python3-wheel \
 	thin-provisioning-tools \
 	vim \
 	vim-common \
@@ -195,7 +251,7 @@ RUN apt-get update && apt-get install -y \
 	zip \
 	bzip2 \
 	xz-utils \
-	--no-install-recommends
+	&& rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install yamllint==1.16.0
 

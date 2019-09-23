@@ -4,6 +4,9 @@
 DOCKER_GRAPHDRIVER := $(if $(DOCKER_GRAPHDRIVER),$(DOCKER_GRAPHDRIVER),$(shell docker info 2>&1 | grep "Storage Driver" | sed 's/.*: //'))
 export DOCKER_GRAPHDRIVER
 
+# enable/disable cross-compile
+DOCKER_CROSS ?= false
+
 # get OS/Arch of docker engine
 DOCKER_OSARCH := $(shell bash -c 'source hack/make/.detect-daemon-osarch && echo $${DOCKER_ENGINE_OSARCH}')
 DOCKERFILE := $(shell bash -c 'source hack/make/.detect-daemon-osarch && echo $${DOCKERFILE}')
@@ -59,6 +62,7 @@ DOCKER_ENVS := \
 	-e TESTFLAGS \
 	-e TESTFLAGS_INTEGRATION \
 	-e TESTFLAGS_INTEGRATION_CLI \
+	-e TEST_FILTER \
 	-e TIMEOUT \
 	-e VALIDATE_REPO \
 	-e VALIDATE_BRANCH \
@@ -83,6 +87,7 @@ BIND_DIR := $(if $(BINDDIR),$(BINDDIR),$(if $(DOCKER_HOST),,bundles))
 # DOCKER_MOUNT can be overriden, but use at your own risk!
 ifndef DOCKER_MOUNT
 DOCKER_MOUNT := $(if $(BIND_DIR),-v "$(CURDIR)/$(BIND_DIR):/go/src/github.com/docker/docker/$(BIND_DIR)")
+DOCKER_MOUNT := $(if $(DOCKER_BINDDIR_MOUNT_OPTS),$(DOCKER_MOUNT):$(DOCKER_BINDDIR_MOUNT_OPTS),$(DOCKER_MOUNT))
 
 # This allows the test suite to be able to run without worrying about the underlying fs used by the container running the daemon (e.g. aufs-on-aufs), so long as the host running the container is running a supported fs.
 # The volume will be cleaned up when the container is removed due to `--rm`.
@@ -121,9 +126,6 @@ INTERACTIVE := $(shell [ -t 0 ] && echo 1 || echo 0)
 ifeq ($(INTERACTIVE), 1)
 	DOCKER_FLAGS += -t
 endif
-ifeq ($(BIND_DIR), .)
-	DOCKER_BUILD_OPTS += --target=dev
-endif
 
 DOCKER_RUN_DOCKER := $(DOCKER_FLAGS) "$(DOCKER_IMAGE)"
 
@@ -138,6 +140,19 @@ binary: build ## build the linux binaries
 dynbinary: build ## build the linux dynbinaries
 	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary
 
+
+
+cross: DOCKER_CROSS := true
+cross: build ## cross build the binaries for darwin, freebsd and\nwindows
+	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary binary cross
+
+ifdef DOCKER_CROSSPLATFORMS
+build: DOCKER_CROSS := true
+endif
+ifeq ($(BIND_DIR), .)
+build: DOCKER_BUILD_OPTS += --target=dev
+endif
+build: DOCKER_BUILD_ARGS += --build-arg=CROSS=$(DOCKER_CROSS)
 build: DOCKER_BUILDKIT ?= 1
 build: bundles
 	$(warning The docker client CLI has moved to github.com/docker/cli. For a dev-test cycle involving the CLI, run:${\n} DOCKER_CLI_PATH=/host/path/to/cli/binary make shell ${\n} then change the cli and compile into a binary at the same location.${\n})
@@ -152,9 +167,6 @@ clean: clean-cache
 .PHONY: clean-cache
 clean-cache:
 	docker volume rm -f docker-dev-cache
-
-cross: build ## cross build the binaries for darwin, freebsd and\nwindows
-	$(DOCKER_RUN_DOCKER) hack/make.sh dynbinary binary cross
 
 help: ## this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {gsub("\\\\n",sprintf("\n%22c",""), $$2);printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
