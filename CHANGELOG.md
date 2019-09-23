@@ -30,11 +30,6 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 - Fix `docker rmi -f` hang. [docker/engine#335](https://github.com/docker/engine/pull/335)
 - Fix handling of blocked I/O of exec'd processes. [docker/engine#296](https://github.com/docker/engine/pull/296)
 
-### Swarm
-
-- Fix for removing hard-coded IPAM config subnet value for ingress network. [docker/engine#369](https://github.com/docker/engine/pull/369)
-- Fix update out of sequence and increase max recv gRPC message size for nodes and secrets. [docker/engine#352](https://github.com/docker/engine/pull/353)
-
 ## 19.03.2 (2019-08-29)
 
 ### Builder
