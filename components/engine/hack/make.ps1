@@ -340,6 +340,7 @@ Function Run-IntegrationTests() {
         Write-Host "Running $($PWD.Path)"
         $pinfo = New-Object System.Diagnostics.ProcessStartInfo
         $pinfo.FileName = "$($PWD.Path)\test.exe"
+        $pinfo.WorkingDirectory = "$($PWD.Path)"
         $pinfo.RedirectStandardError = $true
         $pinfo.UseShellExecute = $false
         $pinfo.Arguments = $env:INTEGRATION_TESTFLAGS
@@ -430,8 +431,8 @@ Try {
         if ($Daemon) { Execute-Build "daemon" "daemon" "dockerd" }
         if ($Client) {
             # Get the Docker channel and version from the environment, or use the defaults.
-            if (-not ($channel = $env:DOCKERCLI_CHANNEL)) { $channel = "edge" }
-            if (-not ($version = $env:DOCKERCLI_VERSION)) { $version = "17.06.0-ce" }
+            if (-not ($channel = $env:DOCKERCLI_CHANNEL)) { $channel = "stable" }
+            if (-not ($version = $env:DOCKERCLI_VERSION)) { $version = "17.06.2-ce" }
 
             # Download the zip file and extract the client executable.
             Write-Host "INFO: Downloading docker/cli version $version from $channel..."
@@ -476,6 +477,7 @@ Try {
 }
 Catch [Exception] {
     Write-Host -ForegroundColor Red ("`nERROR: make.ps1 failed:`n$_")
+    Write-Host -ForegroundColor Red ($_.InvocationInfo.PositionMessage)
 
     # More gratuitous ASCII art.
     Write-Host
