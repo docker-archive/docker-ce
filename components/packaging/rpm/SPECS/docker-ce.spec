@@ -104,7 +104,7 @@ install -D -m 0644 %{_topdir}/SOURCES/docker.service $RPM_BUILD_ROOT/%{_unitdir}
 install -D -m 0644 %{_topdir}/SOURCES/docker.socket $RPM_BUILD_ROOT/%{_unitdir}/docker.socket
 
 # install json for docker engine activate / upgrade
-install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_ROOT/var/lib/docker-engine/distribution_based_engine-ce.json
+install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_ROOT/var/lib/docker-engine/distribution_based_engine.json
 
 %files
 /%{_bindir}/dockerd
@@ -112,7 +112,7 @@ install -D -m 0644 %{_topdir}/SOURCES/distribution_based_engine.json $RPM_BUILD_
 /%{_bindir}/docker-init
 /%{_unitdir}/docker.service
 /%{_unitdir}/docker.socket
-/var/lib/docker-engine/distribution_based_engine-ce.json
+/var/lib/docker-engine/distribution_based_engine.json
 
 %post
 %systemd_post docker.service
