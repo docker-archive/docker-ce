@@ -1,17 +1,8 @@
-SHELL:=/bin/bash
-ENGINE_DIR:=$(CURDIR)/../engine
-CLI_DIR:=$(CURDIR)/../cli
-VERSION?=0.0.0-dev
-DOCKER_GITCOMMIT:=abcdefg
-ARCH=$(shell uname -m)
-STATIC_VERSION=$(shell static/gen-static-ver $(ENGINE_DIR) $(VERSION))
-GO_VERSION:=1.12.8
-DEFAULT_PRODUCT_LICENSE:=Community Engine
-PLATFORM=Docker Engine - Community
-BUILDTIME=$(shell date -u -d "@$${SOURCE_DATE_EPOCH:-$$(date +%s)}" --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')
-export DEFAULT_PRODUCT_LICENSE
-export PLATFORM
-export BUILDTIME
+include common.mk
+
+CLI_DIR:=$(realpath $(CURDIR)/../cli)
+ENGINE_DIR:=$(realpath $(CURDIR)/../engine)
+STATIC_VERSION:=$(shell static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 
 # Taken from: https://www.cmcrossroads.com/article/printing-value-makefile-variable
 print-%  : ; @echo $($*)

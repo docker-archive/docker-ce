@@ -1,18 +1,13 @@
-SHELL:=/bin/bash
-ENGINE_DIR:=$(CURDIR)/../../engine
-CLI_DIR:=$(CURDIR)/../../cli
-VERSION?=0.0.0-dev
+include ../common.mk
+
+CLI_DIR:=$(realpath $(CURDIR)/../../cli)
+ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
 GO_BASE_IMAGE=golang
-GO_VERSION:=1.12.8
 ENGINE_GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)-stretch
-STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
+STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 DOCKER_HUB_ORG?=dockereng
-ARCH=$(shell uname -m)
 ENGINE_IMAGE?=engine-community
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-DEFAULT_PRODUCT_LICENSE?=Community Engine
-PLATFORM?=Docker Engine - Community
-BUILDTIME?=$(shell date -u -d "@$${SOURCE_DATE_EPOCH:-$$(date +%s)}" --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')
 IMAGE_WITH_TAG=$(DOCKER_HUB_ORG)/$(ENGINE_IMAGE):$(STATIC_VERSION)
 ifdef BASE_IMAGE
 	# TODO: Clean this up to only set ENGINE_GO_IMAGE
