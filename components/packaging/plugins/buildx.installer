@@ -6,7 +6,7 @@ source "$(dirname "$0")/.common"
 PKG=github.com/docker/buildx
 GOPATH=$(go env GOPATH)
 REPO=https://${PKG}.git
-COMMIT=master
+: "${BUILDX_COMMIT=v0.3.0}"
 DEST=${GOPATH}/src/${PKG}
 
 build() {
@@ -16,7 +16,7 @@ build() {
     (
         cd "${DEST}"
         git fetch --all
-        git checkout -q "${COMMIT}"
+        git checkout -q "${BUILDX_COMMIT}"
         local LDFLAGS
         # TODO: unmark `-tp` when no longer a technical preview
         LDFLAGS="-X ${PKG}/version.Version=$(git describe --match 'v[0-9]*' --always --tags)-tp-docker -X ${PKG}/version.Revision=$(git rev-parse HEAD) -X ${PKG}/version.Package=${PKG} -X main.experimental=1"
