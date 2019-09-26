@@ -2,6 +2,7 @@ include ../common.mk
 
 CLI_DIR:=$(realpath $(CURDIR)/../../cli)
 ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
+PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
 GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang
@@ -114,7 +115,7 @@ rpmbuild/SOURCES/distribution_based_engine.json: rpmbuild/SOURCES/engine-image
 
 rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -i -w /v \
-		-v $(shell readlink -e ../plugins):/plugins \
+		-v $(PLUGINS_DIR):/plugins \
 		-v $(CURDIR)/rpmbuild/SOURCES:/v \
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
