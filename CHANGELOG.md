@@ -18,8 +18,8 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 
 ### Runtime
 
-* Bump Golang to 1.12.9. [docker/engine#366](https://github.com/docker/engine/pull/366)
-* Bump containerd to 1.2.9. [docker/engine#349](https://github.com/docker/engine/pull/349)
+* Bump Golang to 1.12.10. [docker/engine#387](https://github.com/docker/engine/pull/387)
+* Bump containerd to 1.2.10. [docker/engine#385](https://github.com/docker/engine/pull/385)
 * Distribution: modify warning logic when pulling v2 schema1 manifests. [docker/engine#368](https://github.com/docker/engine/pull/368)
 - Fix `POST /images/create` returning a 500 status code when providing an incorrect platform option. [docker/engine#365](https://github.com/docker/engine/pull/365)
 - Fix `POST /build` returning a 500 status code when providing an incorrect platform option. [docker/engine#365](https://github.com/docker/engine/pull/365)
@@ -28,6 +28,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 - Fix overlay2: busy error on mount when using kernel >= 5.2. [docker/engine#332](https://github.com/docker/engine/pull/332)
 - Fix `docker rmi` stuck in certain misconfigured systems, e.g. dead NFS share. [docker/engine#335](https://github.com/docker/engine/pull/335)
 - Fix handling of blocked I/O of exec'd processes. [docker/engine#296](https://github.com/docker/engine/pull/296)
+- Fix jsonfile logger: follow logs stuck when `max-size` is set and `max-file=1`. [docker/engine#378](https://github.com/docker/engine/pull/378)
 
 ## 19.03.2 (2019-08-29)
 
