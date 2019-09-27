@@ -8,9 +8,9 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 ### Builder
 
 - Fix builder-next: resolve digest for third party registries. [docker/engine#339](https://github.com/docker/engine/pull/339)
-- Fix builder-next: user namespace builds when daemon started with socket activation. [docker/engine#339](https://github.com/docker/engine/pull/373)
-- Fix builder-next: session: release forwarded ssh socket connection per connection. [docker/engine#339](https://github.com/docker/engine/pull/373)
-- Fix builder-next: llbsolver: error on multiple cache importers. [docker/engine#339](https://github.com/docker/engine/pull/373)
+- Fix builder-next: user namespace builds when daemon started with socket activation. [docker/engine#373](https://github.com/docker/engine/pull/373)
+- Fix builder-next: session: release forwarded ssh socket connection per connection. [docker/engine#373](https://github.com/docker/engine/pull/373)
+- Fix builder-next: llbsolver: error on multiple cache importers. [docker/engine#373](https://github.com/docker/engine/pull/373)
 
 ### Networking
 
