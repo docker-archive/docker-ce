@@ -3,7 +3,7 @@ pipeline {
         buildDiscarder(logRotator(daysToKeepStr: '30'))
         timestamps()
         ansiColor('xterm')
-        timeout(time: 3, unit: 'HOURS')
+        timeout(time: 12, unit: 'HOURS')
     }
     agent {
         node {
