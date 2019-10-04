@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('CLI Integration Test') {
             steps {
-                sh 'make test-integration-cli'
+                sh 'TEST_SKIP_INTEGRATION=1 make test-integration-cli'
             }
         }
     }
