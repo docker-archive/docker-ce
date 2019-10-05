@@ -1,3 +1,4 @@
+#!groovy
 pipeline {
     options {
         buildDiscarder(logRotator(daysToKeepStr: '30'))
