@@ -17,6 +17,11 @@ pipeline {
             steps {
                 sh 'TEST_SKIP_INTEGRATION=1 make test-integration-cli'
             }
+            post {
+                always {
+                    junit testResults: 'components/engine/bundles/test-integration/*junit-report.xml', allowEmptyResults: true
+                }
+            }
         }
     }
 }
