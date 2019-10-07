@@ -34,6 +34,21 @@ pipeline {
                     '''
 
                     junit testResults: 'components/engine/bundles/test-integration/*junit-report.xml', allowEmptyResults: true
+
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Failed to create bundles.tar.gz') {
+                        sh '''
+                        bundleName=amd64
+                        echo "Creating ${bundleName}-bundles.tar.gz"
+                        # exclude overlay2 directories
+                        find components/engine/bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*-report.json' -o -name '*.log' -o -name '*.prof' -o -name '*-report.xml' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
+                        '''
+
+                        archiveArtifacts artifacts: '*-bundles.tar.gz', allowEmptyArchive: true
+                    }
+                }
+                cleanup {
+                    sh 'make clean'
+                    deleteDir()
                 }
             }
         }
