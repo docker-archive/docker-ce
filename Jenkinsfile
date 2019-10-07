@@ -8,6 +8,7 @@ pipeline {
     }
     environment {
         DOCKER_BUILDKIT     = '1'
+        APT_MIRROR          = 'cdn-fastly.deb.debian.org'
         CHECK_CONFIG_COMMIT = '78405559cfe5987174aa2cb6463b9b2c1b917255'
     }
     agent {
