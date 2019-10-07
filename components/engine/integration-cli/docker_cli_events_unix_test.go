@@ -401,11 +401,13 @@ func (s *DockerDaemonSuite) TestDaemonEvents(c *testing.T) {
 	assert.NilError(c, err)
 	s.d.Start(c, "--config-file="+configFilePath)
 
-	daemonID, err := s.d.Cmd("info", "--format", "{{.ID}}")
+	info, err := s.d.Cmd("info", "--format", "{{.ID}}|{{.Name}}")
 	assert.NilError(c, err)
+	fields := strings.SplitN(info, "|", 2)
+	assert.Equal(c, len(fields), 2)
+	daemonID, daemonName := fields[0], fields[1]
 	assert.Assert(c, daemonID != "")
-	daemonName, err := s.d.Cmd("info", "--format", "{{.Name}}")
-	assert.NilError(c, err)
+	assert.Assert(c, daemonName != "")
 
 	configFile, err = os.Create(configFilePath)
 	assert.NilError(c, err)
@@ -462,11 +464,13 @@ func (s *DockerDaemonSuite) TestDaemonEventsWithFilters(c *testing.T) {
 	assert.NilError(c, err)
 	s.d.Start(c, "--config-file="+configFilePath)
 
-	daemonID, err := s.d.Cmd("info", "--format", "{{.ID}}")
+	info, err := s.d.Cmd("info", "--format", "{{.ID}}|{{.Name}}")
 	assert.NilError(c, err)
+	fields := strings.SplitN(info, "|", 2)
+	assert.Equal(c, len(fields), 2)
+	daemonID, daemonName := fields[0], fields[1]
 	assert.Assert(c, daemonID != "")
-	daemonName, err := s.d.Cmd("info", "--format", "{{.Name}}")
-	assert.NilError(c, err)
+	assert.Assert(c, daemonName != "")
 
 	assert.NilError(c, s.d.Signal(unix.SIGHUP))
 	time.Sleep(3 * time.Second)
