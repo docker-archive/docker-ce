@@ -7,7 +7,8 @@ pipeline {
         timeout(time: 2, unit: 'HOURS')
     }
     environment {
-        DOCKER_BUILDKIT = '1'
+        DOCKER_BUILDKIT     = '1'
+        CHECK_CONFIG_COMMIT = '78405559cfe5987174aa2cb6463b9b2c1b917255'
     }
     agent {
         node {
@@ -16,6 +17,17 @@ pipeline {
     }
 
     stages {
+        stage("Print info") {
+            steps {
+                sh 'docker version'
+                sh 'docker info'
+                sh '''
+                echo "check-config.sh version: ${CHECK_CONFIG_COMMIT}"
+                curl -fsSL -o ${WORKSPACE}/check-config.sh "https://raw.githubusercontent.com/moby/moby/${CHECK_CONFIG_COMMIT}/contrib/check-config.sh" \
+                && bash ${WORKSPACE}/check-config.sh || true
+                '''
+            }
+        }
         stage('CLI Integration Test') {
             steps {
                 sh 'TEST_SKIP_INTEGRATION=1 make test-integration-cli'
