@@ -22,6 +22,17 @@ pipeline {
             }
             post {
                 always {
+                    sh '''
+                    echo "Ensuring container killed."
+                    cids=$(docker ps -aq -f name=docker-pr${BUILD_NUMBER}-*)
+                    [ -n "$cids" ] && docker rm -vf $cids || true
+                    '''
+
+                    sh '''
+                    echo "Chowning /workspace to jenkins user"
+                    docker run --rm -v "$WORKSPACE:/workspace" busybox chown -R "$(id -u):$(id -g)" /workspace
+                    '''
+
                     junit testResults: 'components/engine/bundles/test-integration/*junit-report.xml', allowEmptyResults: true
                 }
             }
