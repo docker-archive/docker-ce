@@ -6,6 +6,9 @@ pipeline {
         ansiColor('xterm')
         timeout(time: 3, unit: 'HOURS')
     }
+    environment {
+        DOCKER_BUILDKIT = '1'
+    }
     agent {
         node {
             label 'amd64 && ubuntu-1804 && overlay2'
