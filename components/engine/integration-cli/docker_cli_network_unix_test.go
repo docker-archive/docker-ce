@@ -1377,9 +1377,9 @@ func (s *DockerNetworkSuite) TestDockerNetworkConnectLinkLocalIP(c *testing.T) {
 	assertNwIsAvailable(c, "n0")
 
 	// run a container with incorrect link-local address
-	_, _, err := dockerCmdWithError("run", "--link-local-ip", "169.253.5.5", "busybox", "top")
+	_, _, err := dockerCmdWithError("run", "--link-local-ip", "169.253.5.5", "busybox", "true")
 	assert.ErrorContains(c, err, "")
-	_, _, err = dockerCmdWithError("run", "--link-local-ip", "2001:db8::89", "busybox", "top")
+	_, _, err = dockerCmdWithError("run", "--link-local-ip", "2001:db8::89", "busybox", "true")
 	assert.ErrorContains(c, err, "")
 
 	// run two containers with link-local ip on the test network
@@ -1537,7 +1537,7 @@ func (s *DockerSuite) TestUserDefinedNetworkConnectDisconnectAlias(c *testing.T)
 	assert.NilError(c, err)
 
 	// verify the alias option is rejected when running on predefined network
-	out, _, err := dockerCmdWithError("run", "--rm", "--name=any", "--net-alias=any", "busybox:glibc", "top")
+	out, _, err := dockerCmdWithError("run", "--rm", "--name=any", "--net-alias=any", "busybox:glibc", "true")
 	assert.Assert(c, err != nil, "out: %s", out)
 	assert.Assert(c, strings.Contains(out, runconfig.ErrUnsupportedNetworkAndAlias.Error()))
 	// verify the alias option is rejected when connecting to predefined network
