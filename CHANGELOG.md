@@ -3,8 +3,24 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.4 (2019-10-DD)
+
+### Networking
+
+- Rollback libnetwork changes so `DOCKER-USER` iptables chain is back. [docker/engine#404](https://github.com/docker/engine/pull/404)
+
 ## 19.03.3 (2019-10-07)
 
+### Known Issues
+
+- `DOCKER-USER` iptables chain is missing [docker/for-linux#810](https://github.com/docker/for-linux/issues/810). Users cannot perform additional container network traffic filtering on top of this iptables chain. You are not affected by this issue if you are not customizing iptables chains on top of `DOCKER-USER`.
+
+  Workaround is to insert the iptables chain after docker daemon starts.
+  ```
+  iptables -N DOCKER-USER
+  iptables -I FORWARD -j DOCKER-USER
+  iptables -A DOCKER-USER -j RETURN
+  ```
 ### Builder
 
 - Fix builder-next: resolve digest for third party registries. [docker/engine#339](https://github.com/docker/engine/pull/339)
