@@ -16,6 +16,5 @@ The scripts will build for this list of packages types:
 * RPM packages for Fedora 31
 * RPM packages for Fedora 30
 * RPM packages for Fedora 29
-* RPM packages for Fedora 28
 * RPM packages for CentOS 7
 * TGZ and ZIP files with static binaries
