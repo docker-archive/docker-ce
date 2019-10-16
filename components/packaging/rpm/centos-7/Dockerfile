@@ -3,13 +3,15 @@ ARG BUILD_IMAGE=centos:7
 FROM ${GO_IMAGE} as golang
 
 FROM ${BUILD_IMAGE}
-ENV DISTRO centos
-ENV SUITE 7
+ENV GOPROXY=direct
+ENV GO111MODULE=off
 ENV GOPATH=/go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 ENV AUTO_GOPATH 1
 ENV DOCKER_BUILDTAGS seccomp selinux
 ENV RUNC_BUILDTAGS seccomp selinux
+ENV DISTRO centos
+ENV SUITE 7
 RUN yum install -y rpm-build rpmlint
 COPY SPECS /root/rpmbuild/SPECS
 # Overwrite repo that was failing on aarch64
