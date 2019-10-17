@@ -3,7 +3,7 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.4 (2019-10-DD)
+## 19.03.4 (2019-10-17)
 
 ### Networking
 
