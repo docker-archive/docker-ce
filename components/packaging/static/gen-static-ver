@@ -9,7 +9,7 @@ if [ -z "$ENGINE_DIR" ] || [ -z "$VERSION" ]; then
 fi
 
 DATE_COMMAND="date"
-if [[ $(uname) -eq "Darwin" ]]; then
+if [[ $(uname) == "Darwin" ]]; then
     DATE_COMMAND="docker run --rm alpine date"
 fi
 GIT_COMMAND="git -C $ENGINE_DIR"

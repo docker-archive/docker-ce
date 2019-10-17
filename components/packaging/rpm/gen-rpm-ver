@@ -6,7 +6,7 @@ VERSION=$2
 [[ $# < 2 ]] && echo 'not enough args' && exit 1
 
 DATE_COMMAND="date"
-if [[ $(uname) -eq "Darwin" ]]; then
+if [[ $(uname) == "Darwin" ]]; then
     DATE_COMMAND="docker run --rm alpine date"
 fi
 
