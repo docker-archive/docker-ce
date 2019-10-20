@@ -1,6 +1,9 @@
 ARG GO_IMAGE
-ARG BUILD_IMAGE=fedora:30
-FROM ${GO_IMAGE} as golang
+ARG DISTRO=fedora
+ARG SUITE=30
+ARG BUILD_IMAGE=${DISTRO}:${SUITE}
+
+FROM ${GO_IMAGE} AS golang
 
 FROM ${BUILD_IMAGE}
 ENV GOPROXY=direct
@@ -10,8 +13,10 @@ ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 ENV AUTO_GOPATH 1
 ENV DOCKER_BUILDTAGS seccomp selinux
 ENV RUNC_BUILDTAGS seccomp selinux
-ENV DISTRO fedora
-ENV SUITE 30
+ARG DISTRO
+ARG SUITE
+ENV DISTRO=${DISTRO}
+ENV SUITE=${SUITE}
 RUN dnf install -y rpm-build rpmlint dnf-plugins-core
 COPY SPECS /root/rpmbuild/SPECS
 RUN dnf builddep -y /root/rpmbuild/SPECS/*.spec

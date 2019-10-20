@@ -1,6 +1,9 @@
 ARG GO_IMAGE
-ARG BUILD_IMAGE=balenalib/rpi-raspbian:stretch
-FROM ${GO_IMAGE} as golang
+ARG DISTRO=raspbian
+ARG SUITE=stretch
+ARG BUILD_IMAGE=balenalib/rpi-raspbian:${SUITE}
+
+FROM ${GO_IMAGE} AS golang
 
 FROM ${BUILD_IMAGE}
 
@@ -18,9 +21,10 @@ COPY ${COMMON_FILES} /root/build-deb/debian
 RUN mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" -i /root/build-deb/debian/control
 
 COPY sources/ /sources
-
-ENV DISTRO raspbian
-ENV SUITE stretch
+ARG DISTRO
+ARG SUITE
+ENV DISTRO=${DISTRO}
+ENV SUITE=${SUITE}
 
 COPY --from=golang /usr/local/go /usr/local/go
 
