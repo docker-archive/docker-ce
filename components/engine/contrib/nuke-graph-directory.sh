@@ -31,7 +31,7 @@ echo "Nuking $dir ..."
 echo '  (if this is wrong, press Ctrl+C NOW!)'
 echo
 
-( set -x; sleep 10 )
+( set -x; sleep 30 )
 echo
 
 dir_in_dir() {
@@ -61,4 +61,4 @@ if command -v btrfs > /dev/null 2>&1; then
 fi
 
 # finally, DESTROY ALL THINGS
-( shopt -s dotglob; set -x; rm -rf "$dir"/* )
+( shopt -s dotglob; set -x; rm -rf --interactive=once "$dir"/* )
