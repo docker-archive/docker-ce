@@ -48,7 +48,9 @@ pipeline {
                 sh '''
                 docker run --rm \
                   -v "$WORKSPACE:/workspace" \
-                  alpine sh -c 'apk add --no-cache -q git bash && cd /workspace && hack/validate/dco'
+                  -e VALIDATE_REPO=${GIT_URL} \
+                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
+                  alpine sh -c 'apk add --no-cache -q bash git openssh-client && cd /workspace && hack/validate/dco'
                 '''
             }
         }
@@ -375,8 +377,12 @@ pipeline {
                         expression { params.s390x }
                     }
                     agent { label 's390x-ubuntu-1604' }
-                    // s390x machines run on Docker 18.06, and buildkit has some bugs on that version
-                    environment { DOCKER_BUILDKIT = '0' }
+                    // s390x machines run on Docker 18.06, and buildkit has some
+                    // bugs on that version. Build and use buildx instead.
+                    environment {
+                        USE_BUILDX      = '1'
+                        DOCKER_BUILDKIT = '0'
+                    }
 
                     stages {
                         stage("Print info") {
@@ -484,8 +490,12 @@ pipeline {
                         expression { params.s390x }
                     }
                     agent { label 's390x-ubuntu-1604' }
-                    // s390x machines run on Docker 18.06, and buildkit has some bugs on that version
-                    environment { DOCKER_BUILDKIT = '0' }
+                    // s390x machines run on Docker 18.06, and buildkit has some
+                    // bugs on that version. Build and use buildx instead.
+                    environment {
+                        USE_BUILDX      = '1'
+                        DOCKER_BUILDKIT = '0'
+                    }
 
                     stages {
                         stage("Print info") {
@@ -569,8 +579,12 @@ pipeline {
                         expression { params.ppc64le }
                     }
                     agent { label 'ppc64le-ubuntu-1604' }
-                    // ppc64le machines run on Docker 18.06, and buildkit has some bugs on that version
-                    environment { DOCKER_BUILDKIT = '0' }
+                    // ppc64le machines run on Docker 18.06, and buildkit has some
+                    // bugs on that version. Build and use buildx instead.
+                    environment {
+                        USE_BUILDX      = '1'
+                        DOCKER_BUILDKIT = '0'
+                    }
 
                     stages {
                         stage("Print info") {
@@ -678,8 +692,12 @@ pipeline {
                         expression { params.ppc64le }
                     }
                     agent { label 'ppc64le-ubuntu-1604' }
-                    // ppc64le machines run on Docker 18.06, and buildkit has some bugs on that version
-                    environment { DOCKER_BUILDKIT = '0' }
+                    // ppc64le machines run on Docker 18.06, and buildkit has some
+                    // bugs on that version. Build and use buildx instead.
+                    environment {
+                        USE_BUILDX      = '1'
+                        DOCKER_BUILDKIT = '0'
+                    }
 
                     stages {
                         stage("Print info") {
