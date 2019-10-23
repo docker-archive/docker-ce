@@ -8,11 +8,11 @@ pipeline {
         timestamps()
     }
     parameters {
-        booleanParam(name: 'unit_validate', defaultValue: true, description: 'x86 unit tests and vendor check')
-        booleanParam(name: 'janky', defaultValue: true, description: 'x86 Build/Test')
-        booleanParam(name: 'z', defaultValue: true, description: 'IBM Z (s390x) Build/Test')
-        booleanParam(name: 'powerpc', defaultValue: true, description: 'PowerPC (ppc64le) Build/Test')
-        booleanParam(name: 'windowsRS1', defaultValue: true, description: 'Windows 2016 (RS1) Build/Test')
+        booleanParam(name: 'unit_validate', defaultValue: true, description: 'amd64 (x86_64) unit tests and vendor check')
+        booleanParam(name: 'amd64', defaultValue: true, description: 'amd64 (x86_64) Build/Test')
+        booleanParam(name: 's390x', defaultValue: true, description: 'IBM Z (s390x) Build/Test')
+        booleanParam(name: 'ppc64le', defaultValue: true, description: 'PowerPC (ppc64le) Build/Test')
+        booleanParam(name: 'windowsRS1', defaultValue: false, description: 'Windows 2016 (RS1) Build/Test')
         booleanParam(name: 'windowsRS5', defaultValue: true, description: 'Windows 2019 (RS5) Build/Test')
         booleanParam(name: 'skip_dco', defaultValue: false, description: 'Skip the DCO check')
     }
@@ -22,20 +22,34 @@ pipeline {
         DOCKER_GRAPHDRIVER  = 'overlay2'
         APT_MIRROR          = 'cdn-fastly.deb.debian.org'
         CHECK_CONFIG_COMMIT = '78405559cfe5987174aa2cb6463b9b2c1b917255'
+        TESTDEBUG           = '0'
         TIMEOUT             = '120m'
     }
     stages {
+        stage('pr-hack') {
+            when { changeRequest() }
+            steps {
+                script {
+                    echo "Workaround for PR auto-cancel feature. Borrowed from https://issues.jenkins-ci.org/browse/JENKINS-43353"
+                    def buildNumber = env.BUILD_NUMBER as int
+                    if (buildNumber > 1) milestone(buildNumber - 1)
+                    milestone(buildNumber)
+                }
+            }
+        }
         stage('DCO-check') {
             when {
                 beforeAgent true
                 expression { !params.skip_dco }
             }
-            agent { label 'linux' }
+            agent { label 'amd64 && ubuntu-1804 && overlay2' }
             steps {
                 sh '''
                 docker run --rm \
                   -v "$WORKSPACE:/workspace" \
-                  alpine sh -c 'apk add --no-cache -q git bash && cd /workspace && hack/validate/dco'
+                  -e VALIDATE_REPO=${GIT_URL} \
+                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
+                  alpine sh -c 'apk add --no-cache -q bash git openssh-client && cd /workspace && hack/validate/dco'
                 '''
             }
         }
@@ -75,6 +89,8 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/validate/default
                                 '''
@@ -89,6 +105,8 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/make.sh \
                                     dynbinary-daemon \
@@ -157,6 +175,8 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/test/unit
                                 '''
@@ -176,6 +196,8 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/validate/vendor
                                 '''
@@ -219,10 +241,10 @@ pipeline {
                         }
                     }
                 }
-                stage('janky') {
+                stage('amd64') {
                     when {
                         beforeAgent true
-                        expression { params.janky }
+                        expression { params.amd64 }
                     }
                     agent { label 'amd64 && ubuntu-1804 && overlay2' }
 
@@ -257,18 +279,20 @@ pipeline {
                                 run_tests() {
                                         [ -n "$TESTDEBUG" ] && rm= || rm=--rm;
                                         docker run $rm -t --privileged \
-                                          -v "$WORKSPACE/bundles:/go/src/github.com/docker/docker/bundles" \
+                                          -v "$WORKSPACE/bundles/${TEST_INTEGRATION_DEST}:/go/src/github.com/docker/docker/bundles" \
+                                          -v "$WORKSPACE/bundles/dynbinary-daemon:/go/src/github.com/docker/docker/bundles/dynbinary-daemon" \
                                           -v "$WORKSPACE/.git:/go/src/github.com/docker/docker/.git" \
                                           --name "$CONTAINER_NAME" \
                                           -e KEEPBUNDLE=1 \
                                           -e TESTDEBUG \
                                           -e TESTFLAGS \
-                                          -e TEST_INTEGRATION_DEST \
                                           -e TEST_SKIP_INTEGRATION \
                                           -e TEST_SKIP_INTEGRATION_CLI \
                                           -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                           -e DOCKER_GRAPHDRIVER \
                                           -e TIMEOUT \
+                                          -e VALIDATE_REPO=${GIT_URL} \
+                                          -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                           docker:${GIT_COMMIT} \
                                           hack/make.sh \
                                             "$1" \
@@ -308,6 +332,11 @@ pipeline {
                                 exit $c
                                 '''
                             }
+                            post {
+                                always {
+                                    junit testResults: 'bundles/**/*-report.xml', allowEmptyResults: true
+                                }
+                            }
                         }
                     }
 
@@ -315,7 +344,8 @@ pipeline {
                         always {
                             sh '''
                             echo "Ensuring container killed."
-                            docker rm -vf docker-pr$BUILD_NUMBER || true
+                            cids=$(docker ps -aq -f name=docker-pr${BUILD_NUMBER}-*)
+                            [ -n "$cids" ] && docker rm -vf $cids || true
                             '''
 
                             sh '''
@@ -325,10 +355,10 @@ pipeline {
 
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Failed to create bundles.tar.gz') {
                                 sh '''
-                                bundleName=janky
+                                bundleName=amd64
                                 echo "Creating ${bundleName}-bundles.tar.gz"
                                 # exclude overlay2 directories
-                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*.log' -o -name '*.prof' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
+                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*-report.json' -o -name '*.log' -o -name '*.prof' -o -name '*-report.xml' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
                                 '''
 
                                 archiveArtifacts artifacts: '*-bundles.tar.gz', allowEmptyArchive: true
@@ -340,10 +370,10 @@ pipeline {
                         }
                     }
                 }
-                stage('z') {
+                stage('s390x') {
                     when {
                         beforeAgent true
-                        expression { params.z }
+                        expression { params.s390x }
                     }
                     agent { label 's390x-ubuntu-1604' }
                     // s390x machines run on Docker 18.06, and buildkit has some bugs on that version
@@ -364,7 +394,7 @@ pipeline {
                         stage("Build dev image") {
                             steps {
                                 sh '''
-                                docker build --force-rm --build-arg APT_MIRROR -t docker:${GIT_COMMIT} -f Dockerfile .
+                                docker build --force-rm --build-arg APT_MIRROR -t docker:${GIT_COMMIT} .
                                 '''
                             }
                         }
@@ -377,6 +407,8 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/test/unit
                                 '''
@@ -397,13 +429,21 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e TESTDEBUG \
                                   -e TEST_SKIP_INTEGRATION_CLI \
                                   -e TIMEOUT \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/make.sh \
                                     dynbinary \
                                     test-integration
                                 '''
+                            }
+                            post {
+                                always {
+                                    junit testResults: 'bundles/**/*-report.xml', allowEmptyResults: true
+                                }
                             }
                         }
                     }
@@ -425,7 +465,7 @@ pipeline {
                                 bundleName=s390x-integration
                                 echo "Creating ${bundleName}-bundles.tar.gz"
                                 # exclude overlay2 directories
-                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*.log' -o -name '*.prof' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
+                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*-report.json' -o -name '*.log' -o -name '*.prof' -o -name '*-report.xml' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
                                 '''
 
                                 archiveArtifacts artifacts: '*-bundles.tar.gz', allowEmptyArchive: true
@@ -437,11 +477,11 @@ pipeline {
                         }
                     }
                 }
-                stage('z-master') {
+                stage('s390x integration-cli') {
                     when {
                         beforeAgent true
-                        branch 'master'
-                        expression { params.z }
+                        not { changeRequest() }
+                        expression { params.s390x }
                     }
                     agent { label 's390x-ubuntu-1604' }
                     // s390x machines run on Docker 18.06, and buildkit has some bugs on that version
@@ -462,7 +502,7 @@ pipeline {
                         stage("Build dev image") {
                             steps {
                                 sh '''
-                                docker build --force-rm --build-arg APT_MIRROR -t docker:${GIT_COMMIT} -f Dockerfile .
+                                docker build --force-rm --build-arg APT_MIRROR -t docker:${GIT_COMMIT} .
                                 '''
                             }
                         }
@@ -477,11 +517,18 @@ pipeline {
                                   -e DOCKER_GRAPHDRIVER \
                                   -e TEST_SKIP_INTEGRATION \
                                   -e TIMEOUT \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/make.sh \
                                     dynbinary \
                                     test-integration
                                 '''
+                            }
+                            post {
+                                always {
+                                    junit testResults: 'bundles/**/*-report.xml', allowEmptyResults: true
+                                }
                             }
                         }
                     }
@@ -503,7 +550,7 @@ pipeline {
                                 bundleName=s390x-integration-cli
                                 echo "Creating ${bundleName}-bundles.tar.gz"
                                 # exclude overlay2 directories
-                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*.log' -o -name '*.prof' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
+                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*-report.json' -o -name '*.log' -o -name '*.prof' -o -name '*-report.xml' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
                                 '''
 
                                 archiveArtifacts artifacts: '*-bundles.tar.gz', allowEmptyArchive: true
@@ -515,13 +562,13 @@ pipeline {
                         }
                     }
                 }
-                stage('powerpc') {
+                stage('ppc64le') {
                     when {
                         beforeAgent true
-                        expression { params.powerpc }
+                        expression { params.ppc64le }
                     }
                     agent { label 'ppc64le-ubuntu-1604' }
-                    // power machines run on Docker 18.06, and buildkit has some bugs on that version
+                    // ppc64le machines run on Docker 18.06, and buildkit has some bugs on that version
                     environment { DOCKER_BUILDKIT = '0' }
 
                     stages {
@@ -538,7 +585,7 @@ pipeline {
                         }
                         stage("Build dev image") {
                             steps {
-                                sh 'docker build --force-rm --build-arg APT_MIRROR -t docker:${GIT_COMMIT} -f Dockerfile .'
+                                sh 'docker build --force-rm --build-arg APT_MIRROR -t docker:${GIT_COMMIT} .'
                             }
                         }
                         stage("Unit tests") {
@@ -550,6 +597,8 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/test/unit
                                 '''
@@ -570,13 +619,21 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e TESTDEBUG \
                                   -e TEST_SKIP_INTEGRATION_CLI \
                                   -e TIMEOUT \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/make.sh \
                                     dynbinary \
                                     test-integration
                                 '''
+                            }
+                            post {
+                                always {
+                                    junit testResults: 'bundles/**/*-report.xml', allowEmptyResults: true
+                                }
                             }
                         }
                     }
@@ -595,10 +652,10 @@ pipeline {
 
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Failed to create bundles.tar.gz') {
                                 sh '''
-                                bundleName=powerpc-integration
+                                bundleName=ppc64le-integration
                                 echo "Creating ${bundleName}-bundles.tar.gz"
                                 # exclude overlay2 directories
-                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*.log' -o -name '*.prof' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
+                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*-report.json' -o -name '*.log' -o -name '*.prof' -o -name '*-report.xml' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
                                 '''
 
                                 archiveArtifacts artifacts: '*-bundles.tar.gz', allowEmptyArchive: true
@@ -610,14 +667,14 @@ pipeline {
                         }
                     }
                 }
-                stage('powerpc-master') {
+                stage('ppc64le integration-cli') {
                     when {
                         beforeAgent true
-                        branch 'master'
-                        expression { params.powerpc }
+                        not { changeRequest() }
+                        expression { params.ppc64le }
                     }
                     agent { label 'ppc64le-ubuntu-1604' }
-                    // power machines run on Docker 18.06, and buildkit has some bugs on that version
+                    // ppc64le machines run on Docker 18.06, and buildkit has some bugs on that version
                     environment { DOCKER_BUILDKIT = '0' }
 
                     stages {
@@ -634,7 +691,7 @@ pipeline {
                         }
                         stage("Build dev image") {
                             steps {
-                                sh 'docker build --force-rm --build-arg APT_MIRROR -t docker:${GIT_COMMIT} -f Dockerfile .'
+                                sh 'docker build --force-rm --build-arg APT_MIRROR -t docker:${GIT_COMMIT} .'
                             }
                         }
                         stage("Integration-cli tests") {
@@ -648,11 +705,18 @@ pipeline {
                                   -e DOCKER_GRAPHDRIVER \
                                   -e TEST_SKIP_INTEGRATION \
                                   -e TIMEOUT \
+                                  -e VALIDATE_REPO=${GIT_URL} \
+                                  -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
                                   hack/make.sh \
                                     dynbinary \
                                     test-integration
                                 '''
+                            }
+                            post {
+                                always {
+                                    junit testResults: 'bundles/**/*-report.xml', allowEmptyResults: true
+                                }
                             }
                         }
                     }
@@ -671,10 +735,10 @@ pipeline {
 
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Failed to create bundles.tar.gz') {
                                 sh '''
-                                bundleName=powerpc-integration-cli
+                                bundleName=ppc64le-integration-cli
                                 echo "Creating ${bundleName}-bundles.tar.gz"
                                 # exclude overlay2 directories
-                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*.log' -o -name '*.prof' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
+                                find bundles -path '*/root/*overlay2' -prune -o -type f \\( -name '*-report.json' -o -name '*.log' -o -name '*.prof' -o -name '*-report.xml' \\) -print | xargs tar -czf ${bundleName}-bundles.tar.gz
                                 '''
 
                                 archiveArtifacts artifacts: '*-bundles.tar.gz', allowEmptyArchive: true
@@ -686,18 +750,23 @@ pipeline {
                         }
                     }
                 }
-                stage('windowsRS1') {
+                stage('win-RS1') {
                     when {
                         beforeAgent true
-                        expression { params.windowsRS1 }
+                        // Skip this stage on PRs unless the windowsRS1 checkbox is selected
+                        anyOf {
+                            not { changeRequest() }
+                            expression { params.windowsRS1 }
+                        }
                     }
                     environment {
                         DOCKER_BUILDKIT        = '0'
+                        DOCKER_DUT_DEBUG       = '1'
                         SKIP_VALIDATION_TESTS  = '1'
                         SOURCES_DRIVE          = 'd'
                         SOURCES_SUBDIR         = 'gopath'
                         TESTRUN_DRIVE          = 'd'
-                        TESTRUN_SUBDIR         = "CI-$BUILD_NUMBER"
+                        TESTRUN_SUBDIR         = "CI"
                         WINDOWS_BASE_IMAGE     = 'mcr.microsoft.com/windows/servercore'
                         WINDOWS_BASE_IMAGE_TAG = 'ltsc2016'
                     }
@@ -719,26 +788,46 @@ pipeline {
                                 powershell '''
                                 $ErrorActionPreference = 'Stop'
                                 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                                Invoke-WebRequest https://github.com/jhowardmsft/docker-ci-zap/blob/master/docker-ci-zap.exe?raw=true -OutFile C:/Windows/System32/docker-ci-zap.exe
+                                Invoke-WebRequest https://github.com/moby/docker-ci-zap/blob/master/docker-ci-zap.exe?raw=true -OutFile C:/Windows/System32/docker-ci-zap.exe
                                 ./hack/ci/windows.ps1
                                 exit $LastExitCode
                                 '''
                             }
                         }
                     }
+                    post {
+                        always {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Failed to create bundles.tar.gz') {
+                                powershell '''
+                                $bundleName="windowsRS1-integration"
+                                Write-Host -ForegroundColor Green "Creating ${bundleName}-bundles.zip"
+
+                                # archiveArtifacts does not support env-vars to , so save the artifacts in a fixed location
+                                Compress-Archive -Path "${env:TEMP}/CIDUT.out", "${env:TEMP}/CIDUT.err" -CompressionLevel Optimal -DestinationPath "${bundleName}-bundles.zip"
+                                '''
+
+                                archiveArtifacts artifacts: '*-bundles.zip', allowEmptyArchive: true
+                            }
+                        }
+                        cleanup {
+                            sh 'make clean'
+                            deleteDir()
+                        }
+                    }
                 }
-                stage('windowsRS5-process') {
+                stage('win-RS5') {
                     when {
                         beforeAgent true
                         expression { params.windowsRS5 }
                     }
                     environment {
                         DOCKER_BUILDKIT        = '0'
+                        DOCKER_DUT_DEBUG       = '1'
                         SKIP_VALIDATION_TESTS  = '1'
                         SOURCES_DRIVE          = 'd'
                         SOURCES_SUBDIR         = 'gopath'
                         TESTRUN_DRIVE          = 'd'
-                        TESTRUN_SUBDIR         = "CI-$BUILD_NUMBER"
+                        TESTRUN_SUBDIR         = "CI"
                         WINDOWS_BASE_IMAGE     = 'mcr.microsoft.com/windows/servercore'
                         WINDOWS_BASE_IMAGE_TAG = 'ltsc2019'
                     }
@@ -759,11 +848,30 @@ pipeline {
                             steps {
                                 powershell '''
                                 $ErrorActionPreference = 'Stop'
-                                Invoke-WebRequest https://github.com/jhowardmsft/docker-ci-zap/blob/master/docker-ci-zap.exe?raw=true -OutFile C:/Windows/System32/docker-ci-zap.exe
+                                Invoke-WebRequest https://github.com/moby/docker-ci-zap/blob/master/docker-ci-zap.exe?raw=true -OutFile C:/Windows/System32/docker-ci-zap.exe
                                 ./hack/ci/windows.ps1
                                 exit $LastExitCode
                                 '''
                             }
+                        }
+                    }
+                    post {
+                        always {
+                            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Failed to create bundles.tar.gz') {
+                                powershell '''
+                                $bundleName="windowsRS5-integration"
+                                Write-Host -ForegroundColor Green "Creating ${bundleName}-bundles.zip"
+
+                                # archiveArtifacts does not support env-vars to , so save the artifacts in a fixed location
+                                Compress-Archive -Path "${env:TEMP}/CIDUT.out", "${env:TEMP}/CIDUT.err" -CompressionLevel Optimal -DestinationPath "${bundleName}-bundles.zip"
+                                '''
+
+                                archiveArtifacts artifacts: '*-bundles.zip', allowEmptyArchive: true
+                            }
+                        }
+                        cleanup {
+                            sh 'make clean'
+                            deleteDir()
                         }
                     }
                 }
