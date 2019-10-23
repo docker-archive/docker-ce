@@ -100,8 +100,8 @@ To build Moby, run:
 Copy out the resulting Windows Moby Engine binary to `dockerd.exe` in the
 current directory:
 
-    docker cp binaries:C:\go\src\github.com\docker\docker\bundles\docker.exe docker.exe
-    docker cp binaries:C:\go\src\github.com\docker\docker\bundles\dockerd.exe dockerd.exe
+    docker cp binaries:C:\gopath\src\github.com\docker\docker\bundles\docker.exe docker.exe
+    docker cp binaries:C:\gopath\src\github.com\docker\docker\bundles\dockerd.exe dockerd.exe
 
 To test it, stop the system Docker daemon and start the one you just built:
 
@@ -109,7 +109,7 @@ To test it, stop the system Docker daemon and start the one you just built:
     .\dockerd.exe -D
 
 The other make targets work too, to run unit tests try:
-`docker run --rm docker-builder sh -c 'cd /c/go/src/github.com/docker/docker; hack/make.sh test-unit'`.
+`docker run --rm docker-builder sh -c 'cd /c/gopath/src/github.com/docker/docker; hack/make.sh test-unit'`.
 
 ### 6. Remove the interim binaries container
 
@@ -169,7 +169,7 @@ quit due to the use of console hooks which are not available.
 The docker integration tests do not currently run in a container on Windows,
 predominantly due to Windows not supporting privileged mode, so anything using a volume would fail.
 They (along with the rest of the docker CI suite) can be run using
-https://github.com/jhowardmsft/docker-w2wCIScripts/blob/master/runCI/Invoke-DockerCI.ps1.
+https://github.com/kevpar/docker-w2wCIScripts/blob/master/runCI/Invoke-DockerCI.ps1.
 
 ## Where to go next
 

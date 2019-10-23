@@ -45,8 +45,8 @@
 #
 # 1. Clone the sources from github.com:
 #
-#    >>   git clone https://github.com/docker/docker.git C:\go\src\github.com\docker\docker
-#    >>   Cloning into 'C:\go\src\github.com\docker\docker'...
+#    >>   git clone https://github.com/docker/docker.git C:\gopath\src\github.com\docker\docker
+#    >>   Cloning into 'C:\gopath\src\github.com\docker\docker'...
 #    >>   remote: Counting objects: 186216, done.
 #    >>   remote: Compressing objects: 100% (21/21), done.
 #    >>   remote: Total 186216 (delta 5), reused 0 (delta 0), pack-reused 186195
@@ -59,7 +59,7 @@
 #
 # 2. Change directory to the cloned docker sources:
 #
-#    >>   cd C:\go\src\github.com\docker\docker 
+#    >>   cd C:\gopath\src\github.com\docker\docker 
 #
 #
 # 3. Build a docker image with the components required to build the docker binaries from source
@@ -79,8 +79,8 @@
 # 5. Copy the binaries out of the container, replacing HostPath with an appropriate destination 
 #    folder on the host system where you want the binaries to be located.
 #
-#    >>   docker cp binaries:C:\go\src\github.com\docker\docker\bundles\docker.exe C:\HostPath\docker.exe
-#    >>   docker cp binaries:C:\go\src\github.com\docker\docker\bundles\dockerd.exe C:\HostPath\dockerd.exe
+#    >>   docker cp binaries:C:\gopath\src\github.com\docker\docker\bundles\docker.exe C:\HostPath\docker.exe
+#    >>   docker cp binaries:C:\gopath\src\github.com\docker\docker\bundles\dockerd.exe C:\HostPath\dockerd.exe
 #
 #
 # 6. (Optional) Remove the interim container holding the built executable binaries:
@@ -147,12 +147,19 @@
 # The docker integration tests do not currently run in a container on Windows, predominantly
 # due to Windows not supporting privileged mode, so anything using a volume would fail.
 # They (along with the rest of the docker CI suite) can be run using 
-# https://github.com/jhowardmsft/docker-w2wCIScripts/blob/master/runCI/Invoke-DockerCI.ps1.
+# https://github.com/kevpar/docker-w2wCIScripts/blob/master/runCI/Invoke-DockerCI.ps1.
 #
 # -----------------------------------------------------------------------------------------
 
 
 # The number of build steps below are explicitly minimised to improve performance.
+
+# Extremely important - do not change the following line to reference a "specific" image, 
+# such as `mcr.microsoft.com/windows/servercore:ltsc2019`. If using this Dockerfile in process
+# isolated containers, the kernel of the host must match the container image, and hence
+# would fail between Windows Server 2016 (aka RS1) and Windows Server 2019 (aka RS5).
+# It is expected that the image `microsoft/windowsservercore:latest` is present, and matches
+# the hosts kernel version before doing a build. 
 FROM microsoft/windowsservercore
 
 # Use PowerShell as the default shell
@@ -165,7 +172,7 @@ ARG GO_VERSION=1.12.10
 #  - FROM_DOCKERFILE is used for detection of building within a container.
 ENV GO_VERSION=${GO_VERSION} `
     GIT_VERSION=2.11.1 `
-    GOPATH=C:\go `
+    GOPATH=C:\gopath `
     FROM_DOCKERFILE=1
 
 RUN `
@@ -207,16 +214,17 @@ RUN `
   Download-File $location C:\gitsetup.zip; `
   `
   Write-Host INFO: Downloading go...; `
-  Download-File $('https://golang.org/dl/go'+$Env:GO_VERSION.TrimEnd('.0')"+'.windows-amd64.zip') C:\go.zip; `
+  $dlGoVersion=$Env:GO_VERSION -replace '\.0$',''; `
+  Download-File "https://golang.org/dl/go${dlGoVersion}.windows-amd64.zip" C:\go.zip; `
   `
   Write-Host INFO: Downloading compiler 1 of 3...; `
-  Download-File https://raw.githubusercontent.com/jhowardmsft/docker-tdmgcc/master/gcc.zip C:\gcc.zip; `
+  Download-File https://raw.githubusercontent.com/moby/docker-tdmgcc/master/gcc.zip C:\gcc.zip; `
   `
   Write-Host INFO: Downloading compiler 2 of 3...; `
-  Download-File https://raw.githubusercontent.com/jhowardmsft/docker-tdmgcc/master/runtime.zip C:\runtime.zip; `
+  Download-File https://raw.githubusercontent.com/moby/docker-tdmgcc/master/runtime.zip C:\runtime.zip; `
   `
   Write-Host INFO: Downloading compiler 3 of 3...; `
-  Download-File https://raw.githubusercontent.com/jhowardmsft/docker-tdmgcc/master/binutils.zip C:\binutils.zip; `
+  Download-File https://raw.githubusercontent.com/moby/docker-tdmgcc/master/binutils.zip C:\binutils.zip; `
   `
   Write-Host INFO: Extracting git...; `
   Expand-Archive C:\gitsetup.zip C:\git-tmp; `
@@ -241,7 +249,7 @@ RUN `
   Remove-Item C:\gitsetup.zip; `
   `
   Write-Host INFO: Creating source directory...; `
-  New-Item -ItemType Directory -Path C:\go\src\github.com\docker\docker | Out-Null; `
+  New-Item -ItemType Directory -Path ${GOPATH}\src\github.com\docker\docker | Out-Null; `
   `
   Write-Host INFO: Configuring git core.autocrlf...; `
   C:\git\cmd\git config --global core.autocrlf true; `
@@ -252,7 +260,7 @@ RUN `
 ENTRYPOINT ["powershell.exe"]
 
 # Set the working directory to the location of the sources
-WORKDIR C:\go\src\github.com\docker\docker
+WORKDIR ${GOPATH}\src\github.com\docker\docker
 
 # Copy the sources into the container
 COPY . .

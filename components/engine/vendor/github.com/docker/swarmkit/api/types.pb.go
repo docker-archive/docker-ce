@@ -594,7 +594,7 @@ var MaybeEncryptedRecord_Algorithm_name = map[int32]string{
 	2: "FERNET_AES_128_CBC",
 }
 var MaybeEncryptedRecord_Algorithm_value = map[string]int32{
-	"NONE": 0,
+	"NONE":                       0,
 	"SECRETBOX_SALSA20_POLY1305": 1,
 	"FERNET_AES_128_CBC":         2,
 }
