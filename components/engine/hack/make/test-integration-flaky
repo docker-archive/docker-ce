@@ -5,6 +5,8 @@ source hack/validate/.validate
 
 
 run_integration_flaky() {
+	echo 'FIXME: temporarily disabled flaky test check.'
+	return
 	new_tests=$(
 		validate_diff --diff-filter=ACMR --unified=0 -- 'integration/*_test.go' |
 			grep -E '^(\+func Test)(.*)(\*testing\.T\))' || true
