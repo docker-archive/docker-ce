@@ -41,7 +41,7 @@ $(MOBY_COMPONENTS):
 	chmod +x $(MOBY_COMPONENTS)
 
 .PHONY: update-components
-update-components: update-components-cli update-components-engine update-components-packaging ## udpate components using moby extra tool
+update-components: update-components-cli update-components-engine update-components-packaging ## update components using moby extra tool
 
 .PHONY: update-components-cli
 update-components-cli: $(MOBY_COMPONENTS)
