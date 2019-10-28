@@ -295,7 +295,7 @@ func (s *DockerSuite) TestBuildOnBuildCache(c *check.C) {
 
 		out, err := request.ReadBody(body)
 		assert.NilError(c, err)
-		assert.Check(c, is.Contains(string(out), "Successfully built"))
+		assert.Assert(c, is.Contains(string(out), "Successfully built"))
 		return out
 	}
 
@@ -310,7 +310,7 @@ func (s *DockerSuite) TestBuildOnBuildCache(c *check.C) {
 	out := build(dockerfile)
 
 	imageIDs := getImageIDsFromBuild(c, out)
-	assert.Check(c, is.Len(imageIDs, 2))
+	assert.Assert(c, is.Len(imageIDs, 2))
 	parentID, childID := imageIDs[0], imageIDs[1]
 
 	client := testEnv.APIClient()
@@ -454,8 +454,10 @@ COPY file /file`
 
 		out, err := request.ReadBody(body)
 		assert.NilError(c, err)
+		assert.Assert(c, is.Contains(string(out), "Successfully built"))
 
 		ids := getImageIDsFromBuild(c, out)
+		assert.Assert(c, is.Len(ids, 1))
 		return ids[len(ids)-1]
 	}
 
@@ -493,8 +495,10 @@ ADD file /file`
 
 		out, err := request.ReadBody(body)
 		assert.NilError(c, err)
+		assert.Assert(c, is.Contains(string(out), "Successfully built"))
 
 		ids := getImageIDsFromBuild(c, out)
+		assert.Assert(c, is.Len(ids, 1))
 		return ids[len(ids)-1]
 	}
 

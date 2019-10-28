@@ -83,6 +83,13 @@ func (cli *DaemonCli) start(opts *daemonOptions) (err error) {
 	if cli.Config, err = loadDaemonCliConfig(opts); err != nil {
 		return err
 	}
+
+	if err := configureDaemonLogs(cli.Config); err != nil {
+		return err
+	}
+
+	logrus.Info("Starting up")
+
 	cli.configFile = &opts.configFile
 	cli.flags = opts.flags
 
@@ -93,12 +100,6 @@ func (cli *DaemonCli) start(opts *daemonOptions) (err error) {
 	if cli.Config.Experimental {
 		logrus.Warn("Running experimental build")
 	}
-
-	logrus.SetFormatter(&logrus.TextFormatter{
-		TimestampFormat: jsonmessage.RFC3339NanoFixed,
-		DisableColors:   cli.Config.RawLogs,
-		FullTimestamp:   true,
-	})
 
 	system.InitLCOW(cli.Config.Experimental)
 
@@ -249,6 +250,7 @@ func (cli *DaemonCli) start(opts *daemonOptions) (err error) {
 		return fmt.Errorf("Shutting down due to ServeAPI error: %v", errAPI)
 	}
 
+	logrus.Info("Daemon shutdown complete")
 	return nil
 }
 
@@ -471,9 +473,6 @@ func loadDaemonCliConfig(opts *daemonOptions) (*config.Config, error) {
 		conf.TLS = true
 	}
 
-	// ensure that the log level is the one set after merging configurations
-	setLogLevel(conf.LogLevel)
-
 	return conf, nil
 }
 
@@ -669,4 +668,23 @@ func validateAuthzPlugins(requestedPlugins []string, pg plugingetter.PluginGette
 func systemContainerdRunning() bool {
 	_, err := os.Lstat(containerddefaults.DefaultAddress)
 	return err == nil
+}
+
+// configureDaemonLogs sets the logrus logging level and formatting
+func configureDaemonLogs(conf *config.Config) error {
+	if conf.LogLevel != "" {
+		lvl, err := logrus.ParseLevel(conf.LogLevel)
+		if err != nil {
+			return fmt.Errorf("unable to parse logging level: %s", conf.LogLevel)
+		}
+		logrus.SetLevel(lvl)
+	} else {
+		logrus.SetLevel(logrus.InfoLevel)
+	}
+	logrus.SetFormatter(&logrus.TextFormatter{
+		TimestampFormat: jsonmessage.RFC3339NanoFixed,
+		DisableColors:   conf.RawLogs,
+		FullTimestamp:   true,
+	})
+	return nil
 }
