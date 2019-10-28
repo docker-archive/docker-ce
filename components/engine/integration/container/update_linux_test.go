@@ -24,7 +24,7 @@ func TestUpdateMemory(t *testing.T) {
 	client := testEnv.APIClient()
 	ctx := context.Background()
 
-	cID := container.Run(t, ctx, client, func(c *container.TestContainerConfig) {
+	cID := container.Run(ctx, t, client, func(c *container.TestContainerConfig) {
 		c.HostConfig.Resources = containertypes.Resources{
 			Memory: 200 * 1024 * 1024,
 		}
@@ -70,7 +70,7 @@ func TestUpdateCPUQuota(t *testing.T) {
 	client := testEnv.APIClient()
 	ctx := context.Background()
 
-	cID := container.Run(t, ctx, client)
+	cID := container.Run(ctx, t, client)
 
 	for _, test := range []struct {
 		desc   string

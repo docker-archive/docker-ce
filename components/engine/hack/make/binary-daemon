@@ -15,8 +15,8 @@ copy_binaries() {
 	fi
 	echo "Copying nested executables into $dir"
 	for file in containerd containerd-shim ctr runc docker-init docker-proxy; do
-		cp -f `which "$file"` "$dir/"
-		if [ "$hash" == "hash" ]; then
+		cp -f "$(command -v "$file")" "$dir/"
+		if [ "$hash" = "hash" ]; then
 			hash_files "$dir/$file"
 		fi
 	done

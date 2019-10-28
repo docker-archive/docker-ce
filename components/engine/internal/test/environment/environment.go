@@ -8,9 +8,12 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/internal/test"
 	"github.com/docker/docker/internal/test/fixtures/load"
 	"github.com/pkg/errors"
+	"gotest.tools/assert"
 )
 
 // Execution contains information about the current test execution and daemon
@@ -31,13 +34,18 @@ type PlatformDefaults struct {
 }
 
 // New creates a new Execution struct
+// This is configured useing the env client (see client.FromEnv)
 func New() (*Execution, error) {
-	client, err := client.NewClientWithOpts(client.FromEnv)
+	c, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create client")
 	}
+	return FromClient(c)
+}
 
-	info, err := client.Info(context.Background())
+// FromClient creates a new Execution environment from the passed in client
+func FromClient(c *client.Client) (*Execution, error) {
+	info, err := c.Info(context.Background())
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get info from daemon")
 	}
@@ -45,7 +53,7 @@ func New() (*Execution, error) {
 	osType := getOSType(info)
 
 	return &Execution{
-		client:            client,
+		client:            c,
 		DaemonInfo:        info,
 		OSType:            osType,
 		PlatformDefaults:  getPlatformDefaults(info, osType),
@@ -152,6 +160,26 @@ func (e *Execution) APIClient() client.APIClient {
 func (e *Execution) IsUserNamespace() bool {
 	root := os.Getenv("DOCKER_REMAP_ROOT")
 	return root != ""
+}
+
+// HasExistingImage checks whether there is an image with the given reference.
+// Note that this is done by filtering and then checking whether there were any
+// results -- so ambiguous references might result in false-positives.
+func (e *Execution) HasExistingImage(t assert.TestingT, reference string) bool {
+	if ht, ok := t.(test.HelperT); ok {
+		ht.Helper()
+	}
+	client := e.APIClient()
+	filter := filters.NewArgs()
+	filter.Add("dangling", "false")
+	filter.Add("reference", reference)
+	imageList, err := client.ImageList(context.Background(), types.ImageListOptions{
+		All:     true,
+		Filters: filter,
+	})
+	assert.NilError(t, err, "failed to list images")
+
+	return len(imageList) > 0
 }
 
 // EnsureFrozenImagesLinux loads frozen test images into the daemon

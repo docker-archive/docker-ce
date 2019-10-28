@@ -1792,16 +1792,14 @@ func (s *DockerSuite) TestRunExitOnStdinClose(c *check.C) {
 func (s *DockerSuite) TestRunInteractiveWithRestartPolicy(c *check.C) {
 	name := "test-inter-restart"
 
-	result := icmd.StartCmd(icmd.Cmd{
+	result := icmd.RunCmd(icmd.Cmd{
 		Command: []string{dockerBinary, "run", "-i", "--name", name, "--restart=always", "busybox", "sh"},
 		Stdin:   bytes.NewBufferString("exit 11"),
 	})
-	assert.NilError(c, result.Error)
 	defer func() {
-		dockerCmdWithResult("stop", name).Assert(c, icmd.Success)
+		cli.Docker(cli.Args("stop", name)).Assert(c, icmd.Success)
 	}()
 
-	result = icmd.WaitOnCmd(60*time.Second, result)
 	result.Assert(c, icmd.Expected{ExitCode: 11})
 }
 
@@ -1888,7 +1886,7 @@ func (s *DockerSuite) TestRunBindMounts(c *check.C) {
 
 	if testEnv.OSType == "windows" {
 		// Disabled prior to RS5 due to how volumes are mapped
-		testRequires(c,  DaemonIsWindowsAtLeastBuild(17763))
+		testRequires(c, DaemonIsWindowsAtLeastBuild(17763))
 	}
 
 	prefix, _ := getPrefixAndSlashFromDaemonPlatform()
@@ -3430,7 +3428,7 @@ func (s *DockerSuite) TestRunLoopbackWhenNetworkDisabled(c *check.C) {
 
 func (s *DockerSuite) TestRunModeNetContainerHostname(c *check.C) {
 	// Windows does not support --net=container
-	testRequires(c, DaemonIsLinux, ExecSupport)
+	testRequires(c, DaemonIsLinux)
 
 	dockerCmd(c, "run", "-i", "-d", "--name", "parent", "busybox", "top")
 	out, _ := dockerCmd(c, "exec", "parent", "cat", "/etc/hostname")
@@ -4228,7 +4226,7 @@ func (s *DockerSuite) TestRunWindowsWithCPUPercent(c *check.C) {
 }
 
 func (s *DockerSuite) TestRunProcessIsolationWithCPUCountCPUSharesAndCPUPercent(c *check.C) {
-	testRequires(c, DaemonIsWindows, IsolationIsProcess)
+	testRequires(c, IsolationIsProcess)
 
 	out, _ := dockerCmd(c, "run", "--cpu-count=1", "--cpu-shares=1000", "--cpu-percent=80", "--name", "test", "busybox", "echo", "testing")
 	c.Assert(strings.TrimSpace(out), checker.Contains, "WARNING: Conflicting options: CPU count takes priority over CPU shares on Windows Server Containers. CPU shares discarded")
@@ -4246,7 +4244,7 @@ func (s *DockerSuite) TestRunProcessIsolationWithCPUCountCPUSharesAndCPUPercent(
 }
 
 func (s *DockerSuite) TestRunHypervIsolationWithCPUCountCPUSharesAndCPUPercent(c *check.C) {
-	testRequires(c, DaemonIsWindows, IsolationIsHyperv)
+	testRequires(c, IsolationIsHyperv)
 
 	out, _ := dockerCmd(c, "run", "--cpu-count=1", "--cpu-shares=1000", "--cpu-percent=80", "--name", "test", "busybox", "echo", "testing")
 	c.Assert(strings.TrimSpace(out), checker.Contains, "testing")

@@ -71,7 +71,7 @@ func TestDaemonDefaultNetworkPools(t *testing.T) {
 
 	// Create a bridge network and verify its subnet is the second default pool
 	name := "elango" + t.Name()
-	network.CreateNoError(t, context.Background(), c, name,
+	network.CreateNoError(context.Background(), t, c, name,
 		network.WithDriver("bridge"),
 	)
 	out, err = c.NetworkInspect(context.Background(), name, types.NetworkInspectOptions{})
@@ -80,7 +80,7 @@ func TestDaemonDefaultNetworkPools(t *testing.T) {
 
 	// Create a bridge network and verify its subnet is the third default pool
 	name = "saanvi" + t.Name()
-	network.CreateNoError(t, context.Background(), c, name,
+	network.CreateNoError(context.Background(), t, c, name,
 		network.WithDriver("bridge"),
 	)
 	out, err = c.NetworkInspect(context.Background(), name, types.NetworkInspectOptions{})
@@ -103,7 +103,7 @@ func TestDaemonRestartWithExistingNetwork(t *testing.T) {
 
 	// Create a bridge network
 	name := "elango" + t.Name()
-	network.CreateNoError(t, context.Background(), c, name,
+	network.CreateNoError(context.Background(), t, c, name,
 		network.WithDriver("bridge"),
 	)
 
@@ -136,7 +136,7 @@ func TestDaemonRestartWithExistingNetworkWithDefaultPoolRange(t *testing.T) {
 
 	// Create a bridge network
 	name := "elango" + t.Name()
-	network.CreateNoError(t, context.Background(), c, name,
+	network.CreateNoError(context.Background(), t, c, name,
 		network.WithDriver("bridge"),
 	)
 
@@ -147,7 +147,7 @@ func TestDaemonRestartWithExistingNetworkWithDefaultPoolRange(t *testing.T) {
 
 	// Create a bridge network
 	name = "sthira" + t.Name()
-	network.CreateNoError(t, context.Background(), c, name,
+	network.CreateNoError(context.Background(), t, c, name,
 		network.WithDriver("bridge"),
 	)
 	out, err = c.NetworkInspect(context.Background(), name, types.NetworkInspectOptions{})
@@ -162,7 +162,7 @@ func TestDaemonRestartWithExistingNetworkWithDefaultPoolRange(t *testing.T) {
 
 	// Create a bridge network
 	name = "saanvi" + t.Name()
-	network.CreateNoError(t, context.Background(), c, name,
+	network.CreateNoError(context.Background(), t, c, name,
 		network.WithDriver("bridge"),
 	)
 	out1, err := c.NetworkInspect(context.Background(), name, types.NetworkInspectOptions{})
@@ -215,7 +215,7 @@ func TestServiceWithPredefinedNetwork(t *testing.T) {
 		swarm.ServiceWithNetwork(hostName),
 	)
 
-	poll.WaitOn(t, serviceRunningCount(c, serviceID, instances), swarm.ServicePoll)
+	poll.WaitOn(t, swarm.RunningTasksCount(c, serviceID, instances), swarm.ServicePoll)
 
 	_, _, err := c.ServiceInspectWithRaw(context.Background(), serviceID, types.ServiceInspectOptions{})
 	assert.NilError(t, err)
@@ -254,7 +254,7 @@ func TestServiceRemoveKeepsIngressNetwork(t *testing.T) {
 		}),
 	)
 
-	poll.WaitOn(t, serviceRunningCount(c, serviceID, instances), swarm.ServicePoll)
+	poll.WaitOn(t, swarm.RunningTasksCount(c, serviceID, instances), swarm.ServicePoll)
 
 	ctx := context.Background()
 	_, _, err := c.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
@@ -277,20 +277,6 @@ func TestServiceRemoveKeepsIngressNetwork(t *testing.T) {
 	assert.Assert(t, len(netInfo.Peers) != 0, "No peers (including self) in ingress network")
 	_, ok := netInfo.Containers["ingress-sbox"]
 	assert.Assert(t, ok, "ingress-sbox not present in ingress network")
-}
-
-func serviceRunningCount(client client.ServiceAPIClient, serviceID string, instances uint64) func(log poll.LogT) poll.Result {
-	return func(log poll.LogT) poll.Result {
-		services, err := client.ServiceList(context.Background(), types.ServiceListOptions{})
-		if err != nil {
-			return poll.Error(err)
-		}
-
-		if len(services) != int(instances) {
-			return poll.Continue("Service count at %d waiting for %d", len(services), instances)
-		}
-		return poll.Success()
-	}
 }
 
 func swarmIngressReady(client client.NetworkAPIClient) func(log poll.LogT) poll.Result {
@@ -332,19 +318,20 @@ func noServices(ctx context.Context, client client.ServiceAPIClient) func(log po
 func TestServiceWithDefaultAddressPoolInit(t *testing.T) {
 	skip.If(t, testEnv.OSType == "windows")
 	defer setupTest(t)()
-	var ops = []func(*daemon.Daemon){}
-	ipAddr := []string{"20.20.0.0/16"}
-	ops = append(ops, daemon.WithSwarmDefaultAddrPool(ipAddr))
-	ops = append(ops, daemon.WithSwarmDefaultAddrPoolSubnetSize(24))
-	d := swarm.NewSwarm(t, testEnv, ops...)
-
+	d := swarm.NewSwarm(t, testEnv,
+		daemon.WithSwarmDefaultAddrPool([]string{"20.20.0.0/16"}),
+		daemon.WithSwarmDefaultAddrPoolSubnetSize(24))
+	defer d.Stop(t)
 	cli := d.NewClientT(t)
 	defer cli.Close()
+	ctx := context.Background()
 
 	// Create a overlay network
-	name := "saanvisthira" + t.Name()
-	network.CreateNoError(t, context.Background(), cli, name,
-		network.WithDriver("overlay"))
+	name := "sthira" + t.Name()
+	overlayID := network.CreateNoError(ctx, t, cli, name,
+		network.WithDriver("overlay"),
+		network.WithCheckDuplicate(),
+	)
 
 	var instances uint64 = 1
 	serviceName := "TestService" + t.Name()
@@ -354,27 +341,30 @@ func TestServiceWithDefaultAddressPoolInit(t *testing.T) {
 		swarm.ServiceWithNetwork(name),
 	)
 
-	poll.WaitOn(t, serviceRunningCount(cli, serviceID, instances), swarm.ServicePoll)
+	poll.WaitOn(t, swarm.RunningTasksCount(cli, serviceID, instances), swarm.ServicePoll)
 
-	_, _, err := cli.ServiceInspectWithRaw(context.Background(), serviceID, types.ServiceInspectOptions{})
+	_, _, err := cli.ServiceInspectWithRaw(ctx, serviceID, types.ServiceInspectOptions{})
 	assert.NilError(t, err)
 
-	out, err := cli.NetworkInspect(context.Background(), name, types.NetworkInspectOptions{})
+	out, err := cli.NetworkInspect(ctx, overlayID, types.NetworkInspectOptions{Verbose: true})
 	assert.NilError(t, err)
 	t.Logf("%s: NetworkInspect: %+v", t.Name(), out)
 	assert.Assert(t, len(out.IPAM.Config) > 0)
+	assert.Equal(t, out.IPAM.Config[0].Subnet, "20.20.1.0/24")
+
+	// Also inspect ingress network and make sure its in the same subnet
+	out, err = cli.NetworkInspect(ctx, "ingress", types.NetworkInspectOptions{Verbose: true})
+	assert.NilError(t, err)
+	assert.Assert(t, len(out.IPAM.Config) > 0)
 	assert.Equal(t, out.IPAM.Config[0].Subnet, "20.20.0.0/24")
 
-	err = cli.ServiceRemove(context.Background(), serviceID)
+	err = cli.ServiceRemove(ctx, serviceID)
+	poll.WaitOn(t, noServices(ctx, cli), swarm.ServicePoll)
+	poll.WaitOn(t, swarm.NoTasks(ctx, cli), swarm.ServicePoll)
 	assert.NilError(t, err)
-	d.SwarmLeave(t, true)
-	d.Stop(t)
+	err = cli.NetworkRemove(ctx, overlayID)
+	assert.NilError(t, err)
+	err = d.SwarmLeave(t, true)
+	assert.NilError(t, err)
 
-	// Clean up , set it back to original one to make sure other tests don't fail
-	ipAddr = []string{"10.0.0.0/8"}
-	ops = append(ops, daemon.WithSwarmDefaultAddrPool(ipAddr))
-	ops = append(ops, daemon.WithSwarmDefaultAddrPoolSubnetSize(24))
-	d = swarm.NewSwarm(t, testEnv, ops...)
-	d.SwarmLeave(t, true)
-	defer d.Stop(t)
 }

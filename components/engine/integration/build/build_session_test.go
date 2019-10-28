@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/versions"
 	dclient "github.com/docker/docker/client"
-	"github.com/docker/docker/internal/test/daemon"
 	"github.com/docker/docker/internal/test/fakecontext"
 	"github.com/docker/docker/internal/test/request"
 	"github.com/moby/buildkit/session"
@@ -21,13 +21,10 @@ import (
 )
 
 func TestBuildWithSession(t *testing.T) {
-	skip.If(t, testEnv.IsRemoteDaemon, "cannot run daemon when remote daemon")
 	skip.If(t, testEnv.DaemonInfo.OSType == "windows")
-	d := daemon.New(t, daemon.WithExperimental)
-	d.StartWithBusybox(t)
-	defer d.Stop(t)
+	skip.If(t, versions.LessThan(testEnv.DaemonAPIVersion(), "1.39"), "experimental in older versions")
 
-	client := d.NewClientT(t)
+	client := testEnv.APIClient()
 
 	dockerfile := `
 		FROM busybox
