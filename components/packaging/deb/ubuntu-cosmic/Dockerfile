@@ -1,6 +1,9 @@
 ARG GO_IMAGE
-ARG BUILD_IMAGE=ubuntu:cosmic
-FROM ${GO_IMAGE} as golang
+ARG DISTRO=ubuntu
+ARG SUITE=cosmic
+ARG BUILD_IMAGE=${DISTRO}:${SUITE}
+
+FROM ${GO_IMAGE} AS golang
 
 FROM ${BUILD_IMAGE}
 
@@ -24,9 +27,10 @@ COPY ${COMMON_FILES} /root/build-deb/debian
 RUN mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" -i /root/build-deb/debian/control
 
 COPY sources/ /sources
-
-ENV DISTRO ubuntu
-ENV SUITE cosmic
+ARG DISTRO
+ARG SUITE
+ENV DISTRO=${DISTRO}
+ENV SUITE=${SUITE}
 
 COPY --from=golang /usr/local/go /usr/local/go
 
