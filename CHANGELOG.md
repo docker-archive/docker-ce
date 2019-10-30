@@ -3,6 +3,18 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.5 (2019-11-12)
+
+### Builder
+
++ builder-next: Added `entitlements` in builder config. [docker/engine#412](https://github.com/docker/engine/pull/412)
+
+### Runtime
+
+* Update to RootlessKit to v0.7.0 to harden slirp4netns with mount namespace and seccomp. [docker/engine#397](https://github.com/docker/engine/pull/397)
+- Fix to propagate GetContainer error from event processor. [docker/engine#407](https://github.com/docker/engine/pull/407)
+- Fix push of OCI image. [docker/engine#405](https://github.com/docker/engine/pull/405)
+
 ## 19.03.4 (2019-10-17)
 
 ### Networking
