@@ -13,6 +13,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 
 ### Runtime
 
+* Bump Golang to 1.12.12. [docker/engine#418](https://github.com/docker/engine/pull/418)
 * Update to RootlessKit to v0.7.0 to harden slirp4netns with mount namespace and seccomp. [docker/engine#397](https://github.com/docker/engine/pull/397)
 - Fix to propagate GetContainer error from event processor. [docker/engine#407](https://github.com/docker/engine/pull/407)
 - Fix push of OCI image. [docker/engine#405](https://github.com/docker/engine/pull/405)
