@@ -3,13 +3,14 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.5 (2019-11-12)
+## 19.03.5 (2019-11-13)
 
 ### Builder
 
 + builder-next: Added `entitlements` in builder config. [docker/engine#412](https://github.com/docker/engine/pull/412)
 - Fix builder-next: permission errors on using build secrets or ssh forwarding with userns-remap. [docker/engine#420](https://github.com/docker/engine/pull/420)
 - Fix builder-next: copying a symlink inside an already copied directory. [docker/engine#420](https://github.com/docker/engine/pull/420)
+- Fix builder-next: fatal error: concurrent map writes. [docker/engine#422](https://github.com/docker/engine/pull/422)
 
 ### Runtime
 
