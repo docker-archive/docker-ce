@@ -15,13 +15,8 @@ help: ## show make targets
 clean-engine:
 	rm -rf $(ENGINE_DIR)
 
-.PHONY: clean-image
-clean-image:
-	$(MAKE) ENGINE_DIR=$(ENGINE_DIR) -C image clean
-
-
 .PHONY: clean
-clean: clean-image ## remove build artifacts
+clean: ## remove build artifacts
 	$(MAKE) -C rpm clean
 	$(MAKE) -C deb clean
 	$(MAKE) -C static clean
@@ -40,18 +35,3 @@ static: ## build static-compiled packages
 	for p in $(DOCKER_BUILD_PKGS); do \
 		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
 	done
-
-# TODO - figure out multi-arch
-.PHONY: image
-image: DOCKER_BUILD_PKGS:=image-linux
-image: ## build static-compiled packages
-	for p in $(DOCKER_BUILD_PKGS); do \
-		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
-	done
-
-engine-$(ARCH).tar:
-	$(MAKE) -C image $@
-
-.PHONY: release
-release:
-	$(MAKE) -C image $@
