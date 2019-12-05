@@ -38,7 +38,7 @@ SOURCE_FILES=engine-image cli.tgz engine.tgz docker.service docker.socket distri
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 
 DEBIAN_VERSIONS := debian-stretch debian-buster
-UBUNTU_VERSIONS := ubuntu-xenial ubuntu-bionic ubuntu-cosmic ubuntu-disco
+UBUNTU_VERSIONS := ubuntu-xenial ubuntu-bionic ubuntu-cosmic ubuntu-disco ubuntu-eoan
 RASPBIAN_VERSIONS := raspbian-stretch raspbian-buster
 DISTROS := $(DEBIAN_VERSIONS) $(UBUNTU_VERSIONS) $(RASPBIAN_VERSIONS)
 
