@@ -57,7 +57,7 @@ engine-$(ARCH).tar:
 deb: ubuntu debian raspbian ## build all deb packages
 
 .PHONY: ubuntu
-ubuntu: ubuntu-bionic ubuntu-xenial ## build all ubuntu deb packages
+ubuntu: ubuntu-bionic ubuntu-xenial ubuntu-disco ubuntu-eoan  ## build all ubuntu deb packages
 
 .PHONY: debian
 debian: debian-stretch debian-buster ## build all debian deb packages
