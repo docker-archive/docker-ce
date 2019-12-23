@@ -9,6 +9,7 @@ pipeline {
     }
     parameters {
         booleanParam(name: 'unit_validate', defaultValue: true, description: 'amd64 (x86_64) unit tests and vendor check')
+        booleanParam(name: 'validate_force', defaultValue: false, description: 'force validation steps to be run, even if no changes were detected')
         booleanParam(name: 'amd64', defaultValue: true, description: 'amd64 (x86_64) Build/Test')
         booleanParam(name: 'arm64', defaultValue: true, description: 'ARM (arm64) Build/Test')
         booleanParam(name: 's390x', defaultValue: true, description: 'IBM Z (s390x) Build/Test')
@@ -62,6 +63,12 @@ pipeline {
                         expression { params.unit_validate }
                     }
                     agent { label 'amd64 && ubuntu-1804 && overlay2' }
+                    environment {
+                        // On master ("non-pull-request"), force running some validation checks (vendor, swagger),
+                        // even if no files were changed. This allows catching problems caused by pull-requests
+                        // that were merged out-of-sequence.
+                        TEST_FORCE_VALIDATE = sh returnStdout: true, script: 'if [ "${BRANCH_NAME%%-*}" != "PR" ] || [ "${CHANGE_TARGET:-master}" != "master" ] || [ "${validate_force}" = "true" ]; then echo "1"; fi'
+                    }
 
                     stages {
                         stage("Print info") {
@@ -90,6 +97,7 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e TEST_FORCE_VALIDATE \
                                   -e VALIDATE_REPO=${GIT_URL} \
                                   -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
@@ -197,6 +205,7 @@ pipeline {
                                   -e DOCKER_EXPERIMENTAL \
                                   -e DOCKER_GITCOMMIT=${GIT_COMMIT} \
                                   -e DOCKER_GRAPHDRIVER \
+                                  -e TEST_FORCE_VALIDATE \
                                   -e VALIDATE_REPO=${GIT_URL} \
                                   -e VALIDATE_BRANCH=${CHANGE_TARGET} \
                                   docker:${GIT_COMMIT} \
@@ -928,13 +937,14 @@ pipeline {
                     }
                     post {
                         always {
+                            junit testResults: 'bundles/junit-report-*.xml', allowEmptyResults: true
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Failed to create bundles.tar.gz') {
                                 powershell '''
                                 $bundleName="windowsRS1-integration"
                                 Write-Host -ForegroundColor Green "Creating ${bundleName}-bundles.zip"
 
                                 # archiveArtifacts does not support env-vars to , so save the artifacts in a fixed location
-                                Compress-Archive -Path "${env:TEMP}/CIDUT.out", "${env:TEMP}/CIDUT.err" -CompressionLevel Optimal -DestinationPath "${bundleName}-bundles.zip"
+                                Compress-Archive -Path "${env:TEMP}/CIDUT.out", "${env:TEMP}/CIDUT.err", "${env:TEMP}/testresults/unittests/junit-report-unit-tests.xml" -CompressionLevel Optimal -DestinationPath "${bundleName}-bundles.zip"
                                 '''
 
                                 archiveArtifacts artifacts: '*-bundles.zip', allowEmptyArchive: true
@@ -988,13 +998,14 @@ pipeline {
                     }
                     post {
                         always {
+                            junit testResults: 'bundles/junit-report-*.xml', allowEmptyResults: true
                             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE', message: 'Failed to create bundles.tar.gz') {
                                 powershell '''
                                 $bundleName="windowsRS5-integration"
                                 Write-Host -ForegroundColor Green "Creating ${bundleName}-bundles.zip"
 
                                 # archiveArtifacts does not support env-vars to , so save the artifacts in a fixed location
-                                Compress-Archive -Path "${env:TEMP}/CIDUT.out", "${env:TEMP}/CIDUT.err" -CompressionLevel Optimal -DestinationPath "${bundleName}-bundles.zip"
+                                Compress-Archive -Path "${env:TEMP}/CIDUT.out", "${env:TEMP}/CIDUT.err", "${env:TEMP}/junit-report-*.xml" -CompressionLevel Optimal -DestinationPath "${bundleName}-bundles.zip"
                                 '''
 
                                 archiveArtifacts artifacts: '*-bundles.zip', allowEmptyArchive: true
