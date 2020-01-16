@@ -40,7 +40,7 @@ SOURCE_FILES=engine.tgz cli.tgz docker.service docker.socket plugin-installers.t
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 FEDORA_RELEASES := fedora-31 fedora-30 fedora-29
-CENTOS_RELEASES := centos-7
+CENTOS_RELEASES := centos-7 centos-8
 DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES)
 
 .PHONY: help
