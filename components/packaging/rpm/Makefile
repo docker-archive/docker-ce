@@ -39,7 +39,7 @@ RPMBUILD_FLAGS?=-ba\
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
-SOURCE_FILES=engine-image engine.tgz cli.tgz docker.service docker.socket plugin-installers.tgz
+SOURCE_FILES=engine.tgz cli.tgz docker.service docker.socket plugin-installers.tgz
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 FEDORA_RELEASES := fedora-31 fedora-30 fedora-29
@@ -100,18 +100,6 @@ rpmbuild/SOURCES/docker.service: ../systemd/docker.service
 rpmbuild/SOURCES/docker.socket: ../systemd/docker.socket
 	mkdir -p $(@D)
 	cp $< $@
-
-# TODO: Figure out how to decouple this
-# TODO: These might just end up being static files that are hardcoded
-# TODO: FROM HERE <=====================
-rpmbuild/SOURCES/engine-image:
-	mkdir -p $(@D)
-	echo "docker.io/dockereng/engine-community-dm:$(STATIC_VERSION)" > $@
-
-rpmbuild/SOURCES/distribution_based_engine.json: rpmbuild/SOURCES/engine-image
-	mkdir -p $(@D)
-	echo '{"platform":"Docker Engine - Community","engine_image":"engine-community-dm","containerd_min_version":"1.2.0-beta.1","runtime":"host_install"}' > $@
-# TODO: TO HERE <=====================
 
 rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -i -w /v \
