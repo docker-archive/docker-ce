@@ -34,7 +34,7 @@ RUN=docker run --rm -i \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
 
-SOURCE_FILES=engine-image cli.tgz engine.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
+SOURCE_FILES=engine-image cli.tgz engine.tgz docker.service docker.socket plugin-installers.tgz
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 
 DEBIAN_VERSIONS := debian-stretch debian-buster
