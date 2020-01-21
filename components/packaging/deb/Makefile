@@ -34,7 +34,7 @@ RUN=docker run --rm -i \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
 
-SOURCE_FILES=engine-image cli.tgz engine.tgz docker.service docker.socket plugin-installers.tgz
+SOURCE_FILES=cli.tgz engine.tgz docker.service docker.socket plugin-installers.tgz
 SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 
 DEBIAN_VERSIONS := debian-stretch debian-buster
@@ -52,7 +52,6 @@ clean: ## remove build artifacts
 	$(RM) -r debbuild
 	[ ! -d sources ] || $(CHOWN) -R $(shell id -u):$(shell id -g) sources
 	$(RM) -r sources
-	$(RM) engine-image
 
 engine-$(ARCH).tar:
 	$(MAKE) -C ../image image-linux
@@ -100,18 +99,6 @@ sources/docker.service: ../systemd/docker.service
 sources/docker.socket: ../systemd/docker.socket
 	mkdir -p $(@D)
 	cp $< $@
-
-# TODO: Figure out how to decouple this
-# TODO: These might just end up being static files that are hardcoded
-# TODO: FROM HERE <=====================
-sources/distribution_based_engine.json: sources/engine-image
-	mkdir -p $(@D)
-	echo '{"platform":"Docker Engine - Community","engine_image":"engine-community","containerd_min_version":"1.2.0-beta.1","runtime":"host_install"}' > $@
-
-sources/engine-image:
-	mkdir -p $(@D)
-	echo "docker.io/dockereng/engine-community:$(STATIC_VERSION)" > $@
-# TODO: TO HERE <=====================
 
 sources/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -i -w /v \
