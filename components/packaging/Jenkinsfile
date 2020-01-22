@@ -1,14 +1,15 @@
 #!groovy
 
 
-def genBranch(String arch) {
+def genBranch(String arch, String branch) {
 	return [
 		"${arch}": { ->
 			stage("Build engine image on ${arch}") {
-				wrappedNode(label: "linux&&${arch}", cleanWorkspace: true) {
+				wrappedNode(label: "linux && ${arch}", cleanWorkspace: true) {
 					try {
 						checkout scm
-						sh("git clone https://github.com/docker/engine.git engine")
+						sh("git clone https://github.com/docker/engine.git")
+						sh("git -C engine checkout $branch")
 						sh('make ENGINE_DIR=$(pwd)/engine image')
 					} finally {
 						sh('make ENGINE_DIR=$(pwd)/engine clean-image clean-engine')
@@ -66,7 +67,7 @@ arches = [
 ]
 
 arches.each {
-	test_steps << genBranch(it)
+	test_steps << genBranch(it, branch)
 }
 
 parallel(test_steps)
