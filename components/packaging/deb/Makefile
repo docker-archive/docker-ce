@@ -54,10 +54,6 @@ clean: ## remove build artifacts
 	[ ! -d sources ] || $(CHOWN) -R $(shell id -u):$(shell id -g) sources
 	$(RM) -r sources
 
-engine-$(ARCH).tar:
-	$(MAKE) -C ../image image-linux
-	docker save -o $@ $$(cat ../image/image-linux)
-
 .PHONY: deb
 deb: ubuntu debian ## build all deb packages except for raspbian
 
