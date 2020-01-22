@@ -54,12 +54,6 @@ help: ## show make targets
 clean: ## remove build artifacts
 	[ ! -d rpmbuild ] || $(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 	$(RM) -r rpmbuild/
-	[ ! -d artifacts ] || $(CHOWN) -R $(shell id -u):$(shell id -g) artifacts
-	$(RM) -r artifacts/
-	[ ! -d tmp ] || $(CHOWN) -R $(shell id -u):$(shell id -g) tmp
-	$(RM) -r tmp/
-	-docker rm docker2oci
-	$(MAKE) -C ../image clean
 
 .PHONY: rpm
 rpm: fedora centos ## build all rpm packages
