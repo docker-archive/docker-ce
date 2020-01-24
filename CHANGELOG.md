@@ -3,6 +3,28 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.6 (2020-01-23)
+
+### Builder
+
+- builder-next: Allow modern sign hashes for ssh forwarding. [docker/engine#453](https://github.com/docker/engine/pull/453)
+- builder-next: Clear onbuild rules after triggering. [docker/engine#453](https://github.com/docker/engine/pull/453)
+- bump hcsshim to fix docker build failing on Windows 1903. [docker/engine#429](https://github.com/docker/engine/pull/429)
+
+### Networking
+
+- Shorten controller ID in exec-root to not hit UNIX_PATH_MAX. [docker/engine#424](https://github.com/docker/engine/pull/424)
+- Fix panic in drivers/overlay/encryption.go. [docker/engine#424](https://github.com/docker/engine/pull/424)
+- Fix hwaddr set race between us and udev. [docker/engine#439](https://github.com/docker/engine/pull/439)
+
+### Runtime
+
+* Bump Golang 1.12.15. [docker/engine#452](https://github.com/docker/engine/pull/452)
+* Update containerd binary to v1.2.11. [docker/engine#428](https://github.com/docker/engine/pull/428)
+* Update to runc v1.0.0-rc9. [docker/engine#428](https://github.com/docker/engine/pull/428)
+- Fix possible runtime panic in Lgetxattr. [docker/engine#454](https://github.com/docker/engine/pull/454)
+- rootless: fix proxying UDP packets. [docker/engine#434](https://github.com/docker/engine/pull/434)
+
 ## 19.03.5 (2019-11-13)
 
 ### Builder
