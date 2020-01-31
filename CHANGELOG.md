@@ -3,13 +3,14 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.6 (2020-01-23)
+## 19.03.6 (2020-02-05)
 
 ### Builder
 
 - builder-next: Allow modern sign hashes for ssh forwarding. [docker/engine#453](https://github.com/docker/engine/pull/453)
 - builder-next: Clear onbuild rules after triggering. [docker/engine#453](https://github.com/docker/engine/pull/453)
-- bump hcsshim to fix docker build failing on Windows 1903. [docker/engine#429](https://github.com/docker/engine/pull/429)
+- builder-next: Fix issue with directory permissions when usernamespaces is enabled. [moby/moby#40440](https://github.com/moby/moby/pull/40440)
+- Bump hcsshim to fix docker build failing on Windows 1903. [docker/engine#429](https://github.com/docker/engine/pull/429)
 
 ### Networking
 
@@ -19,9 +20,9 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 
 ### Runtime
 
-* Bump Golang 1.12.15. [docker/engine#452](https://github.com/docker/engine/pull/452)
-* Update containerd binary to v1.2.11. [docker/engine#428](https://github.com/docker/engine/pull/428)
-* Update to runc v1.0.0-rc9. [docker/engine#428](https://github.com/docker/engine/pull/428)
+* Bump Golang 1.12.16. [moby/moby#40433](https://github.com/moby/moby/pull/40433)
+* Update containerd binary to v1.2.12. [moby/moby#40433](https://github.com/moby/moby/pull/40453)
+* Update to runc v1.0.0-rc10. [moby/moby#40433](https://github.com/moby/moby/pull/40453)
 - Fix possible runtime panic in Lgetxattr. [docker/engine#454](https://github.com/docker/engine/pull/454)
 - rootless: fix proxying UDP packets. [docker/engine#434](https://github.com/docker/engine/pull/434)
 
