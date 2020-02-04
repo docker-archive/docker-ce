@@ -19,8 +19,6 @@ ENV DISTRO=${DISTRO}
 ENV SUITE=${SUITE}
 RUN yum install -y rpm-build rpmlint
 COPY SPECS /root/rpmbuild/SPECS
-# Overwrite repo that was failing on aarch64
-RUN sed -i 's/altarch/centos/g' /etc/yum.repos.d/CentOS-Sources.repo
 RUN yum-builddep -y /root/rpmbuild/SPECS/*.spec
 COPY --from=golang /usr/local/go /usr/local/go
 WORKDIR /root/rpmbuild
