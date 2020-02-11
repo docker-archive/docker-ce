@@ -3,7 +3,7 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
-## 19.03.6 (2020-02-05)
+## 19.03.6 (2020-02-12)
 
 ### Builder
 
