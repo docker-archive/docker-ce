@@ -7,6 +7,7 @@ This repository is solely maintained by Docker, Inc.
 
 The scripts will build for this list of packages types:
 
+* DEB packages for Ubuntu 19.10 Eoan
 * DEB packages for Ubuntu 19.04 Disco
 * DEB packages for Ubuntu 18.10 Cosmic
 * DEB packages for Ubuntu 18.04 Bionic
