@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
 
 VERSION ?= $(shell cat engine/VERSION)
-DOCKER_GOPATH := /go/src/github.com/docker
 
 override_dh_gencontrol:
 	# if we're on Ubuntu, we need to Recommends: apparmor
