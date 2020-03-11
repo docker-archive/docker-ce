@@ -7,7 +7,7 @@ GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-DEB_VERSION=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
+GEN_DEB_VER=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 EPOCH?=5
 
 ifdef BUILD_IMAGE
@@ -29,8 +29,8 @@ RUN_FLAGS=
 RUN?=docker run --rm \
 	-e PLATFORM \
 	-e EPOCH='$(EPOCH)' \
-	-e DEB_VERSION=$(word 1, $(DEB_VERSION)) \
-	-e VERSION=$(word 2, $(DEB_VERSION)) \
+	-e DEB_VERSION=$(word 1, $(GEN_DEB_VER)) \
+	-e VERSION=$(word 2, $(GEN_DEB_VER)) \
 	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 	-v $(CURDIR)/debbuild/$@:/build \
 	$(RUN_FLAGS) \
