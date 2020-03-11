@@ -2,7 +2,6 @@
 
 REPO_DIR="$1"
 VERSION="$2"
-origVersion=$VERSION
 
 if [ -z "$REPO_DIR" ] || [ -z "$VERSION" ]; then
     # shellcheck disable=SC2016
@@ -10,10 +9,9 @@ if [ -z "$REPO_DIR" ] || [ -z "$VERSION" ]; then
     exit 1
 fi
 
-DATE_COMMAND="date"
-if [[ $(uname) == "Darwin" ]]; then
-    DATE_COMMAND="docker run --rm alpine date"
-fi
+GIT_COMMAND="git -C $REPO_DIR"
+origVersion="$VERSION"
+
 
 gen_deb_version() {
     # Adds an increment to the deb version to get proper order
@@ -47,14 +45,17 @@ case "$VERSION" in
         ;;
 esac
 
-export TZ=UTC
-
 tilde='~' # ouch Bash 4.2 vs 4.3, you keel me
-# git running in different directories, backwards compatible too
-GIT_COMMAND="git -C $REPO_DIR"
 debVersion="${debVersion//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
 # if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
 if [[ "$VERSION" == *-dev ]]; then
+    export TZ=UTC
+
+    DATE_COMMAND="date"
+    if [[ $(uname) == "Darwin" ]]; then
+        DATE_COMMAND="docker run --rm alpine date"
+    fi
+
     # based on golang's pseudo-version: https://groups.google.com/forum/#!topic/golang-dev/a5PqQuBljF4
     #
     # using a "pseudo-version" of the form v0.0.0-yyyymmddhhmmss-abcdefabcdef,
@@ -67,6 +68,7 @@ if [[ "$VERSION" == *-dev ]]; then
     gitUnix="$($GIT_COMMAND log -1 --pretty='%ct')"
     gitDate="$($DATE_COMMAND --utc --date "@$gitUnix" +'%Y%m%d%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
+    # generated version is now something like '0.0.0-20180719213702-cd5e2db'
     debVersion="0.0.0-${gitDate}-${gitCommit}"
     origVersion=$debVersion
 

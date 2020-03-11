@@ -9,11 +9,6 @@ if [ -z "$REPO_DIR" ] || [ -z "$VERSION" ]; then
     exit 1
 fi
 
-DATE_COMMAND="date"
-if [[ $(uname) == "Darwin" ]]; then
-    DATE_COMMAND="docker run --rm alpine date"
-fi
-
 GIT_COMMAND="git -C $REPO_DIR"
 origVersion="$VERSION"
 rpmVersion="$VERSION"
@@ -49,6 +44,13 @@ fi
 
 # if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
 if [[ "$rpmVersion" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; then
+    export TZ=UTC
+
+    DATE_COMMAND="date"
+    if [[ $(uname) == "Darwin" ]]; then
+        DATE_COMMAND="docker run --rm alpine date"
+    fi
+
     # based on golang's pseudo-version: https://groups.google.com/forum/#!topic/golang-dev/a5PqQuBljF4
     #
     # using a "pseudo-version" of the form v0.0.0-yyyymmddhhmmss-abcdefabcdef,
@@ -61,7 +63,7 @@ if [[ "$rpmVersion" == *-dev ]] || [ -n "$($GIT_COMMAND status --porcelain)" ]; 
     gitUnix="$($GIT_COMMAND log -1 --pretty='%ct')"
     gitDate="$($DATE_COMMAND --utc --date "@$gitUnix" +'%Y%m%d%H%M%S')"
     gitCommit="$($GIT_COMMAND log -1 --pretty='%h')"
-    # rpmVersion is now something like '0.0.0-20180719213702-cd5e2db'
+    # generated version is now something like '0.0.0-20180719213702-cd5e2db'
     rpmVersion="0.0.0-${gitDate}-${gitCommit}"
     rpmRelease="0"
     origVersion=$rpmVersion
@@ -69,4 +71,4 @@ fi
 
 # Replace any other dashes with periods
 rpmVersion="${rpmVersion//-/.}"
-echo $rpmVersion $rpmRelease $DOCKER_GITCOMMIT $origVersion
+echo "$rpmVersion $rpmRelease $DOCKER_GITCOMMIT $origVersion"
