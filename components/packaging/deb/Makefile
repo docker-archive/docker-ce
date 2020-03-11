@@ -22,15 +22,17 @@ BUILD?=DOCKER_BUILDKIT=1 \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	--build-arg COMMON_FILES=$(COMMON_FILES) \
 	-t debbuild-$@/$(ARCH) \
-	-f $(CURDIR)/$@/Dockerfile .
+	-f $@/Dockerfile \
+	.
+
 # Additional flags may be necessary at some point
 RUN_FLAGS=
-RUN=docker run --rm \
+RUN?=docker run --rm \
+	-e PLATFORM \
 	-e EPOCH='$(EPOCH)' \
 	-e DEB_VERSION=$(word 1, $(DEB_VERSION)) \
 	-e VERSION=$(word 2, $(DEB_VERSION)) \
 	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
-	-e PLATFORM \
 	-v $(CURDIR)/debbuild/$@:/build \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)

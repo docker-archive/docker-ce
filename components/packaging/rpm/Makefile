@@ -23,21 +23,22 @@ BUILD?=DOCKER_BUILDKIT=1 \
 
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
 SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
-RPMBUILD=docker run --rm \
-	-e PLATFORM \
-	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
-	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
-	-v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS
 RPMBUILD_FLAGS?=-ba\
 	--define '_gitcommit $(word 3,$(GEN_RPM_VER))' \
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	$(SPECS)
-RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
-SOURCE_FILES=engine.tgz cli.tgz docker.service docker.socket plugin-installers.tgz
-SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
+# Additional flags may be necessary at some point
+RUN_FLAGS=
+RUN?=docker run --rm \
+	-e PLATFORM \
+	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
+	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
+	-v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS \
+	$(RUN_FLAGS) \
+	rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
 FEDORA_RELEASES := fedora-31 fedora-30 fedora-29
 CENTOS_RELEASES := centos-7
