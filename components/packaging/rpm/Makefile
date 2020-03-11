@@ -23,7 +23,7 @@ BUILD?=DOCKER_BUILDKIT=1 \
 
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
 SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
-RPMBUILD=docker run --privileged --rm -i \
+RPMBUILD=docker run --privileged --rm \
 	-e PLATFORM \
 	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
 	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
@@ -70,7 +70,7 @@ $(FEDORA_RELEASES) $(CENTOS_RELEASES): $(SOURCES)
 
 rpmbuild/SOURCES/engine.tgz:
 	mkdir -p rpmbuild/SOURCES
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CURDIR)/rpmbuild/SOURCES:/v \
 		alpine \
@@ -78,7 +78,7 @@ rpmbuild/SOURCES/engine.tgz:
 
 rpmbuild/SOURCES/cli.tgz:
 	mkdir -p rpmbuild/SOURCES
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(CLI_DIR):/cli \
 		-v $(CURDIR)/rpmbuild/SOURCES:/v \
 		alpine \
@@ -93,7 +93,7 @@ rpmbuild/SOURCES/docker.socket: ../systemd/docker.socket
 	cp $< $@
 
 rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(PLUGINS_DIR):/plugins \
 		-v $(CURDIR)/rpmbuild/SOURCES:/v \
 		alpine \

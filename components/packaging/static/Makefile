@@ -80,7 +80,7 @@ cross-all-cli:
 cross-win-engine:
 	$(MAKE) -C $(ENGINE_DIR) VERSION=$(STATIC_VERSION) DOCKER_CROSSPLATFORMS=windows/amd64 cross
 
-BUILD_PLUGIN_RUN_VARS = --rm -i \
+BUILD_PLUGIN_RUN_VARS = --rm \
 	-e GOOS=$(SPOOF_GOOS) \
 	-v "$(CURDIR)/build/$(CLI_BUILD_DIR)/docker/cli-plugins":/out \
 	-v "$(CURDIR)/../plugins":/plugins:ro \

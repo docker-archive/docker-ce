@@ -25,7 +25,7 @@ BUILD?=DOCKER_BUILDKIT=1 \
 	-f $(CURDIR)/$@/Dockerfile .
 # Additional flags may be necessary at some point
 RUN_FLAGS=
-RUN=docker run --rm -i \
+RUN=docker run --rm \
 	-e EPOCH='$(EPOCH)' \
 	-e DEB_VERSION=$(word 1, $(DEB_VERSION)) \
 	-e VERSION=$(word 2, $(DEB_VERSION)) \
@@ -75,7 +75,7 @@ $(DISTROS): $(SOURCES)
 
 sources/engine.tgz:
 	mkdir -p $(@D)
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
@@ -83,7 +83,7 @@ sources/engine.tgz:
 
 sources/cli.tgz:
 	mkdir -p $(@D)
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(CLI_DIR):/cli \
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
@@ -98,7 +98,7 @@ sources/docker.socket: ../systemd/docker.socket
 	cp $< $@
 
 sources/plugin-installers.tgz: $(wildcard ../plugins/*)
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(PLUGINS_DIR):/plugins \
 		-v $(CURDIR)/sources:/v \
 		alpine \
