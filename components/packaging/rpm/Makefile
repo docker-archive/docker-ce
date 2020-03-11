@@ -41,6 +41,7 @@ SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 FEDORA_RELEASES := fedora-31 fedora-30 fedora-29
 CENTOS_RELEASES := centos-7
+DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES)
 
 .PHONY: help
 help: ## show make targets
@@ -60,8 +61,8 @@ fedora: $(FEDORA_RELEASES) ## build all fedora rpm packages
 .PHONY: centos
 centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 
-.PHONY: $(FEDORA_RELEASES) $(CENTOS_RELEASES)
-$(FEDORA_RELEASES) $(CENTOS_RELEASES): $(SOURCES)
+.PHONY: $(DISTROS)
+$(DISTROS): $(SOURCES)
 	@echo "== Building packages for $@ =="
 	$(CHOWN) -R root:root rpmbuild
 	$(BUILD)
