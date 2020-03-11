@@ -3,12 +3,12 @@ include ../common.mk
 CLI_DIR:=$(realpath $(CURDIR)/../../cli)
 ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
 PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
-GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
+GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
-GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) $(VERSION))
-CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
+CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
+GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) "$(VERSION)")
 
 DOCKERFILE=Dockerfile
 ifdef NEEDS_ARCH_SPECIFIC
