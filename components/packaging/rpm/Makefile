@@ -63,7 +63,7 @@ fedora: $(FEDORA_RELEASES) ## build all fedora rpm packages
 centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 
 .PHONY: $(DISTROS)
-$(DISTROS): $(SOURCES)
+$(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
 	$(CHOWN) -R root:root rpmbuild
 	$(BUILD)

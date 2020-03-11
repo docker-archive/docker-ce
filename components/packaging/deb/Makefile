@@ -37,9 +37,6 @@ RUN?=docker run --rm \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
 
-SOURCE_FILES=cli.tgz engine.tgz docker.service docker.socket plugin-installers.tgz
-SOURCES=$(addprefix sources/, $(SOURCE_FILES))
-
 DEBIAN_VERSIONS := debian-stretch debian-buster
 UBUNTU_VERSIONS := ubuntu-xenial ubuntu-bionic ubuntu-cosmic ubuntu-disco ubuntu-eoan
 RASPBIAN_VERSIONS := raspbian-stretch raspbian-buster
@@ -69,7 +66,7 @@ debian: $(DEBIAN_VERSIONS) ## build all debian deb packages
 raspbian: $(RASPBIAN_VERSIONS) ## build all raspbian deb packages
 
 .PHONY: $(DISTROS)
-$(DISTROS): $(SOURCES)
+$(DISTROS): sources/cli.tgz sources/engine.tgz sources/docker.service sources/docker.socket sources/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
 	$(BUILD)
 	$(RUN)
