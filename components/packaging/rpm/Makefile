@@ -1,10 +1,10 @@
 include ../common.mk
 
-CLI_DIR:=$(realpath $(CURDIR)/../../cli)
-ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
+CLI_DIR=$(realpath $(CURDIR)/../../cli)
+ENGINE_DIR=$(realpath $(CURDIR)/../../engine)
 PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
 GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
-STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
+STATIC_VERSION=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
