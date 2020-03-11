@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
-ENGINE_DIR="$1"
+REPO_DIR="$1"
 VERSION="$2"
 origVersion=$VERSION
 
-[[ $# < 2 ]] && echo 'not enough args' && exit 1
+if [ -z "$REPO_DIR" ] || [ -z "$VERSION" ]; then
+    # shellcheck disable=SC2016
+    echo 'usage: ./gen-deb-ver ${REPO_DIR} ${VERSION}'
+    exit 1
+fi
 
 DATE_COMMAND="date"
 if [[ $(uname) == "Darwin" ]]; then
@@ -47,7 +51,7 @@ export TZ=UTC
 
 tilde='~' # ouch Bash 4.2 vs 4.3, you keel me
 # git running in different directories, backwards compatible too
-GIT_COMMAND="git -C $ENGINE_DIR"
+GIT_COMMAND="git -C $REPO_DIR"
 debVersion="${debVersion//-/$tilde}" # using \~ or '~' here works in 4.3, but not 4.2; just ~ causes $HOME to be inserted, hence the $tilde
 # if we have a "-dev" suffix or have change in Git, let's make this package version more complex so it works better
 if [[ "$VERSION" == *-dev ]]; then
