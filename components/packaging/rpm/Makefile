@@ -10,10 +10,6 @@ GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) "$(VERSION)")
 
-DOCKERFILE=Dockerfile
-ifdef NEEDS_ARCH_SPECIFIC
-	DOCKERFILE=Dockerfile.$(ARCH)
-endif
 ifdef BUILD_IMAGE
 	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
 endif
@@ -22,7 +18,7 @@ BUILD?=DOCKER_BUILDKIT=1 \
 	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	-t rpmbuild-$@/$(ARCH) \
-	-f $@/$(DOCKERFILE) \
+	-f $@/Dockerfile \
 	.
 
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
