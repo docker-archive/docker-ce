@@ -99,6 +99,6 @@ sources/docker.socket: ../systemd/docker.socket
 sources/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -w /v \
 		-v $(PLUGINS_DIR):/plugins \
-		-v $(CURDIR)/sources:/v \
+		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins

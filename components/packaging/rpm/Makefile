@@ -71,18 +71,18 @@ $(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCE
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 rpmbuild/SOURCES/engine.tgz:
-	mkdir -p rpmbuild/SOURCES
+	mkdir -p $(@D)
 	docker run --rm -w /v \
 		-v $(ENGINE_DIR):/engine \
-		-v $(CURDIR)/rpmbuild/SOURCES:/v \
+		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/engine.tgz --exclude .git engine
 
 rpmbuild/SOURCES/cli.tgz:
-	mkdir -p rpmbuild/SOURCES
+	mkdir -p $(@D)
 	docker run --rm -w /v \
 		-v $(CLI_DIR):/cli \
-		-v $(CURDIR)/rpmbuild/SOURCES:/v \
+		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli
 
@@ -97,6 +97,6 @@ rpmbuild/SOURCES/docker.socket: ../systemd/docker.socket
 rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -w /v \
 		-v $(PLUGINS_DIR):/plugins \
-		-v $(CURDIR)/rpmbuild/SOURCES:/v \
+		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
