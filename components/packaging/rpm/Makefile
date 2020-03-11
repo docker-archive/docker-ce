@@ -23,7 +23,7 @@ BUILD?=DOCKER_BUILDKIT=1 \
 
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
 SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
-RPMBUILD=docker run --privileged --rm \
+RPMBUILD=docker run --rm \
 	-e PLATFORM \
 	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
 	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
