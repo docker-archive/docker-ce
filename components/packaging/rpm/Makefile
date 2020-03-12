@@ -1,19 +1,14 @@
 include ../common.mk
 
-CLI_DIR:=$(realpath $(CURDIR)/../../cli)
-ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
+CLI_DIR=$(realpath $(CURDIR)/../../cli)
+ENGINE_DIR=$(realpath $(CURDIR)/../../engine)
 PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
-GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
-STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
+GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
-GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) $(VERSION))
-CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
+CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
+GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) "$(VERSION)")
 
-DOCKERFILE=Dockerfile
-ifdef NEEDS_ARCH_SPECIFIC
-	DOCKERFILE=Dockerfile.$(ARCH)
-endif
 ifdef BUILD_IMAGE
 	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
 endif
@@ -22,29 +17,31 @@ BUILD?=DOCKER_BUILDKIT=1 \
 	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	-t rpmbuild-$@/$(ARCH) \
-	-f $@/$(DOCKERFILE) \
+	-f $@/Dockerfile \
 	.
 
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
 SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
-RPMBUILD=docker run --privileged --rm -i \
-	-e PLATFORM \
-	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
-	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
-	-v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS
 RPMBUILD_FLAGS?=-ba\
 	--define '_gitcommit $(word 3,$(GEN_RPM_VER))' \
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
 	$(SPECS)
-RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
-SOURCE_FILES=engine.tgz cli.tgz docker.service docker.socket plugin-installers.tgz
-SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
+# Additional flags may be necessary at some point
+RUN_FLAGS=
+RUN?=docker run --rm \
+	-e PLATFORM \
+	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
+	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
+	-v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS \
+	$(RUN_FLAGS) \
+	rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
 FEDORA_RELEASES := fedora-31 fedora-30 fedora-29
 CENTOS_RELEASES := centos-7
+DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES)
 
 .PHONY: help
 help: ## show make targets
@@ -64,8 +61,8 @@ fedora: $(FEDORA_RELEASES) ## build all fedora rpm packages
 .PHONY: centos
 centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 
-.PHONY: $(FEDORA_RELEASES) $(CENTOS_RELEASES)
-$(FEDORA_RELEASES) $(CENTOS_RELEASES): $(SOURCES)
+.PHONY: $(DISTROS)
+$(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
 	$(CHOWN) -R root:root rpmbuild
 	$(BUILD)
@@ -73,18 +70,18 @@ $(FEDORA_RELEASES) $(CENTOS_RELEASES): $(SOURCES)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 
 rpmbuild/SOURCES/engine.tgz:
-	mkdir -p rpmbuild/SOURCES
-	docker run --rm -i -w /v \
+	mkdir -p $(@D)
+	docker run --rm -w /v \
 		-v $(ENGINE_DIR):/engine \
-		-v $(CURDIR)/rpmbuild/SOURCES:/v \
+		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/engine.tgz --exclude .git engine
 
 rpmbuild/SOURCES/cli.tgz:
-	mkdir -p rpmbuild/SOURCES
-	docker run --rm -i -w /v \
+	mkdir -p $(@D)
+	docker run --rm -w /v \
 		-v $(CLI_DIR):/cli \
-		-v $(CURDIR)/rpmbuild/SOURCES:/v \
+		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli
 
@@ -97,8 +94,8 @@ rpmbuild/SOURCES/docker.socket: ../systemd/docker.socket
 	cp $< $@
 
 rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(PLUGINS_DIR):/plugins \
-		-v $(CURDIR)/rpmbuild/SOURCES:/v \
+		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins

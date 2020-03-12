@@ -1,8 +1,8 @@
 include common.mk
 
-CLI_DIR:=$(realpath $(CURDIR)/../cli)
-ENGINE_DIR:=$(realpath $(CURDIR)/../engine)
-STATIC_VERSION:=$(shell static/gen-static-ver $(ENGINE_DIR) $(VERSION))
+CLI_DIR=$(realpath $(CURDIR)/../cli)
+ENGINE_DIR=$(realpath $(CURDIR)/../engine)
+STATIC_VERSION=$(shell static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 
 # Taken from: https://www.cmcrossroads.com/article/printing-value-makefile-variable
 print-%  : ; @echo $($*)

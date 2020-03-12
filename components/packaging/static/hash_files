@@ -5,7 +5,7 @@
 DIR_TO_LOOK_IN=${1:-build/linux}
 
 for f in $(find "$DIR_TO_LOOK_IN" -type f); do
-    for hash_algo in md5 sha256; do
-        "${hash_algo}sum" "$f" > "$f.$hash_algo"
-    done
+	for hash_algo in md5 sha256; do
+		"${hash_algo}sum" "$f" >"$f.$hash_algo"
+	done
 done

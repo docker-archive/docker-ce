@@ -1,14 +1,13 @@
 include ../common.mk
 
-CLI_DIR:=$(realpath $(CURDIR)/../../cli)
-ENGINE_DIR:=$(realpath $(CURDIR)/../../engine)
-PLUGINS_DIR:=$(realpath $(CURDIR)/../plugins)
+CLI_DIR=$(realpath $(CURDIR)/../../cli)
+ENGINE_DIR=$(realpath $(CURDIR)/../../engine)
+PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
 GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
-STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang
-GO_IMAGE=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
-DEB_VERSION=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
+GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
+GEN_DEB_VER=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 EPOCH?=5
 
 ifdef BUILD_IMAGE
@@ -22,21 +21,20 @@ BUILD?=DOCKER_BUILDKIT=1 \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	--build-arg COMMON_FILES=$(COMMON_FILES) \
 	-t debbuild-$@/$(ARCH) \
-	-f $(CURDIR)/$@/Dockerfile .
+	-f $@/Dockerfile \
+	.
+
 # Additional flags may be necessary at some point
 RUN_FLAGS=
-RUN=docker run --rm -i \
-	-e EPOCH='$(EPOCH)' \
-	-e DEB_VERSION=$(word 1, $(DEB_VERSION)) \
-	-e VERSION=$(word 2, $(DEB_VERSION)) \
-	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
+RUN?=docker run --rm \
 	-e PLATFORM \
+	-e EPOCH='$(EPOCH)' \
+	-e DEB_VERSION=$(word 1, $(GEN_DEB_VER)) \
+	-e VERSION=$(word 2, $(GEN_DEB_VER)) \
+	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
 	-v $(CURDIR)/debbuild/$@:/build \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
-
-SOURCE_FILES=cli.tgz engine.tgz docker.service docker.socket plugin-installers.tgz
-SOURCES=$(addprefix sources/, $(SOURCE_FILES))
 
 DEBIAN_VERSIONS := debian-stretch debian-buster
 UBUNTU_VERSIONS := ubuntu-xenial ubuntu-bionic ubuntu-cosmic ubuntu-disco ubuntu-eoan
@@ -67,7 +65,7 @@ debian: $(DEBIAN_VERSIONS) ## build all debian deb packages
 raspbian: $(RASPBIAN_VERSIONS) ## build all raspbian deb packages
 
 .PHONY: $(DISTROS)
-$(DISTROS): $(SOURCES)
+$(DISTROS): sources/cli.tgz sources/engine.tgz sources/docker.service sources/docker.socket sources/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
 	$(BUILD)
 	$(RUN)
@@ -75,7 +73,7 @@ $(DISTROS): $(SOURCES)
 
 sources/engine.tgz:
 	mkdir -p $(@D)
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(ENGINE_DIR):/engine \
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
@@ -83,7 +81,7 @@ sources/engine.tgz:
 
 sources/cli.tgz:
 	mkdir -p $(@D)
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(CLI_DIR):/cli \
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
@@ -98,8 +96,8 @@ sources/docker.socket: ../systemd/docker.socket
 	cp $< $@
 
 sources/plugin-installers.tgz: $(wildcard ../plugins/*)
-	docker run --rm -i -w /v \
+	docker run --rm -w /v \
 		-v $(PLUGINS_DIR):/plugins \
-		-v $(CURDIR)/sources:/v \
+		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
