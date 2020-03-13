@@ -40,7 +40,7 @@ RUN?=docker run --rm \
 	rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
 FEDORA_RELEASES := fedora-31 fedora-30 fedora-29
-CENTOS_RELEASES := centos-7
+CENTOS_RELEASES := centos-7 centos-8
 DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES)
 
 .PHONY: help
