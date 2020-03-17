@@ -49,7 +49,7 @@ Options:
       --no-cache                Do not use cache when building the image
   -o, --output                  Output destination (format: type=local,dest=path)
       --pull                    Always attempt to pull a newer version of the image
-      --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty). 
+      --progress                Set type of progress output (only if BuildKit enabled) (auto, plain, tty).
                                 Use plain to show container output
   -q, --quiet                   Suppress the build output and print image ID on success
       --rm                      Remove intermediate containers after a successful build (default true)
@@ -431,7 +431,7 @@ $ docker build --build-arg HTTP_PROXY=http://10.20.30.2:1234 --build-arg FTP_PRO
 This flag allows you to pass the build-time variables that are
 accessed like regular environment variables in the `RUN` instruction of the
 Dockerfile. Also, these values don't persist in the intermediate or final images
-like `ENV` values do.   You must add `--build-arg` for each build argument.  
+like `ENV` values do.   You must add `--build-arg` for each build argument.
 
 Using this flag will not alter the output you see when the `ARG` lines from the
 Dockerfile are echoed during the build process.
@@ -487,7 +487,7 @@ When building a Dockerfile with multiple build stages, `--target` can be used to
 specify an intermediate build stage by name as a final stage for the resulting
 image. Commands after the target stage will be skipped.
 
-```Dockerfile
+```dockerfile
 FROM debian AS build-env
 ...
 
@@ -533,7 +533,7 @@ path):
 $ docker build --output type=local,dest=out .
 ```
 
-Use the `tar` type to export the files as a `.tar` archive: 
+Use the `tar` type to export the files as a `.tar` archive:
 
 ```bash
 $ docker build --output type=tar,dest=out.tar .
@@ -555,7 +555,7 @@ desired files to a new scratch stage with [`COPY --from`](../builder.md#copy).
 The example `Dockerfile` below uses a separate stage to collect the
 build-artifacts for exporting:
 
-```Dockerfile
+```dockerfile
 FROM golang AS build-stage
 RUN go get -u github.com/LK4D4/vndr
 
@@ -718,7 +718,7 @@ true
 
 The following is an example of docker build with `--squash` argument
 
-```Dockerfile
+```dockerfile
 FROM busybox
 RUN echo hello > /hello
 RUN echo world >> /hello
