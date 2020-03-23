@@ -93,13 +93,13 @@ engine/bundles/dynbinary-daemon/dockerd -v
 
 %install
 # install daemon binary
-install -D -p -m 0755 $(readlink -f engine/bundles/dynbinary-daemon/dockerd) $RPM_BUILD_ROOT%{_bindir}/dockerd
+install -D -p -m 0755 $(readlink -f engine/bundles/dynbinary-daemon/dockerd) ${RPM_BUILD_ROOT}%{_bindir}/dockerd
 
 # install proxy
-install -D -p -m 0755 /usr/local/bin/docker-proxy $RPM_BUILD_ROOT%{_bindir}/docker-proxy
+install -D -p -m 0755 /usr/local/bin/docker-proxy ${RPM_BUILD_ROOT}%{_bindir}/docker-proxy
 
 # install tini
-install -D -p -m 755 /usr/local/bin/docker-init $RPM_BUILD_ROOT%{_bindir}/docker-init
+install -D -p -m 755 /usr/local/bin/docker-init ${RPM_BUILD_ROOT}%{_bindir}/docker-init
 
 # install systemd scripts
 install -D -m 0644 ${RPM_SOURCE_DIR}/docker.service ${RPM_BUILD_ROOT}%{_unitdir}/docker.service

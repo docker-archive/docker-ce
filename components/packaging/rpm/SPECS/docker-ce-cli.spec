@@ -62,13 +62,13 @@ popd
 
 %install
 # install binary
-install -d $RPM_BUILD_ROOT%{_bindir}
-install -p -m 755 cli/build/docker $RPM_BUILD_ROOT%{_bindir}/docker
+install -d ${RPM_BUILD_ROOT}%{_bindir}
+install -p -m 755 cli/build/docker ${RPM_BUILD_ROOT}%{_bindir}/docker
 
 # install plugins
 pushd ${RPM_BUILD_DIR}/src/plugins
 for installer in *.installer; do
-    DESTDIR=$RPM_BUILD_ROOT \
+    DESTDIR=${RPM_BUILD_ROOT} \
         PREFIX=%{_libexecdir}/docker/cli-plugins \
         bash ${installer} install_plugin
 done
