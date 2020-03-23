@@ -83,11 +83,11 @@ install -p -m 644 cli/contrib/completion/zsh/_docker $RPM_BUILD_ROOT/usr/share/z
 install -p -m 644 cli/contrib/completion/fish/docker.fish $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d/docker.fish
 
 # install manpages
-install -d %{buildroot}%{_mandir}/man1
+install -d ${RPM_BUILD_ROOT}%{_mandir}/man1
 install -p -m 644 cli/man/man1/*.1 $RPM_BUILD_ROOT/%{_mandir}/man1
-install -d %{buildroot}%{_mandir}/man5
+install -d ${RPM_BUILD_ROOT}%{_mandir}/man5
 install -p -m 644 cli/man/man5/*.5 $RPM_BUILD_ROOT/%{_mandir}/man5
-install -d %{buildroot}%{_mandir}/man8
+install -d ${RPM_BUILD_ROOT}%{_mandir}/man8
 install -p -m 644 cli/man/man8/*.8 $RPM_BUILD_ROOT/%{_mandir}/man8
 
 mkdir -p build-docs
