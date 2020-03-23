@@ -44,13 +44,13 @@ depending on a particular stack or provider.
 %build
 mkdir -p /go/src/github.com/docker
 rm -f /go/src/github.com/docker/cli
-ln -s /root/rpmbuild/BUILD/src/cli /go/src/github.com/docker/cli
+ln -s ${RPM_BUILD_DIR}/src/cli /go/src/github.com/docker/cli
 pushd /go/src/github.com/docker/cli
 DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
 popd
 
 # Build all associated plugins
-pushd /root/rpmbuild/BUILD/src/plugins
+pushd ${RPM_BUILD_DIR}/src/plugins
 for installer in *.installer; do
     bash ${installer} build
 done
@@ -66,21 +66,21 @@ install -d $RPM_BUILD_ROOT%{_bindir}
 install -p -m 755 cli/build/docker $RPM_BUILD_ROOT%{_bindir}/docker
 
 # install plugins
-pushd /root/rpmbuild/BUILD/src/plugins
+pushd ${RPM_BUILD_DIR}/src/plugins
 for installer in *.installer; do
     DESTDIR=$RPM_BUILD_ROOT \
-        PREFIX=/usr/libexec/docker/cli-plugins \
+        PREFIX=%{_libexecdir}/docker/cli-plugins \
         bash ${installer} install_plugin
 done
 popd
 
 # add bash, zsh, and fish completions
-install -d $RPM_BUILD_ROOT/usr/share/bash-completion/completions
-install -d $RPM_BUILD_ROOT/usr/share/zsh/vendor-completions
-install -d $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d
-install -p -m 644 cli/contrib/completion/bash/docker $RPM_BUILD_ROOT/usr/share/bash-completion/completions/docker
-install -p -m 644 cli/contrib/completion/zsh/_docker $RPM_BUILD_ROOT/usr/share/zsh/vendor-completions/_docker
-install -p -m 644 cli/contrib/completion/fish/docker.fish $RPM_BUILD_ROOT/usr/share/fish/vendor_completions.d/docker.fish
+install -d ${RPM_BUILD_ROOT}%{_datadir}/bash-completion/completions
+install -d ${RPM_BUILD_ROOT}%{_datadir}/zsh/vendor-completions
+install -d ${RPM_BUILD_ROOT}%{_datadir}/fish/vendor_completions.d
+install -p -m 644 cli/contrib/completion/bash/docker ${RPM_BUILD_ROOT}%{_datadir}/bash-completion/completions/docker
+install -p -m 644 cli/contrib/completion/zsh/_docker ${RPM_BUILD_ROOT}%{_datadir}/zsh/vendor-completions/_docker
+install -p -m 644 cli/contrib/completion/fish/docker.fish ${RPM_BUILD_ROOT}%{_datadir}/fish/vendor_completions.d/docker.fish
 
 # install manpages
 install -d ${RPM_BUILD_ROOT}%{_mandir}/man1
@@ -99,10 +99,10 @@ done
 %files
 %doc build-docs/LICENSE build-docs/MAINTAINERS build-docs/NOTICE build-docs/README.md
 %{_bindir}/docker
-/usr/libexec/docker/cli-plugins/*
-/usr/share/bash-completion/completions/docker
-/usr/share/zsh/vendor-completions/_docker
-/usr/share/fish/vendor_completions.d/docker.fish
+%{_libexecdir}/docker/cli-plugins/*
+%{_datadir}/bash-completion/completions/docker
+%{_datadir}/zsh/vendor-completions/_docker
+%{_datadir}/fish/vendor_completions.d/docker.fish
 %doc
 %{_mandir}/man1/*
 %{_mandir}/man5/*

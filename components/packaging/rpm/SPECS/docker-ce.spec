@@ -79,9 +79,9 @@ depending on a particular stack or provider.
 
 export DOCKER_GITCOMMIT=%{_gitcommit}
 mkdir -p /go/src/github.com/docker
-ln -s /root/rpmbuild/BUILD/src/engine /go/src/github.com/docker/docker
+ln -s ${RPM_BUILD_DIR}/src/engine /go/src/github.com/docker/docker
 
-pushd /root/rpmbuild/BUILD/src/engine
+pushd ${RPM_BUILD_DIR}/src/engine
 for component in tini "proxy dynamic";do
     TMP_GOPATH="/go" hack/dockerfile/install/install.sh $component
 done
@@ -102,8 +102,8 @@ install -D -p -m 0755 /usr/local/bin/docker-proxy $RPM_BUILD_ROOT%{_bindir}/dock
 install -D -p -m 755 /usr/local/bin/docker-init $RPM_BUILD_ROOT%{_bindir}/docker-init
 
 # install systemd scripts
-install -D -m 0644 %{_topdir}/SOURCES/docker.service $RPM_BUILD_ROOT%{_unitdir}/docker.service
-install -D -m 0644 %{_topdir}/SOURCES/docker.socket $RPM_BUILD_ROOT%{_unitdir}/docker.socket
+install -D -m 0644 ${RPM_SOURCE_DIR}/docker.service ${RPM_BUILD_ROOT}%{_unitdir}/docker.service
+install -D -m 0644 ${RPM_SOURCE_DIR}/docker.socket ${RPM_BUILD_ROOT}%{_unitdir}/docker.socket
 
 %files
 %{_bindir}/dockerd
