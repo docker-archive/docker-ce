@@ -93,24 +93,24 @@ engine/bundles/dynbinary-daemon/dockerd -v
 
 %install
 # install daemon binary
-install -D -p -m 0755 $(readlink -f engine/bundles/dynbinary-daemon/dockerd) $RPM_BUILD_ROOT/%{_bindir}/dockerd
+install -D -p -m 0755 $(readlink -f engine/bundles/dynbinary-daemon/dockerd) $RPM_BUILD_ROOT%{_bindir}/dockerd
 
 # install proxy
-install -D -p -m 0755 /usr/local/bin/docker-proxy $RPM_BUILD_ROOT/%{_bindir}/docker-proxy
+install -D -p -m 0755 /usr/local/bin/docker-proxy $RPM_BUILD_ROOT%{_bindir}/docker-proxy
 
 # install tini
-install -D -p -m 755 /usr/local/bin/docker-init $RPM_BUILD_ROOT/%{_bindir}/docker-init
+install -D -p -m 755 /usr/local/bin/docker-init $RPM_BUILD_ROOT%{_bindir}/docker-init
 
 # install systemd scripts
-install -D -m 0644 %{_topdir}/SOURCES/docker.service $RPM_BUILD_ROOT/%{_unitdir}/docker.service
-install -D -m 0644 %{_topdir}/SOURCES/docker.socket $RPM_BUILD_ROOT/%{_unitdir}/docker.socket
+install -D -m 0644 %{_topdir}/SOURCES/docker.service $RPM_BUILD_ROOT%{_unitdir}/docker.service
+install -D -m 0644 %{_topdir}/SOURCES/docker.socket $RPM_BUILD_ROOT%{_unitdir}/docker.socket
 
 %files
-/%{_bindir}/dockerd
-/%{_bindir}/docker-proxy
-/%{_bindir}/docker-init
-/%{_unitdir}/docker.service
-/%{_unitdir}/docker.socket
+%{_bindir}/dockerd
+%{_bindir}/docker-proxy
+%{_bindir}/docker-init
+%{_unitdir}/docker.service
+%{_unitdir}/docker.socket
 
 %post
 %systemd_post docker.service

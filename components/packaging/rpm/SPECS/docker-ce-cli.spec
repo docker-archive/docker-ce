@@ -62,8 +62,8 @@ popd
 
 %install
 # install binary
-install -d $RPM_BUILD_ROOT/%{_bindir}
-install -p -m 755 cli/build/docker $RPM_BUILD_ROOT/%{_bindir}/docker
+install -d $RPM_BUILD_ROOT%{_bindir}
+install -p -m 755 cli/build/docker $RPM_BUILD_ROOT%{_bindir}/docker
 
 # install plugins
 pushd /root/rpmbuild/BUILD/src/plugins
@@ -84,11 +84,11 @@ install -p -m 644 cli/contrib/completion/fish/docker.fish $RPM_BUILD_ROOT/usr/sh
 
 # install manpages
 install -d ${RPM_BUILD_ROOT}%{_mandir}/man1
-install -p -m 644 cli/man/man1/*.1 $RPM_BUILD_ROOT/%{_mandir}/man1
+install -p -m 644 cli/man/man1/*.1 ${RPM_BUILD_ROOT}%{_mandir}/man1
 install -d ${RPM_BUILD_ROOT}%{_mandir}/man5
-install -p -m 644 cli/man/man5/*.5 $RPM_BUILD_ROOT/%{_mandir}/man5
+install -p -m 644 cli/man/man5/*.5 ${RPM_BUILD_ROOT}%{_mandir}/man5
 install -d ${RPM_BUILD_ROOT}%{_mandir}/man8
-install -p -m 644 cli/man/man8/*.8 $RPM_BUILD_ROOT/%{_mandir}/man8
+install -p -m 644 cli/man/man8/*.8 ${RPM_BUILD_ROOT}%{_mandir}/man8
 
 mkdir -p build-docs
 for cli_file in LICENSE MAINTAINERS NOTICE README.md; do
@@ -98,15 +98,15 @@ done
 # list files owned by the package here
 %files
 %doc build-docs/LICENSE build-docs/MAINTAINERS build-docs/NOTICE build-docs/README.md
-/%{_bindir}/docker
+%{_bindir}/docker
 /usr/libexec/docker/cli-plugins/*
 /usr/share/bash-completion/completions/docker
 /usr/share/zsh/vendor-completions/_docker
 /usr/share/fish/vendor_completions.d/docker.fish
 %doc
-/%{_mandir}/man1/*
-/%{_mandir}/man5/*
-/%{_mandir}/man8/*
+%{_mandir}/man1/*
+%{_mandir}/man5/*
+%{_mandir}/man8/*
 
 
 %post
