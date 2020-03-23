@@ -27,6 +27,7 @@ RPMBUILD_FLAGS?=-ba\
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
+	$(RPMBUILD_EXTRA_FLAGS) \
 	$(SPECS)
 
 # Additional flags may be necessary at some point
@@ -57,6 +58,9 @@ rpm: fedora centos ## build all rpm packages
 
 .PHONY: fedora
 fedora: $(FEDORA_RELEASES) ## build all fedora rpm packages
+
+.PHONY: centos-8
+centos-8: RPMBUILD_EXTRA_FLAGS=--define '_without_btrfs 1'
 
 .PHONY: centos
 centos: $(CENTOS_RELEASES) ## build all centos rpm packages
