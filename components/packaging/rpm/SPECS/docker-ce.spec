@@ -1,5 +1,7 @@
 %global debug_package %{nil}
 
+# BTRFS is enabled by default, but can be disabled by defining _without_btrfs
+%{!?_with_btrfs: %{!?_without_btrfs: %define _with_btrfs 1}}
 
 Name: docker-ce
 Version: %{_version}
@@ -29,7 +31,7 @@ Requires: xz
 Requires: device-mapper-libs >= 1.02.90-1
 
 BuildRequires: bash
-BuildRequires: btrfs-progs-devel
+%{?_with_btrfs:BuildRequires: btrfs-progs-devel}
 BuildRequires: ca-certificates
 BuildRequires: cmake
 BuildRequires: device-mapper-devel
@@ -79,7 +81,7 @@ export DOCKER_GITCOMMIT=%{_gitcommit}
 mkdir -p /go/src/github.com/docker
 ln -s /root/rpmbuild/BUILD/src/engine /go/src/github.com/docker/docker
 
-pushd engine
+pushd /root/rpmbuild/BUILD/src/engine
 for component in tini "proxy dynamic";do
     TMP_GOPATH="/go" hack/dockerfile/install/install.sh $component
 done
