@@ -9,12 +9,12 @@ override_dh_gencontrol:
 
 override_dh_auto_build:
 	# Build the daemon and dependencies
-	cd engine && PRODUCT=docker ./hack/make.sh dynbinary
+	cd engine && DOCKER_GITCOMMIT=$(ENGINE_GITCOMMIT) PRODUCT=docker ./hack/make.sh dynbinary
 	cd engine && TMP_GOPATH="/go" hack/dockerfile/install/install.sh tini
 	cd engine && TMP_GOPATH="/go" hack/dockerfile/install/install.sh proxy dynamic
 	# Build the CLI
 	cd /go/src/github.com/docker/cli && \
-		LDFLAGS='' DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=$(VERSION) GITCOMMIT=$(DOCKER_GITCOMMIT) dynbinary manpages
+		LDFLAGS='' DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=$(VERSION) GITCOMMIT=$(CLI_GITCOMMIT) dynbinary manpages
 	# Build the CLI plugins
 	# Make sure to set LDFLAGS="" since, dpkg-buildflags sets it to some weird values
 	set -e;cd /sources && \
