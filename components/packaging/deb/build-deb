@@ -42,7 +42,8 @@ EOF
 # The space above at the start of the line for the debMaintainer is very important
 
 # Give the script a git commit because it wants it
-export DOCKER_GITCOMMIT=${DOCKER_GITCOMMIT-$(cd cli; $GIT_COMMAND rev-parse --short HEAD)}
+export CLI_GITCOMMIT=${CLI_GITCOMMIT-$(cd cli; $GIT_COMMAND rev-parse --short HEAD)}
+export ENGINE_GITCOMMIT=${ENGINE_GITCOMMIT-$(cd engine; $GIT_COMMAND rev-parse --short HEAD)}
 
 echo VERSION BBB $VERSION
 dpkg-buildpackage -uc -us -I.git
