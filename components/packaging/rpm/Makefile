@@ -3,11 +3,12 @@ include ../common.mk
 CLI_DIR=$(realpath $(CURDIR)/../../cli)
 ENGINE_DIR=$(realpath $(CURDIR)/../../engine)
 PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
-GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) "$(VERSION)")
+CLI_GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
+ENGINE_GITCOMMIT?=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 
 ifdef BUILD_IMAGE
 	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
@@ -23,7 +24,8 @@ BUILD?=DOCKER_BUILDKIT=1 \
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
 SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
 RPMBUILD_FLAGS?=-ba\
-	--define '_gitcommit $(word 3,$(GEN_RPM_VER))' \
+	--define '_gitcommit_cli $(CLI_GITCOMMIT)' \
+	--define '_gitcommit_engine $(ENGINE_GITCOMMIT)' \
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \

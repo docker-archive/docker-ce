@@ -46,7 +46,7 @@ mkdir -p /go/src/github.com/docker
 rm -f /go/src/github.com/docker/cli
 ln -s ${RPM_BUILD_DIR}/src/cli /go/src/github.com/docker/cli
 pushd /go/src/github.com/docker/cli
-DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit} dynbinary manpages # cli
+DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=%{_origversion} GITCOMMIT=%{_gitcommit_cli} dynbinary manpages # cli
 popd
 
 # Build all associated plugins

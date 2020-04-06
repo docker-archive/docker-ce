@@ -4,6 +4,8 @@ CLI_DIR=$(realpath $(CURDIR)/../../cli)
 ENGINE_DIR=$(realpath $(CURDIR)/../../engine)
 PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
 GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
+CLI_GITCOMMIT?=$(GITCOMMIT)
+ENGINE_GITCOMMIT?=$(GITCOMMIT)
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
@@ -31,7 +33,8 @@ RUN?=docker run --rm \
 	-e EPOCH='$(EPOCH)' \
 	-e DEB_VERSION=$(word 1, $(GEN_DEB_VER)) \
 	-e VERSION=$(word 2, $(GEN_DEB_VER)) \
-	-e DOCKER_GITCOMMIT=$(GITCOMMIT) \
+	-e CLI_GITCOMMIT=$(CLI_GITCOMMIT) \
+	-e ENGINE_GITCOMMIT=$(ENGINE_GITCOMMIT) \
 	-v $(CURDIR)/debbuild/$@:/build \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
