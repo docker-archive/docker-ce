@@ -27,9 +27,6 @@ Requires: containerd.io >= 1.2.2-3
 Requires: tar
 Requires: xz
 
-# Resolves: rhbz#1165615
-Requires: device-mapper-libs >= 1.02.90-1
-
 BuildRequires: bash
 %{?_with_btrfs:BuildRequires: btrfs-progs-devel}
 BuildRequires: ca-certificates
