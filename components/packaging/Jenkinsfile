@@ -4,7 +4,7 @@ def branch = env.CHANGE_TARGET ?: env.BRANCH_NAME
 
 test_steps = [
 	'deb': { ->
-		stage('Ubuntu Xenial Debian Package') {
+		stage('Ubuntu Xenial and Focal Package') {
 			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
@@ -12,7 +12,7 @@ test_steps = [
 					sh("git -C cli checkout $branch")
 					sh('git clone https://github.com/docker/engine.git')
 					sh("git -C engine checkout $branch")
-					sh('make -C deb VERSION=0.0.1-dev ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli ubuntu-xenial')
+					sh('make -C deb VERSION=0.0.1-dev ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli ubuntu-xenial ubuntu-focal')
 				} finally {
 					sh('make ENGINE_DIR=$(pwd)/engine clean-engine')
 				}
