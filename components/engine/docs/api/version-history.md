@@ -30,6 +30,12 @@ keywords: "API, Docker, rcli, REST, documentation"
 * `POST /services/{id}/update` now accepts `Capabilities` as part of the `ContainerSpec`.
 * `GET /tasks` now  returns `Capabilities` as part of the `ContainerSpec`.
 * `GET /tasks/{id}` now  returns `Capabilities` as part of the `ContainerSpec`.
+* `GET /services` now returns `PidsLimit` as part of the `ContainerSpec`.
+* `GET /services/{id}` now returns `PidsLimit` as part of the `ContainerSpec`.
+* `POST /services/create` now accepts `PidsLimit` as part of the `ContainerSpec`.
+* `POST /services/{id}/update` now accepts `PidsLimit` as part of the `ContainerSpec`.
+* `GET /tasks` now  returns `PidsLimit` as part of the `ContainerSpec`.
+* `GET /tasks/{id}` now  returns `PidsLimit` as part of the `ContainerSpec`.
 * `POST /containers/create` on Linux now accepts the `HostConfig.CgroupnsMode` property.
   Set the property to `host` to create the container in the daemon's cgroup namespace, or
   `private` to create the container in its own private cgroup namespace.  The per-daemon
@@ -61,6 +67,8 @@ keywords: "API, Docker, rcli, REST, documentation"
   service.
 * `GET /tasks/{id}` now includes `JobIteration` on the task if spawned from a
   job-mode service.
+* `GET /containers/{id}/stats` now accepts a query param (`one-shot`) which, when used with `stream=false` fetches a
+  single set of stats instead of waiting for two collection cycles to have 2 CPU stats over a 1 second period.
 
 ## v1.40 API changes
 
