@@ -10,7 +10,7 @@ test_steps = [
 					checkout scm
 					sh('git clone https://github.com/docker/cli.git')
 					sh("git -C cli checkout $branch")
-					sh('git clone https://github.com/docker/engine.git')
+					sh('git clone https://github.com/docker/docker.git engine')
 					sh("git -C engine checkout $branch")
 					sh('make -C deb VERSION=0.0.1-dev ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli ubuntu-xenial ubuntu-focal')
 				} finally {
@@ -26,7 +26,7 @@ test_steps = [
 					checkout scm
 					sh('git clone https://github.com/docker/cli.git')
 					sh("git -C cli checkout $branch")
-					sh('git clone https://github.com/docker/engine.git')
+					sh('git clone https://github.com/docker/docker.git engine')
 					sh("git -C engine checkout $branch")
 					sh('make -C rpm VERSION=0.0.1-dev ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli centos-7')
 				} finally {
@@ -42,7 +42,7 @@ test_steps = [
 					checkout scm
 					sh('git clone https://github.com/docker/cli.git')
 					sh("git -C cli checkout $branch")
-					sh('git clone https://github.com/docker/engine.git')
+					sh('git clone https://github.com/docker/docker.git engine')
 					sh("git -C engine checkout $branch")
 					sh('make VERSION=0.0.1-dev DOCKER_BUILD_PKGS=static-linux ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli static')
 				} finally {
