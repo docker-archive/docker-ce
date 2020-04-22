@@ -6,7 +6,7 @@ PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
 GITCOMMIT=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)
 STATIC_VERSION:=$(shell ../static/gen-static-ver $(ENGINE_DIR) $(VERSION))
 GO_BASE_IMAGE=golang
-GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-stretch
+GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) $(VERSION))
 CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
 
