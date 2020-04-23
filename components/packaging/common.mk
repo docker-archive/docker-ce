@@ -5,7 +5,7 @@ DOCKER_GITCOMMIT:=abcdefg
 GO_VERSION:=1.13.10
 PLATFORM=Docker Engine - Community
 SHELL:=/bin/bash
-VERSION?=0.0.0-dev
+VERSION?=0.0.1-dev
 
 export BUILDTIME
 export DEFAULT_PRODUCT_LICENSE
