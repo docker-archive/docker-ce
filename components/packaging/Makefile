@@ -1,8 +1,6 @@
 include common.mk
 
-CLI_DIR=$(realpath $(CURDIR)/../cli)
-ENGINE_DIR=$(realpath $(CURDIR)/../engine)
-STATIC_VERSION=$(shell static/gen-static-ver $(ENGINE_DIR) $(VERSION))
+STATIC_VERSION=$(shell static/gen-static-ver $(realpath $(CURDIR)/src/github.com/docker/docker) $(VERSION))
 
 # Taken from: https://www.cmcrossroads.com/article/printing-value-makefile-variable
 print-%  : ; @echo $($*)
@@ -11,28 +9,60 @@ print-%  : ; @echo $($*)
 help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-.PHONY: clean-engine
-clean-engine:
-	[ ! -d $(ENGINE_DIR) ] || docker run --rm -v $(ENGINE_DIR):/v -w /v alpine chown -R $(shell id -u):$(shell id -g) /v
-	rm -rf $(ENGINE_DIR)
+.PHONY: clean-src
+clean-src:
+	[ ! -d src ] || $(CHOWN) -R $(shell id -u):$(shell id -g) src
+	$(RM) -r src
+
+.PHONY: src
+src: src/github.com/docker/cli src/github.com/docker/docker ## clone source
+
+ifdef CLI_DIR
+src/github.com/docker/cli:
+	mkdir -p "$(@D)"
+	cp -r "$(CLI_DIR)" $@
+else
+src/github.com/docker/cli:
+	git clone -q "$(DOCKER_CLI_REPO)" $@
+endif
+
+ifdef ENGINE_DIR
+src/github.com/docker/docker:
+	mkdir -p "$(@D)"
+	cp -r "$(ENGINE_DIR)" $@
+else
+src/github.com/docker/docker:
+	git clone -q "$(DOCKER_ENGINE_REPO)" $@
+endif
+
+.PHONY: checkout-cli
+checkout-cli: src/github.com/docker/cli
+	@git -C src/github.com/docker/cli checkout -q "$(DOCKER_CLI_REF)"
+
+.PHONY: checkout-docker
+checkout-docker: src/github.com/docker/docker
+	@git -C src/github.com/docker/docker checkout -q "$(DOCKER_ENGINE_REF)"
+
+.PHONY: checkout
+checkout: checkout-cli checkout-docker ## checkout source at the given reference(s)
 
 .PHONY: clean
-clean: ## remove build artifacts
+clean: clean-src ## remove build artifacts
 	$(MAKE) -C rpm clean
 	$(MAKE) -C deb clean
 	$(MAKE) -C static clean
 
 .PHONY: rpm
-rpm: ## build rpm packages
-	$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) rpm
+rpm: checkout ## build rpm packages
+	$(MAKE) -C $@ VERSION=$(VERSION) GO_VERSION=$(GO_VERSION) rpm
 
 .PHONY: deb
-deb: ## build deb packages
-	$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) deb
+deb: checkout ## build deb packages
+	$(MAKE) -C $@ VERSION=$(VERSION) GO_VERSION=$(GO_VERSION) deb
 
 .PHONY: static
 static: DOCKER_BUILD_PKGS:=static-linux cross-mac cross-win cross-arm
-static: ## build static-compiled packages
+static: checkout ## build static-compiled packages
 	for p in $(DOCKER_BUILD_PKGS); do \
-		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
+		$(MAKE) -C $@ VERSION=$(VERSION) GO_VERSION=$(GO_VERSION) $${p}; \
 	done

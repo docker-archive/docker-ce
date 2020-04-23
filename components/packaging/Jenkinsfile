@@ -8,13 +8,10 @@ test_steps = [
 			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
-					sh('git clone https://github.com/docker/cli.git')
-					sh("git -C cli checkout $branch")
-					sh('git clone https://github.com/docker/docker.git engine')
-					sh("git -C engine checkout $branch")
-					sh('make -C deb ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli ubuntu-xenial ubuntu-focal')
+					sh "make REF=$branch checkout"
+					sh "make -C deb ubuntu-xenial ubuntu-focal"
 				} finally {
-					sh('make ENGINE_DIR=$(pwd)/engine clean-engine')
+					sh "make clean"
 				}
 			}
 		}
@@ -24,13 +21,10 @@ test_steps = [
 			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
-					sh('git clone https://github.com/docker/cli.git')
-					sh("git -C cli checkout $branch")
-					sh('git clone https://github.com/docker/docker.git engine')
-					sh("git -C engine checkout $branch")
-					sh('make -C rpm ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli centos-7 centos-8')
+					sh "make REF=$branch checkout"
+					sh "make -C rpm centos-7 centos-8"
 				} finally {
-					sh('make ENGINE_DIR=$(pwd)/engine clean-engine')
+					sh "make clean"
 				}
 			}
 		}
@@ -40,13 +34,10 @@ test_steps = [
 			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
-					sh('git clone https://github.com/docker/cli.git')
-					sh("git -C cli checkout $branch")
-					sh('git clone https://github.com/docker/docker.git engine')
-					sh("git -C engine checkout $branch")
-					sh('make DOCKER_BUILD_PKGS=static-linux ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli static')
+					sh "make REF=$branch checkout"
+					sh "make REF=$branch DOCKER_BUILD_PKGS=static-linux static"
 				} finally {
-					sh('make ENGINE_DIR=$(pwd)/engine clean-engine')
+					sh "make clean"
 				}
 			}
 		}

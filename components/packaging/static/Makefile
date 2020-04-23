@@ -1,7 +1,7 @@
 include ../common.mk
 
-CLI_DIR=$(realpath $(CURDIR)/../../cli)
-ENGINE_DIR=$(realpath $(CURDIR)/../../engine)
+CLI_DIR=$(realpath $(CURDIR)/../src/github.com/docker/cli)
+ENGINE_DIR=$(realpath $(CURDIR)/../src/github.com/docker/docker)
 GEN_STATIC_VER=$(shell ./gen-static-ver $(CLI_DIR) $(VERSION))
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
