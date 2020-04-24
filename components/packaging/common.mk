@@ -1,5 +1,6 @@
 ARCH=$(shell uname -m)
 BUILDTIME=$(shell date -u -d "@$${SOURCE_DATE_EPOCH:-$$(date +%s)}" --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')
+CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 DEFAULT_PRODUCT_LICENSE:=Community Engine
 DOCKER_GITCOMMIT:=abcdefg
 GO_VERSION:=1.13.10

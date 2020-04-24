@@ -5,7 +5,6 @@ ENGINE_DIR=$(realpath $(CURDIR)/../../engine)
 PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
-CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) "$(VERSION)")
 CLI_GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
 ENGINE_GITCOMMIT?=$(shell cd $(ENGINE_DIR) && git rev-parse --short HEAD)

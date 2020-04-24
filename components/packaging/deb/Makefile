@@ -8,7 +8,6 @@ CLI_GITCOMMIT?=$(GITCOMMIT)
 ENGINE_GITCOMMIT?=$(GITCOMMIT)
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
-CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 GEN_DEB_VER=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
 EPOCH?=5
 
