@@ -42,7 +42,8 @@ SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
 FEDORA_RELEASES := fedora-32 fedora-31 fedora-30
 CENTOS_RELEASES := centos-7 centos-8
-DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES)
+RHEL_RELEASES := rhel-7
+DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES) $(RHEL_RELEASES)
 
 .PHONY: help
 help: ## show make targets
@@ -64,6 +65,9 @@ centos-8: RPMBUILD_EXTRA_FLAGS=--define '_without_btrfs 1'
 
 .PHONY: centos
 centos: $(CENTOS_RELEASES) ## build all centos rpm packages
+
+.PHONY: rhel
+rhel: $(RHEL_RELEASES) ## build all rhel rpm packages
 
 .PHONY: $(DISTROS)
 $(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
