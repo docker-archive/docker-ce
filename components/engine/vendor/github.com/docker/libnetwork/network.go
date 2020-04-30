@@ -1088,6 +1088,10 @@ func (n *network) delete(force bool, rmLBEndpoint bool) error {
 	// Cleanup the service discovery for this network
 	c.cleanupServiceDiscovery(n.ID())
 
+	// Cleanup the load balancer. On Windows this call is required
+	// to remove remote loadbalancers in VFP.
+	c.cleanupServiceBindings(n.ID())
+
 removeFromStore:
 	// deleteFromStore performs an atomic delete operation and the
 	// network.epCnt will help prevent any possible
@@ -1325,7 +1329,7 @@ func (n *network) EndpointByID(id string) (Endpoint, error) {
 func (n *network) updateSvcRecord(ep *endpoint, localEps []*endpoint, isAdd bool) {
 	var ipv6 net.IP
 	epName := ep.Name()
-	if iface := ep.Iface(); iface.Address() != nil {
+	if iface := ep.Iface(); iface != nil && iface.Address() != nil {
 		myAliases := ep.MyAliases()
 		if iface.AddressIPv6() != nil {
 			ipv6 = iface.AddressIPv6().IP
