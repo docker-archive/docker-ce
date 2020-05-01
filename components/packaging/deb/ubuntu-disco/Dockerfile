@@ -1,6 +1,9 @@
 ARG GO_IMAGE
-ARG BUILD_IMAGE=ubuntu:disco
-FROM ${GO_IMAGE} as golang
+ARG DISTRO=ubuntu
+ARG SUITE=disco
+ARG BUILD_IMAGE=${DISTRO}:${SUITE}
+
+FROM ${GO_IMAGE} AS golang
 
 FROM ${BUILD_IMAGE}
 
@@ -12,7 +15,8 @@ RUN if  [ "$(dpkg-divert --truename /usr/bin/man)" = "/usr/bin/man.REAL" ]; then
 
 RUN apt-get update && apt-get install -y curl devscripts equivs git
 
-ARG GO_VERSION
+ENV GOPROXY=direct
+ENV GO111MODULE=off
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 ENV DOCKER_BUILDTAGS apparmor seccomp selinux
@@ -23,9 +27,10 @@ COPY ${COMMON_FILES} /root/build-deb/debian
 RUN mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" -i /root/build-deb/debian/control
 
 COPY sources/ /sources
-
-ENV DISTRO ubuntu
-ENV SUITE disco
+ARG DISTRO
+ARG SUITE
+ENV DISTRO=${DISTRO}
+ENV SUITE=${SUITE}
 
 COPY --from=golang /usr/local/go /usr/local/go
 

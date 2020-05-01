@@ -17,7 +17,8 @@ endif
 ifdef BUILD_IMAGE
 	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
 endif
-BUILD?=docker build \
+BUILD?=DOCKER_BUILDKIT=1 \
+	docker build \
 	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	-t rpmbuild-$@/$(ARCH) \
@@ -39,8 +40,11 @@ RPMBUILD_FLAGS?=-ba\
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
-SOURCE_FILES=engine-image engine.tgz cli.tgz docker.service docker.socket distribution_based_engine.json plugin-installers.tgz
+SOURCE_FILES=engine.tgz cli.tgz docker.service docker.socket plugin-installers.tgz
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
+
+FEDORA_RELEASES := fedora-31 fedora-30 fedora-29 fedora-28
+CENTOS_RELEASES := centos-7
 
 .PHONY: help
 help: ## show make targets
@@ -50,33 +54,19 @@ help: ## show make targets
 clean: ## remove build artifacts
 	[ ! -d rpmbuild ] || $(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 	$(RM) -r rpmbuild/
-	[ ! -d artifacts ] || $(CHOWN) -R $(shell id -u):$(shell id -g) artifacts
-	$(RM) -r artifacts/
-	[ ! -d tmp ] || $(CHOWN) -R $(shell id -u):$(shell id -g) tmp
-	$(RM) -r tmp/
-	-docker rm docker2oci
-	$(MAKE) -C ../image clean
 
 .PHONY: rpm
 rpm: fedora centos ## build all rpm packages
 
 .PHONY: fedora
-fedora: fedora-31 fedora-30 fedora-29 fedora-28 ## build all fedora rpm packages
+fedora: $(FEDORA_RELEASES) ## build all fedora rpm packages
 
 .PHONY: centos
-centos: centos-7 ## build all centos rpm packages
+centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 
-.PHONY: fedora-%
-fedora-%: ## build fedora rpm packages
-fedora-%: $(SOURCES)
-	$(CHOWN) -R root:root rpmbuild
-	$(BUILD)
-	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
-
-.PHONY: centos-7
-centos-7: ## build centos-7 rpm packages
-centos-7: $(SOURCES)
+.PHONY: $(FEDORA_RELEASES) $(CENTOS_RELEASES)
+$(FEDORA_RELEASES) $(CENTOS_RELEASES): $(SOURCES)
+	@echo "== Building packages for $@ =="
 	$(CHOWN) -R root:root rpmbuild
 	$(BUILD)
 	$(RUN)
@@ -105,18 +95,6 @@ rpmbuild/SOURCES/docker.service: ../systemd/docker.service
 rpmbuild/SOURCES/docker.socket: ../systemd/docker.socket
 	mkdir -p $(@D)
 	cp $< $@
-
-# TODO: Figure out how to decouple this
-# TODO: These might just end up being static files that are hardcoded
-# TODO: FROM HERE <=====================
-rpmbuild/SOURCES/engine-image:
-	mkdir -p $(@D)
-	echo "docker.io/dockereng/engine-community-dm:$(STATIC_VERSION)" > $@
-
-rpmbuild/SOURCES/distribution_based_engine.json: rpmbuild/SOURCES/engine-image
-	mkdir -p $(@D)
-	echo '{"platform":"Docker Engine - Community","engine_image":"engine-community-dm","containerd_min_version":"1.2.0-beta.1","runtime":"host_install"}' > $@
-# TODO: TO HERE <=====================
 
 rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -i -w /v \
