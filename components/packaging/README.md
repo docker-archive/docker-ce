@@ -10,7 +10,6 @@ The scripts will build for this list of packages types:
 * DEB packages for Ubuntu 20.04 Focal
 * DEB packages for Ubuntu 19.10 Eoan
 * DEB packages for Ubuntu 19.04 Disco
-* DEB packages for Ubuntu 18.10 Cosmic
 * DEB packages for Ubuntu 18.04 Bionic
 * DEB packages for Ubuntu 16.04 Xenial
 * DEB packages for Debian 10 Buster
