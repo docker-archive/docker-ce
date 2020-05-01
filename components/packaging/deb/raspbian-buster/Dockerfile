@@ -7,6 +7,7 @@ FROM ${GO_IMAGE} AS golang
 
 FROM ${BUILD_IMAGE}
 
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y curl devscripts equivs git
 
 ENV GOPROXY=direct
