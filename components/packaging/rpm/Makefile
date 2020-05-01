@@ -10,10 +10,6 @@ GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(CLI_DIR) $(VERSION))
 CHOWN=docker run --rm -i -v $(CURDIR):/v -w /v alpine chown
 
-DOCKERFILE=Dockerfile
-ifdef NEEDS_ARCH_SPECIFIC
-	DOCKERFILE=Dockerfile.$(ARCH)
-endif
 ifdef BUILD_IMAGE
 	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
 endif
@@ -22,7 +18,7 @@ BUILD?=DOCKER_BUILDKIT=1 \
 	$(BUILD_IMAGE_FLAG) \
 	--build-arg GO_IMAGE=$(GO_IMAGE) \
 	-t rpmbuild-$@/$(ARCH) \
-	-f $@/$(DOCKERFILE) \
+	-f $@/Dockerfile \
 	.
 
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
@@ -37,14 +33,17 @@ RPMBUILD_FLAGS?=-ba\
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
+	$(RPMBUILD_EXTRA_FLAGS) \
 	$(SPECS)
 RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
 SOURCE_FILES=engine.tgz cli.tgz docker.service docker.socket plugin-installers.tgz
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
-FEDORA_RELEASES := fedora-31 fedora-30 fedora-29 fedora-28
-CENTOS_RELEASES := centos-7
+FEDORA_RELEASES := fedora-32 fedora-31 fedora-30
+CENTOS_RELEASES := centos-7 centos-8
+RHEL_RELEASES := rhel-7
+DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES) $(RHEL_RELEASES)
 
 .PHONY: help
 help: ## show make targets
@@ -61,11 +60,17 @@ rpm: fedora centos ## build all rpm packages
 .PHONY: fedora
 fedora: $(FEDORA_RELEASES) ## build all fedora rpm packages
 
+.PHONY: centos-8
+centos-8: RPMBUILD_EXTRA_FLAGS=--define '_without_btrfs 1'
+
 .PHONY: centos
 centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 
-.PHONY: $(FEDORA_RELEASES) $(CENTOS_RELEASES)
-$(FEDORA_RELEASES) $(CENTOS_RELEASES): $(SOURCES)
+.PHONY: rhel
+rhel: $(RHEL_RELEASES) ## build all rhel rpm packages
+
+.PHONY: $(DISTROS)
+$(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
 	$(CHOWN) -R root:root rpmbuild
 	$(BUILD)
