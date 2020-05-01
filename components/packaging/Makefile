@@ -13,6 +13,7 @@ help: ## show make targets
 
 .PHONY: clean-engine
 clean-engine:
+	[ ! -d $(ENGINE_DIR) ] || docker run --rm -v $(ENGINE_DIR):/v -w /v alpine chown -R $(shell id -u):$(shell id -g) /v
 	rm -rf $(ENGINE_DIR)
 
 .PHONY: clean
