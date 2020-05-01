@@ -13,32 +13,22 @@ help: ## show make targets
 
 .PHONY: clean-engine
 clean-engine:
+	[ ! -d $(ENGINE_DIR) ] || docker run --rm -v $(ENGINE_DIR):/v -w /v alpine chown -R $(shell id -u):$(shell id -g) /v
 	rm -rf $(ENGINE_DIR)
 
-.PHONY: clean-image
-clean-image:
-	$(MAKE) ENGINE_DIR=$(ENGINE_DIR) -C image clean
-
-
 .PHONY: clean
-clean: clean-image ## remove build artifacts
+clean: ## remove build artifacts
 	$(MAKE) -C rpm clean
 	$(MAKE) -C deb clean
 	$(MAKE) -C static clean
 
 .PHONY: rpm
-rpm: DOCKER_BUILD_PKGS:=$(shell find rpm -type d | grep ".*-.*" | sed 's/^rpm\///')
 rpm: ## build rpm packages
-	for p in $(DOCKER_BUILD_PKGS); do \
-		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
-	done
+	$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) rpm
 
 .PHONY: deb
-deb: DOCKER_BUILD_PKGS:=$(shell find deb -type d | grep ".*-.*" | sed 's/^deb\///')
 deb: ## build deb packages
-	for p in $(DOCKER_BUILD_PKGS); do \
-		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
-	done
+	$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) deb
 
 .PHONY: static
 static: DOCKER_BUILD_PKGS:=static-linux cross-mac cross-win cross-arm
@@ -46,18 +36,3 @@ static: ## build static-compiled packages
 	for p in $(DOCKER_BUILD_PKGS); do \
 		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
 	done
-
-# TODO - figure out multi-arch
-.PHONY: image
-image: DOCKER_BUILD_PKGS:=image-linux
-image: ## build static-compiled packages
-	for p in $(DOCKER_BUILD_PKGS); do \
-		$(MAKE) -C $@ VERSION=$(VERSION) ENGINE_DIR=$(ENGINE_DIR) CLI_DIR=$(CLI_DIR) GO_VERSION=$(GO_VERSION) $${p}; \
-	done
-
-engine-$(ARCH).tar:
-	$(MAKE) -C image $@
-
-.PHONY: release
-release:
-	$(MAKE) -C image $@
