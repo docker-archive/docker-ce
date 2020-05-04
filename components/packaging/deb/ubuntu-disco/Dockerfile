@@ -13,6 +13,7 @@ RUN if  [ "$(dpkg-divert --truename /usr/bin/man)" = "/usr/bin/man.REAL" ]; then
         dpkg-divert --quiet --remove --rename /usr/bin/man; \
     fi
 
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y curl devscripts equivs git
 
 ENV GOPROXY=direct
