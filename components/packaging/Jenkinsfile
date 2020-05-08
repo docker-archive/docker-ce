@@ -20,7 +20,7 @@ test_steps = [
 		}
 	},
 	'rpm': { ->
-		stage('Centos 7 RPM Package') {
+		stage('Centos 7 and 8 RPM Packages') {
 			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
@@ -28,7 +28,7 @@ test_steps = [
 					sh("git -C cli checkout $branch")
 					sh('git clone https://github.com/docker/docker.git engine')
 					sh("git -C engine checkout $branch")
-					sh('make -C rpm VERSION=0.0.1-dev ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli centos-7')
+					sh('make -C rpm VERSION=0.0.1-dev ENGINE_DIR=$(pwd)/engine CLI_DIR=$(pwd)/cli centos-7 centos-8')
 				} finally {
 					sh('make ENGINE_DIR=$(pwd)/engine clean-engine')
 				}

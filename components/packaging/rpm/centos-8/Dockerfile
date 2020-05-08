@@ -21,6 +21,12 @@ ENV SUITE=${SUITE}
 # In aarch64 (arm64) images, the altarch repo is specified as repository, but
 # failing, so replace the URL.
 RUN if [ -f /etc/yum.repos.d/CentOS-Sources.repo ]; then sed -i 's/altarch/centos/g' /etc/yum.repos.d/CentOS-Sources.repo; fi
+
+# RHEL8 / CentOS 8 changed behavior and no longer "rpm --import" or
+# "rpmkeys --import"as part of rpm package's %post scriplet. See
+# https://forums.centos.org/viewtopic.php?f=54&t=72574, and
+# https://access.redhat.com/solutions/3720351
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 RUN yum install -y rpm-build rpmlint yum-utils
 RUN yum-config-manager --set-enabled PowerTools
 COPY SPECS /root/rpmbuild/SPECS
