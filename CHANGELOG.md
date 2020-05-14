@@ -3,6 +3,57 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.9 (2020-05-14)
+
+### Builder
+
+- buildkit: Fix concurrent map write panic when building multiple images in parallel. [moby/moby#40780](https://github.com/moby/moby/pull/40780)
+- buildkit: Fix issue preventing chowning of non-root-owned files between stages with userns. [moby/moby#40955](https://github.com/moby/moby/pull/40955)
+- Avoid creation of irrelevant temporary files on Windows. [moby/moby#40877](https://github.com/moby/moby/pull/40877)
+
+### Client
+
+- Fix panic on single-character volumes. [docker/cli#2471](https://github.com/docker/cli/pull/2471)
+- Lazy daemon feature detection to avoid long timeouts on simple commands. [docker/cli#2442](https://github.com/docker/cli/pull/2442)
+- `docker context inspect` on Windows is now faster. [docker/cli#2516](https://github.com/docker/cli/pull/2516)
+- Bump Golang 1.13.10. [docker/cli#2431](https://github.com/docker/cli/pull/2431)
+- Bump gopkg.in/yaml.v2 to v2.2.8. [docker/cli#2470](https://github.com/docker/cli/pull/2470)
+
+### Logging
+
+- Avoid situation preventing container logs to rotate due to closing a closed log file. [moby/moby#40921](https://github.com/moby/moby/pull/40921)
+
+### Networking
+
+- Fix potential panic upon restart. [moby/moby#40809](https://github.com/moby/moby/pull/40809)
+- Assign the correct network value to the default bridge Subnet field. [moby/moby#40565](https://github.com/moby/moby/pull/40565)
+
+### Runtime
+
+- Fix docker crash when creating namespaces with UID in /etc/subuid and /etc/subgid. [moby/moby#40562](https://github.com/moby/moby/pull/40562)
+- Improve ARM platform matching. [moby/moby#40758](https://github.com/moby/moby/pull/40758)
+- overlay2: show backing filesystem. [moby/moby#40652](https://github.com/moby/moby/pull/40652)
+- Update CRIU to v3.13 "Silicon Willet". [moby/moby#40850](https://github.com/moby/moby/pull/40850)
+- Only show registry v2 schema1 deprecation warning upon successful fallback, as opposed to any registry error. [moby/moby#40681](https://github.com/moby/moby/pull/40681)
+- Use `FILE_SHARE_DELETE` for log files on Windows. [moby/moby#40563](https://github.com/moby/moby/pull/40563)
+- Bump Golang 1.13.10. [moby/moby#40803](https://github.com/moby/moby/pull/40803)
+
+### Rootless
+
+- Now rootlesskit-docker-proxy returns detailed error message on exposing privileged ports. [moby/moby#40863](https://github.com/moby/moby/pull/40863)
+- Supports numeric ID in /etc/subuid and /etc/subgid. [moby/moby#40951](https://github.com/moby/moby/pull/40951)
+
+### Security
+
+- apparmor: add missing rules for userns. [moby/moby#40564](https://github.com/moby/moby/pull/40564)
+- SElinux: fix ENOTSUP errors not being detected when relabeling. [moby/moby#40946](https://github.com/moby/moby/pull/40946)
+
+### Swarm
+
+- Increase refill rate for logger to avoid hanging on `service logs`. [moby/moby#40628](https://github.com/moby/moby/pull/40628)
+- Fix issue where single swarm manager is stuck in Down state after reboot. [moby/moby#40831](https://github.com/moby/moby/pull/40831)
+- tasks.db no longer grows indefinitely. [moby/moby#40830](https://github.com/moby/moby/pull/40831)
+
 ## 19.03.8 (2020-03-10)
 
 ### Runtime
