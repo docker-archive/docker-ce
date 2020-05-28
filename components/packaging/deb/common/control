@@ -28,14 +28,13 @@ Vcs-Git: git://github.com/docker/docker.git
 Package: docker-ce
 Architecture: linux-any
 Depends: docker-ce-cli, containerd.io (>= 1.2.2-3), iptables, libseccomp2 (>= 2.3.0), ${shlibs:Depends}
-Recommends: aufs-tools [amd64],
-            ca-certificates,
-            cgroupfs-mount | cgroup-lite,
+Recommends: ca-certificates,
             git,
             pigz,
             xz-utils,
             libltdl7,
             ${apparmor:Recommends}
+Suggests: aufs-tools [amd64], cgroupfs-mount | cgroup-lite
 Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs
 Replaces: docker-engine
 Description: Docker: the open-source application container engine
