@@ -3,6 +3,28 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.10 (2020-05-29)
+
+### Client
+
+- Fix version negotiation with older engine [docker/cli#2538](https://github.com/docker/cli/pull/2538)
+- Avoid setting SSH flags through hostname [docker/cli#2560](https://github.com/docker/cli/pull/2560)
+- Fix panic when DOCKER_CLI_EXPERIMENTAL is invalid [docker/cli#2558](https://github.com/docker/cli/pull/2558)
+- Avoid potential panic on s390x by upgrading Go to 1.13.11 [docker/cli#2532](https://github.com/docker/cli/pull/2532)
+
+### Networking
+
+- Fix DNS fallback regression [moby/moby#41009](https://github.com/moby/moby/pull/41009)
+
+### Runtime
+
+- Avoid potential panic on s390x by upgrading Go to 1.13.11 [moby/moby#40978](https://github.com/moby/moby/pull/40978)
+
+### Packaging
+
+- Fix ARM builds on ARM64 [moby/moby#41027](https://github.com/moby/moby/pull/41027)
+
+
 ## 19.03.9 (2020-05-14)
 
 ### Builder
