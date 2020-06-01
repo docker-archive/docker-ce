@@ -3,6 +3,12 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.11 (2020-06-01)
+
+### Network
+
+- Disable IPv6 Router Advertisements to prevent address spoofing [CVE-2020-13401](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-13401)
+
 ## 19.03.10 (2020-05-29)
 
 ### Client
