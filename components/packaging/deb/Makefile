@@ -1,15 +1,12 @@
 include ../common.mk
 
-CLI_DIR=$(realpath $(CURDIR)/../../cli)
-ENGINE_DIR=$(realpath $(CURDIR)/../../engine)
 PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
-GITCOMMIT?=$(shell cd $(CLI_DIR) && git rev-parse --short HEAD)
-CLI_GITCOMMIT?=$(GITCOMMIT)
-ENGINE_GITCOMMIT?=$(GITCOMMIT)
+GITCOMMIT?=$(shell cd $(realpath $(CURDIR)/../src/github.com/docker/cli) && git rev-parse --short HEAD)
+CLI_GITCOMMIT?=$(shell cd $(realpath $(CURDIR)/../src/github.com/docker/cli) && git rev-parse --short HEAD)
+ENGINE_GITCOMMIT?=$(shell cd $(realpath $(CURDIR)/../src/github.com/docker/docker) && git rev-parse --short HEAD)
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
-CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
-GEN_DEB_VER=$(shell ./gen-deb-ver $(CLI_DIR) "$(VERSION)")
+GEN_DEB_VER=$(shell ./gen-deb-ver $(realpath $(CURDIR)/../src/github.com/docker/cli) "$(VERSION)")
 EPOCH?=5
 
 ifdef BUILD_IMAGE
@@ -77,7 +74,7 @@ $(DISTROS): sources/cli.tgz sources/engine.tgz sources/docker.service sources/do
 sources/engine.tgz:
 	mkdir -p $(@D)
 	docker run --rm -w /v \
-		-v $(ENGINE_DIR):/engine \
+		-v $(realpath $(CURDIR)/../src/github.com/docker/docker):/engine \
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/engine.tgz --exclude .git engine
@@ -85,7 +82,7 @@ sources/engine.tgz:
 sources/cli.tgz:
 	mkdir -p $(@D)
 	docker run --rm -w /v \
-		-v $(CLI_DIR):/cli \
+		-v $(realpath $(CURDIR)/../src/github.com/docker/cli):/cli \
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli

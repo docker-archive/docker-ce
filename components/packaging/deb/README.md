@@ -3,30 +3,37 @@
 `.deb` packages can be built from this directory with the following syntax
 
 ```shell
-make ENGINE_DIR=/path/to/engine CLI_DIR=/path/to/cli deb
+make deb
 ```
 
 Artifacts will be located in `debbuild` under the following directory structure:
 `debbuild/$distro-$distro_version/`
 
-### NOTES:
+### Building from local source
+
+Specify the location of the source repositories for the engine and cli when
+building packages
+
 * `ENGINE_DIR` -> Specifies the directory where the engine code is located, eg: `$GOPATH/src/github.com/docker/docker`
 * `CLI_DIR` -> Specifies the directory where the cli code is located, eg: `$GOPATH/src/github.com/docker/cli`
+
+```shell
+make ENGINE_DIR=/path/to/engine CLI_DIR=/path/to/cli deb
+```
 
 ## Specifying a specific distro
 
 ```shell
-make ENGINE_DIR=/path/to/engine CLI_DIR=/path/to/cli ubuntu
+make ubuntu
 ```
 
 ## Specifying a specific distro version
 ```shell
-make ENGINE_DIR=/path/to/engine CLI_DIR=/path/to/cli ubuntu-xenial
+make ubuntu-xenial
 ```
 
-## Building the latest docker-ce
+## Building the for all distros
 
 ```shell
-git clone https://github.com/docker/docker-ce.git
-make ENGINE_DIR=docker-ce/components/engine CLI_DIR=docker-ce/components/cli deb
+make deb
 ```
