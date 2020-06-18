@@ -3,6 +3,24 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.12 (2020-06-18)
+
+### Client
+
+- Fix bug preventing logout from registry when using multiple config files (e.g. Windows vs WSL2 when using Docker Desktop) [docker/cli#2592](https://github.com/docker/cli/pull/2592)
+- Fix regression preventing context metadata to be read [docker/cli#2586](https://github.com/docker/cli/pull/2586)
+- Bump Golang 1.13.12 [docker/cli#2575](https://github.com/docker/cli/pull/2575)
+
+### Networking
+
+- Fix regression preventing daemon start up in a systemd-nspawn environment [moby/moby#41124](https://github.com/moby/moby/pull/41124) [moby/libnetwork#2567](https://github.com/moby/libnetwork/pull/2567)
+- Fix the retry logic for creating overlay networks in swarm [moby/moby#41124](https://github.com/moby/moby/pull/41124) [moby/libnetwork#2565](https://github.com/moby/libnetwork/pull/2565)
+
+### Runtime
+
+- Bump Golang 1.13.12 [moby/moby#41082](https://github.com/moby/moby/pull/41082)
+
+
 ## 19.03.11 (2020-06-01)
 
 ### Network
