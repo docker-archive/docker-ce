@@ -254,6 +254,7 @@ func DefaultProfile() *types.Seccomp {
 				"renameat",
 				"renameat2",
 				"restart_syscall",
+				"rseq",
 				"rmdir",
 				"rt_sigaction",
 				"rt_sigpending",
