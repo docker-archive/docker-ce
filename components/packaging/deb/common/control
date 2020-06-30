@@ -33,6 +33,7 @@ Recommends: ca-certificates,
             pigz,
             xz-utils,
             libltdl7,
+            docker-ce-rootless-extras,
             ${apparmor:Recommends}
 Suggests: aufs-tools [amd64], cgroupfs-mount | cgroup-lite
 Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs
@@ -64,3 +65,20 @@ Description: Docker CLI: the open-source application container engine
  language, framework or packaging system. That makes them great building blocks
  for deploying and scaling web apps, databases, and backend services without
  depending on a particular stack or provider.
+
+Package: docker-ce-rootless-extras
+Architecture: linux-any
+Depends: docker-ce, ${shlibs:Depends}
+Conflicts: rootlesskit
+Replaces: rootlesskit
+Breaks: rootlesskit
+# slirp4netns (>= 0.4.0) is available in Debian since 11 and Ubuntu since 19.10
+Recommends: slirp4netns (>= 0.4.0)
+# Unlike RPM, DEB packages do not contain "Recommends: fuse-overlayfs (>= 0.7.0)" here,
+# because Debian (since 10) and Ubuntu support the kernel-mode rootless overlayfs.
+Description: Rootless support for Docker.
+  Use dockerd-rootless.sh to run the daemon.
+  Use dockerd-rootless-setuptool.sh to setup systemd for dockerd-rootless.sh .
+  This package contains RootlessKit, but does not contain VPNKit.
+  Either VPNKit or slirp4netns (>= 0.4.0) needs to be installed separately.
+Homepage: https://docs.docker.com/engine/security/rootless/
