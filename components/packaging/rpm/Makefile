@@ -18,7 +18,7 @@ BUILD?=DOCKER_BUILDKIT=1 \
 	-f $@/Dockerfile \
 	.
 
-SPEC_FILES?=docker-ce.spec docker-ce-cli.spec
+SPEC_FILES?=docker-ce.spec docker-ce-cli.spec docker-ce-rootless-extras.spec
 SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
 RPMBUILD_FLAGS?=-ba\
 	--define '_gitcommit_cli $(CLI_GITCOMMIT)' \
