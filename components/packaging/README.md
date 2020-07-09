@@ -15,5 +15,7 @@ The scripts will build for this list of packages types:
 * DEB packages for Debian 9 Stretch
 * RPM packages for Fedora 32
 * RPM packages for Fedora 31
+* RPM packages for CentOS 8
 * RPM packages for CentOS 7
+* RPM packages for Red Hat Enterprise Linux 7
 * TGZ and ZIP files with static binaries
