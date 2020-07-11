@@ -506,8 +506,14 @@ var (
 		// Donald Knuth - American computer scientist, author of "The Art of Computer Programming" and creator of the TeX typesetting system. https://en.wikipedia.org/wiki/Donald_Knuth
 		"knuth",
 
+		// Andrey Kolmogorov - greatest Soviet mathematician who made significant contributions to the mathematics of probability theory, topology, intuitionistic logic, turbulence, classical mechanics, algorithmic information theory and computational complexity. https://en.wikipedia.org/wiki/Andrey_Kolmogorov
+		"kolmogorov",
+
 		// Sophie Kowalevski - Russian mathematician responsible for important original contributions to analysis, differential equations and mechanics - https://en.wikipedia.org/wiki/Sofia_Kovalevskaya
 		"kowalevski",
+
+		// Olga Ladyzhenskaya - Russian mathematician who worked on partial differential equations, fluid dynamics, and the finite difference method for the Navier–Stokes equations. https://en.wikipedia.org/wiki/Olga_Ladyzhenskaya
+		"ladyzhenskaya",
 
 		// Marie-Jeanne de Lalande - French astronomer, mathematician and cataloguer of stars - https://en.wikipedia.org/wiki/Marie-Jeanne_de_Lalande
 		"lalande",
