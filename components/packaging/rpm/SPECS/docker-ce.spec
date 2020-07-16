@@ -18,6 +18,7 @@ Vendor: Docker
 Packager: Docker <support@docker.com>
 
 Requires: docker-ce-cli
+Requires: docker-ce-rootless-extras
 Requires: container-selinux >= 2:2.74
 Requires: libseccomp >= 2.3
 Requires: systemd
