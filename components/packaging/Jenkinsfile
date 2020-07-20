@@ -5,7 +5,7 @@ def branch = env.CHANGE_TARGET ?: env.BRANCH_NAME
 test_steps = [
 	'deb': { ->
 		stage('Ubuntu Xenial and Focal Package') {
-			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
+			wrappedNode(label: 'ubuntu-2004 && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
 					sh "make REF=$branch checkout"
@@ -18,7 +18,7 @@ test_steps = [
 	},
 	'rpm': { ->
 		stage('Centos 7 and 8 RPM Packages') {
-			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
+			wrappedNode(label: 'ubuntu-2004 && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
 					sh "make REF=$branch checkout"
@@ -31,7 +31,7 @@ test_steps = [
 	},
 	'static': { ->
 		stage('Static Linux Binaries') {
-			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
+			wrappedNode(label: 'ubuntu-2004 && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
 					sh "make REF=$branch checkout"
