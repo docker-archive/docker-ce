@@ -15,6 +15,7 @@ Packager: Docker <support@docker.com>
 
 # required packages on install
 Requires: /bin/sh
+Requires: /usr/sbin/groupadd
 
 BuildRequires: make
 BuildRequires: libtool-ltdl-devel
