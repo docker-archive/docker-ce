@@ -2,11 +2,6 @@
 
 VERSION ?= $(shell cat engine/VERSION)
 
-override_dh_gencontrol:
-	# if we're on Ubuntu, we need to Recommends: apparmor
-	echo 'apparmor:Recommends=$(shell dpkg-vendor --is Ubuntu && echo apparmor)' >> debian/docker-ce.substvars
-	dh_gencontrol
-
 override_dh_auto_build:
 	# Build the daemon and dependencies
 	cd engine && DOCKER_GITCOMMIT=$(ENGINE_GITCOMMIT) PRODUCT=docker ./hack/make.sh dynbinary
