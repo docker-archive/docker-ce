@@ -39,13 +39,11 @@ endif
 
 .PHONY: checkout-cli
 checkout-cli: src/github.com/docker/cli
-	@git -C src/github.com/docker/cli fetch --depth 1 origin "$(DOCKER_CLI_REF)"
-	@git -C src/github.com/docker/cli checkout -q FETCH_HEAD
+	./scripts/checkout.sh src/github.com/docker/cli "$(DOCKER_CLI_REF)"
 
 .PHONY: checkout-docker
 checkout-docker: src/github.com/docker/docker
-	@git -C src/github.com/docker/docker fetch --depth 1 origin "$(DOCKER_ENGINE_REF)"
-	@git -C src/github.com/docker/docker checkout -q FETCH_HEAD
+	./scripts/checkout.sh src/github.com/docker/docker "$(DOCKER_ENGINE_REF)"
 
 .PHONY: checkout
 checkout: checkout-cli checkout-docker ## checkout source at the given reference(s)
