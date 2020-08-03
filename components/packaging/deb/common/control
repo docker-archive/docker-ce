@@ -4,13 +4,13 @@ Priority: optional
 Maintainer: Docker <support@docker.com>
 Build-Depends: bash,
                bash-completion,
-               libbtrfs-dev | btrfs-tools,
                ca-certificates,
                cmake,
                dh-apparmor,
                dh-systemd,
                gcc,
                git,
+               libbtrfs-dev | btrfs-tools,
                libc-dev,
                libdevmapper-dev,
                libltdl-dev,
@@ -27,16 +27,25 @@ Vcs-Git: git://github.com/docker/docker.git
 
 Package: docker-ce
 Architecture: linux-any
-Depends: docker-ce-cli, containerd.io (>= 1.2.2-3), iptables, libseccomp2 (>= 2.3.0), ${shlibs:Depends}
-Recommends: ca-certificates,
-            git,
-            pigz,
-            xz-utils,
-            libltdl7,
+Depends: containerd.io (>= 1.2.2-3),
+         docker-ce-cli,
+         iptables,
+         libseccomp2 (>= 2.3.0),
+         ${shlibs:Depends}
+Recommends: apparmor,
+            ca-certificates,
             docker-ce-rootless-extras,
-            apparmor
+            git,
+            libltdl7,
+            pigz,
+            xz-utils
 Suggests: aufs-tools [amd64], cgroupfs-mount | cgroup-lite
-Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs
+Conflicts: docker (<< 1.5~),
+           docker-engine,
+           docker-engine-cs,
+           docker.io,
+           lxc-docker,
+           lxc-docker-virtual-package
 Replaces: docker-engine
 Description: Docker: the open-source application container engine
  Docker is a product for you to build, ship and run any application as a
@@ -52,7 +61,12 @@ Description: Docker: the open-source application container engine
 Package: docker-ce-cli
 Architecture: linux-any
 Depends: ${shlibs:Depends}
-Conflicts: docker (<< 1.5~), docker.io, lxc-docker, lxc-docker-virtual-package, docker-engine, docker-engine-cs
+Conflicts: docker (<< 1.5~),
+           docker-engine,
+           docker-engine-cs,
+           docker.io,
+           lxc-docker,
+           lxc-docker-virtual-package
 Replaces: docker-ce (<< 5:0)
 Breaks: docker-ce (<< 5:0)
 Description: Docker CLI: the open-source application container engine
