@@ -23,7 +23,8 @@ src/github.com/docker/cli:
 	cp -r "$(CLI_DIR)" $@
 else
 src/github.com/docker/cli:
-	git clone -q "$(DOCKER_CLI_REPO)" $@
+	git init $@
+	git -C $@ remote add origin "$(DOCKER_CLI_REPO)"
 endif
 
 ifdef ENGINE_DIR
@@ -32,16 +33,17 @@ src/github.com/docker/docker:
 	cp -r "$(ENGINE_DIR)" $@
 else
 src/github.com/docker/docker:
-	git clone -q "$(DOCKER_ENGINE_REPO)" $@
+	git init $@
+	git -C $@ remote add origin "$(DOCKER_ENGINE_REPO)"
 endif
 
 .PHONY: checkout-cli
 checkout-cli: src/github.com/docker/cli
-	@git -C src/github.com/docker/cli checkout -q "$(DOCKER_CLI_REF)"
+	./scripts/checkout.sh src/github.com/docker/cli "$(DOCKER_CLI_REF)"
 
 .PHONY: checkout-docker
 checkout-docker: src/github.com/docker/docker
-	@git -C src/github.com/docker/docker checkout -q "$(DOCKER_ENGINE_REF)"
+	./scripts/checkout.sh src/github.com/docker/docker "$(DOCKER_ENGINE_REF)"
 
 .PHONY: checkout
 checkout: checkout-cli checkout-docker ## checkout source at the given reference(s)
