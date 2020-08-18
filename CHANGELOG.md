@@ -3,6 +3,34 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.13 (TBD - not released yet)
+
+### Builder
+
+- buildkit: Fix nil dereference in cache [moby/moby#41279](https://github.com/moby/moby/pull/41279)
+- buildkit: Add --force flag in git fetch command, improved socket handling in copy, remote cache optimizations [moby/moby#41269](https://github.com/moby/moby/pull/41269)
+- buildkit: Content hash fixes, fix inline cache duplicate blob handling [moby/moby#41222](https://github.com/moby/moby/pull/41222)
+- buildkit: Avoid recursive loop on cache-export [moby/moby#41185](https://github.com/moby/moby/pull/41185)
+
+### Client
+
+- Fix config file permissions issues [docker/cli#2631](https://github.com/docker/cli/pull/2631)
+
+### Networking
+
+- Fix container netns file descriptor leak [moby/moby#41287](https://github.com/moby/moby/pull/41287)
+- Fix network sandbox cleanup on failure [moby/moby#41081](https://github.com/moby/moby/pull/41081)
+
+### Rootless
+
+- Bump rootlesskit from v0.9.5 to v0.10.0 [moby/moby#41277](https://github.com/moby/moby/pull/41277)
+
+### Runtime
+
+- Bump Golang 1.13.14 [moby/moby#41235](https://github.com/moby/moby/pull/41235)
+- Fix plugin double lock bug [moby/moby#41274](https://github.com/moby/moby/pull/41274)
+- Bump hcsshim to fix slow Windows container start with servercore image [moby/moby#41192](https://github.com/moby/moby/pull/41192)
+
 ## 19.03.12 (2020-06-18)
 
 ### Client
@@ -118,7 +146,7 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 * selinux: better error messages when setting file labels [moby/moby#40547](https://github.com/moby/moby/pull/40547)
 * Speed up initial stats collection [moby/moby#40549](https://github.com/moby/moby/pull/40549)
 - rootless: use certs.d from XDG_CONFIG_HOME. [moby/moby#40461](https://github.com/moby/moby/pull/40461)
-- Bump Golang 1.12.17. [moby/moby#40533](https://github.com/moby/moby/pull/40533) 
+- Bump Golang 1.12.17. [moby/moby#40533](https://github.com/moby/moby/pull/40533)
 - Bump google.golang.org/grpc to v1.23.1. [moby/moby#40566](https://github.com/moby/moby/pull/40566)
 - Update containerd binary to v1.2.13. [moby/moby#40540](https://github.com/moby/moby/pull/40540)
 - Prevent showing stopped containers as running in an edge case. [moby/moby#40555](https://github.com/moby/moby/pull/40555)
