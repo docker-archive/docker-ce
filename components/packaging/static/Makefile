@@ -16,6 +16,7 @@ help: ## show make targets
 clean: ## remove build artifacts
 	[ ! -d build ] || $(CHOWN) -R $(shell id -u):$(shell id -g) build
 	$(RM) -r build
+	-docker builder prune -f --filter until=24h
 
 .PHONY: static
 static: static-linux cross-mac cross-win cross-arm ## create all static packages
