@@ -19,7 +19,8 @@ ENV RUNC_BUILDTAGS apparmor seccomp selinux
 
 ARG COMMON_FILES
 COPY ${COMMON_FILES} /root/build-deb/debian
-RUN mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" -i /root/build-deb/debian/control
+RUN apt-get update \
+ && mk-build-deps -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" -i /root/build-deb/debian/control
 
 COPY sources/ /sources
 ARG DISTRO
