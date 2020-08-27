@@ -52,6 +52,7 @@ help: ## show make targets
 clean: ## remove build artifacts
 	[ ! -d rpmbuild ] || $(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
 	$(RM) -r rpmbuild/
+	-docker builder prune -f --filter until=24h
 
 .PHONY: rpm
 rpm: fedora centos ## build all rpm packages
