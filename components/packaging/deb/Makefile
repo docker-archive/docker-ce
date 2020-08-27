@@ -51,6 +51,7 @@ clean: ## remove build artifacts
 	$(RM) -r debbuild
 	[ ! -d sources ] || $(CHOWN) -R $(shell id -u):$(shell id -g) sources
 	$(RM) -r sources
+	-docker builder prune -f --filter until=24h
 
 .PHONY: deb
 deb: ubuntu debian ## build all deb packages except for raspbian
