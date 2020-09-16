@@ -3,6 +3,43 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.13 (2020-09-16)
+
+## Builder
+
+- buildkit: Fix nil dereference in cache logic [moby/moby#41279](https://github.com/moby/moby/pull/41279)
+- buildkit: Treat unix sockets as regular files during COPY/ADD [moby/moby#41269](https://github.com/moby/moby/pull/41269)
+- buildkit: Ignore system and security xattrs in calculation to ensure consistent COPY caching regardless of SELinux environment [moby/moby#41222](https://github.com/moby/moby/pull/41222)
+- buildkit: Make --cache-from behavior more reliable [moby/moby#41222](https://github.com/moby/moby/pull/41222)
+- buildkit: Fix infinite loop burning CPU when exporting cache [moby/moby#41185](https://github.com/moby/moby/pull/41185)
+
+### Client
+
+- Bump Golang 1.13.15 [docker/cli#2674](https://github.com/docker/cli/pull/2674)
+- Fix config file permission issues (~/.docker/config.json) [docker/cli#2631](https://github.com/docker/cli/pull/2631)
+- build: Fix panic on terminals with zero height [docker/cli#2719](https://github.com/docker/cli/pull/2719)
+- windows: Fix potential issue with newline character in console [docker/cli#2623](https://github.com/docker/cli/pull/2623)
+
+## Networking
+
+- Clean up network sandbox on failure [moby/moby#41081](https://github.com/moby/moby/pull/41081)
+- Fix shallow error messages by forwarding deadline-related errors to user [moby/moby#41312](https://github.com/moby/moby/pull/41312)
+- Fix leaking of netns file descriptors [moby/moby#41287](https://github.com/moby/moby/41287)
+
+## Rootless
+
+- Fix port forwarder resource leak [moby/moby#41277](https://github.com/moby/moby/pull/41277)
+
+## Runtime
+
+- Bump Golang 1.13.15 [moby/moby#41334](https://github.com/moby/moby/pull/41334)
+- Update to containerd 1.3.7 [moby/moby#40408](https://github.com/moby/moby/pull/40408)
+
+## Windows
+
+- Fix slow windows container start time when using servercore image [moby/moby#41192](https://github.com/moby/moby/pull/41192)
+
+
 ## 19.03.12 (2020-06-18)
 
 ### Client
