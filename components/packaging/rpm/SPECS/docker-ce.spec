@@ -29,7 +29,7 @@ Requires: ( iptables or nftables )
 Requires: iptables
 %endif
 Requires: libcgroup
-Requires: containerd.io >= 1.2.2-3
+Requires: containerd.io >= 1.3.0
 Requires: tar
 Requires: xz
 
