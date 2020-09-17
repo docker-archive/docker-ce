@@ -837,6 +837,8 @@ __docker_complete_capabilities_addable() {
 		CAP_AUDIT_CONTROL
 		CAP_AUDIT_READ
 		CAP_BLOCK_SUSPEND
+		CAP_BPF
+		CAP_CHECKPOINT_RESTORE
 		CAP_DAC_READ_SEARCH
 		CAP_IPC_LOCK
 		CAP_IPC_OWNER
@@ -846,6 +848,7 @@ __docker_complete_capabilities_addable() {
 		CAP_MAC_OVERRIDE
 		CAP_NET_ADMIN
 		CAP_NET_BROADCAST
+		CAP_PERFMON
 		CAP_SYS_ADMIN
 		CAP_SYS_BOOT
 		CAP_SYSLOG
@@ -4179,6 +4182,7 @@ _docker_manifest() {
 		create
 		inspect
 		push
+		rm
 	"
 	__docker_subcommands "$subcommands" && return
 
@@ -4273,6 +4277,17 @@ _docker_manifest_push() {
 			if [ "$cword" -eq "$counter" ]; then
 				__docker_complete_images --force-tag --id
 			fi
+			;;
+	esac
+}
+
+_docker_network_rm() {
+	case "$cur" in
+		-*)
+			COMPREPLY=( $( compgen -W "--help" -- "$cur" ) )
+			;;
+		*)
+			__docker_complete_images --force-tag --id
 			;;
 	esac
 }
