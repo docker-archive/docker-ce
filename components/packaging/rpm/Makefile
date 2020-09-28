@@ -40,9 +40,9 @@ RUN?=$(RPMBUILD) rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 SOURCE_FILES=engine.tgz cli.tgz docker.service docker.socket plugin-installers.tgz
 SOURCES=$(addprefix rpmbuild/SOURCES/, $(SOURCE_FILES))
 
-FEDORA_RELEASES := fedora-32 fedora-31
-CENTOS_RELEASES := centos-7 centos-8
-RHEL_RELEASES := rhel-7
+FEDORA_RELEASES ?= fedora-32 fedora-31
+CENTOS_RELEASES ?= centos-7 centos-8
+RHEL_RELEASES ?= rhel-7
 DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES) $(RHEL_RELEASES)
 
 .PHONY: help
