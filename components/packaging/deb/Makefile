@@ -35,9 +35,9 @@ RUN=docker run --rm -i \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
 
-DEBIAN_VERSIONS := debian-stretch debian-buster
-UBUNTU_VERSIONS := ubuntu-xenial ubuntu-bionic ubuntu-focal
-RASPBIAN_VERSIONS := raspbian-stretch raspbian-buster
+DEBIAN_VERSIONS ?= debian-stretch debian-buster
+UBUNTU_VERSIONS ?= ubuntu-xenial ubuntu-bionic ubuntu-focal
+RASPBIAN_VERSIONS ?= raspbian-stretch raspbian-buster
 DISTROS := $(DEBIAN_VERSIONS) $(UBUNTU_VERSIONS) $(RASPBIAN_VERSIONS)
 
 .PHONY: help
