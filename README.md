@@ -19,6 +19,11 @@ for the platform you are using:
 * https://github.com/docker/for-aws
 * https://github.com/docker/for-azure
 
+## Submitting pull requests
+
+This repository does not accept PRs for files under the [components](components) directory directly.
+To contribute to the files under the components directory, see [CONTRIBUTING.md](CONTRIBUTING.md#submitting-pull-requests) .
+
 ## Unifying upstream sources
 
 The `master` branch is a combination of components adapted from
