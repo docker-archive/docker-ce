@@ -1,5 +1,28 @@
 # Docker CE
 
+:warning: **This repository is now deprecated and will be archived** :warning:
+
+Starting with the Docker 20.10 release, packages for the Docker Engine and
+Docker CLI are built directly from their respective source repositories instead
+of from this repository.
+
+Practically this means:
+1. This repository is no longer the “source of truth” for Docker CE builds.
+2. The commit SHA and tag for Docker CLI build will come from the
+   [docker/cli](https://github.com/docker/cli) repository and the commit SHA and
+   tag for the Docker Engine will come from the
+   [moby/moby](https://github.com/moby/moby) repository.
+3. Release branches for the Engine, CLI, and packaging will be maintained on
+   their respective repositories.
+4. Updates will stop being made to this repository and it will be archived in
+   the future.
+5. Changelog is now
+   [Release Notes](https://docs.docker.com/engine/release-notes/).
+6. The `master` branch of this repository will be emptied when the repository
+   is archived.
+
+## Description
+
 This repository hosts open source components of Docker CE products. The
 `master` branch serves to unify the upstream components on a regular
 basis. Long-lived release branches host the code that goes into a product
