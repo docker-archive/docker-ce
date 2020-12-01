@@ -3,9 +3,37 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.14 (2020-12-01)
+
+### Security
+
+* [CVE-2020-15257](http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-15257): Update bundled static binaries of containerd to v1.3.9 [moby/moby#41731](https://github.com/moby/moby/pull/41731). Package managers should update the containerd.io package.
+
+### Builder
+
+* Beta versions of apparmor are now parsed correctly preventing build failures [moby/moby#41542](https://github.com/moby/moby/pull/41542)
+
+### Networking
+
+* Fix panic when swarmkit service keeps failing to start [moby/moby#41635](https://github.com/moby/moby/pull/41635)
+
+### Runtime
+
+* Return correct errors instead of spurrious -EINVAL [moby/moby#41293](https://github.com/moby/moby/pull/41293)
+
+### Rootless
+
+* Lock state dir for preventing automatic clean-up by systemd-tmpfiles [moby/moby#41635](https://github.com/moby/moby/pull/41635)
+* dockerd-rootless.sh: support new containerd shim socket path convention [moby/moby#41557](https://github.com/moby/moby/pull/41557)
+
+### Logging
+
+* gcplogs: Fix memory/connection leak [moby/moby#41522](https://github.com/moby/moby/pull/41522)
+* awslogs: Support for AWS imdsv2 [moby/moby#41494](https://github.com/moby/moby/pull/41494)
+
 ## 19.03.13 (2020-09-16)
 
-## Builder
+### Builder
 
 - buildkit: Fix nil dereference in cache logic [moby/moby#41279](https://github.com/moby/moby/pull/41279)
 - buildkit: Treat unix sockets as regular files during COPY/ADD [moby/moby#41269](https://github.com/moby/moby/pull/41269)
@@ -20,22 +48,22 @@ For official release notes for Docker Engine CE and Docker Engine EE, visit the
 - build: Fix panic on terminals with zero height [docker/cli#2719](https://github.com/docker/cli/pull/2719)
 - windows: Fix potential issue with newline character in console [docker/cli#2623](https://github.com/docker/cli/pull/2623)
 
-## Networking
+### Networking
 
 - Clean up network sandbox on failure [moby/moby#41081](https://github.com/moby/moby/pull/41081)
 - Fix shallow error messages by forwarding deadline-related errors to user [moby/moby#41312](https://github.com/moby/moby/pull/41312)
 - Fix leaking of netns file descriptors [moby/moby#41287](https://github.com/moby/moby/41287)
 
-## Rootless
+### Rootless
 
 - Fix port forwarder resource leak [moby/moby#41277](https://github.com/moby/moby/pull/41277)
 
-## Runtime
+### Runtime
 
 - Bump Golang 1.13.15 [moby/moby#41334](https://github.com/moby/moby/pull/41334)
 - Update to containerd 1.3.7 [moby/moby#40408](https://github.com/moby/moby/pull/40408)
 
-## Windows
+### Windows
 
 - Fix slow windows container start time when using servercore image [moby/moby#41192](https://github.com/moby/moby/pull/41192)
 
