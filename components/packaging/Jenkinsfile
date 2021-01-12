@@ -16,6 +16,19 @@ test_steps = [
 			}
 		}
 	},
+	'raspbian': { ->
+		stage('Raspbian') {
+			wrappedNode(label: 'ubuntu && armhf', cleanWorkspace: true) {
+				try {
+					checkout scm
+					sh "make REF=$branch checkout"
+					sh "make -C deb raspbian-buster raspbian-bullseye"
+				} finally {
+					sh "make clean"
+				}
+			}
+		}
+	},
 	'rpm': { ->
 		stage('Centos 7 and 8 RPM Packages') {
 			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
