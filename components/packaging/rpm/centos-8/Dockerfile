@@ -22,7 +22,7 @@ ENV SUITE=${SUITE}
 # failing, so replace the URL.
 RUN if [ -f /etc/yum.repos.d/CentOS-Sources.repo ]; then sed -i 's/altarch/centos/g' /etc/yum.repos.d/CentOS-Sources.repo; fi
 RUN yum install -y rpm-build rpmlint yum-utils
-RUN yum-config-manager --set-enabled PowerTools
+RUN yum-config-manager --set-enabled powertools
 COPY SPECS /root/rpmbuild/SPECS
 RUN yum-builddep --define '_without_btrfs 1' -y /root/rpmbuild/SPECS/*.spec
 COPY --from=golang /usr/local/go /usr/local/go
