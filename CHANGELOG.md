@@ -3,6 +3,18 @@
 For official release notes for Docker Engine CE and Docker Engine EE, visit the
 [release notes page](https://docs.docker.com/engine/release-notes/).
 
+## 19.03.15 (2021-01-29)
+
+### Security
+
+* Prevent an invalid image from crashing docker daemon
+* Lock down file permissions to prevent remapped root from accessing docker state
+* Ensure AppArmor and SELinux profiles are applied when building with BuildKit
+
+### Client
+
+* Check contexts before importing them to reduce risk of extracted files escaping context store
+
 ## 19.03.14 (2020-12-01)
 
 ### Security
