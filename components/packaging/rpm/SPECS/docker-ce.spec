@@ -23,11 +23,7 @@ Requires: docker-ce-rootless-extras
 Requires: container-selinux >= 2:2.74
 Requires: libseccomp >= 2.3
 Requires: systemd
-%if 0%{?rhel} >= 8
-Requires: ( iptables or nftables )
-%else
 Requires: iptables
-%endif
 Requires: libcgroup
 Requires: containerd.io >= 1.4.1
 Requires: tar
