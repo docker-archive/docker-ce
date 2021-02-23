@@ -9,7 +9,7 @@ test_steps = [
 				try {
 					checkout scm
 					sh "make REF=$branch checkout"
-					sh "make -C deb ubuntu-xenial ubuntu-focal"
+					sh "make -C deb ubuntu-xenial ubuntu-focal debian-bullseye"
 				} finally {
 					sh "make clean"
 				}
