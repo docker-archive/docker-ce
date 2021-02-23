@@ -9,7 +9,20 @@ test_steps = [
 				try {
 					checkout scm
 					sh "make REF=$branch checkout"
-					sh "make -C deb ubuntu-xenial ubuntu-focal"
+					sh "make -C deb ubuntu-xenial ubuntu-focal debian-bullseye"
+				} finally {
+					sh "make clean"
+				}
+			}
+		}
+	},
+	'raspbian': { ->
+		stage('Raspbian') {
+			wrappedNode(label: 'ubuntu && armhf', cleanWorkspace: true) {
+				try {
+					checkout scm
+					sh "make REF=$branch checkout"
+					sh "make -C deb raspbian-buster raspbian-bullseye"
 				} finally {
 					sh "make clean"
 				}
