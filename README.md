@@ -39,8 +39,6 @@ for the platform you are using:
 * https://github.com/docker/for-linux
 * https://github.com/docker/for-mac
 * https://github.com/docker/for-win
-* https://github.com/docker/for-aws
-* https://github.com/docker/for-azure
 
 ## Submitting pull requests
 
