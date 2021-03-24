@@ -42,13 +42,13 @@ test_steps = [
 			}
 		}
 	},
-	'static': { ->
+	'static-cross': { ->
 		stage('Static Linux Binaries') {
 			wrappedNode(label: 'ubuntu && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
 					sh "make REF=$branch checkout"
-					sh "make REF=$branch DOCKER_BUILD_PKGS=static-linux static"
+					sh "make REF=$branch DOCKER_BUILD_PKGS='static-linux cross-mac cross-win' static"
 				} finally {
 					sh "make clean"
 				}
