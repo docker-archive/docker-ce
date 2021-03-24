@@ -38,6 +38,7 @@ Recommends: apparmor,
             git,
             libltdl7,
             pigz,
+            procps,
             xz-utils
 Suggests: aufs-tools [amd64], cgroupfs-mount | cgroup-lite
 Conflicts: docker (<< 1.5~),
