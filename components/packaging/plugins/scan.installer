@@ -32,4 +32,11 @@ install_plugin() {
     )
 }
 
-build_or_install "$@"
+case "$(uname -i)" in
+  aarch64)
+    echo "Skipping scan plugin on ARM arch";;
+  arm*)
+    echo "Skipping scan plugin on ARM arch";;
+  *)
+    build_or_install "$@";;
+esac
