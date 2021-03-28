@@ -35,7 +35,7 @@ test_steps = [
 				try {
 					checkout scm
 					sh "make REF=$branch checkout"
-					sh "make -C rpm centos-7 centos-8"
+					sh "make -C rpm centos-7 centos-8 fedora-34"
 				} finally {
 					sh "make clean"
 				}
