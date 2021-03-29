@@ -33,15 +33,20 @@ RPMBUILD_FLAGS?=-ba\
 RUN_FLAGS=
 RUN?=docker run --rm \
 	-e PLATFORM \
-	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES \
-	-v $(CURDIR)/rpmbuild/RPMS:/root/rpmbuild/RPMS \
-	-v $(CURDIR)/rpmbuild/SRPMS:/root/rpmbuild/SRPMS \
+	-v $(CURDIR)/rpmbuild/SOURCES:/root/rpmbuild/SOURCES:ro \
+	-v $(CURDIR)/rpmbuild/$@/RPMS:/root/rpmbuild/RPMS \
+	-v $(CURDIR)/rpmbuild/$@/SRPMS:/root/rpmbuild/SRPMS \
 	$(RUN_FLAGS) \
 	rpmbuild-$@/$(ARCH) $(RPMBUILD_FLAGS)
 
 FEDORA_RELEASES ?= fedora-33 fedora-32
 CENTOS_RELEASES ?= centos-7 centos-8
+ifeq ($(ARCH),s390x)
 RHEL_RELEASES ?= rhel-7
+else
+RHEL_RELEASES ?=
+endif
+
 DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES) $(RHEL_RELEASES)
 
 .PHONY: help
@@ -72,10 +77,11 @@ rhel: $(RHEL_RELEASES) ## build all rhel rpm packages
 .PHONY: $(DISTROS)
 $(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
-	$(CHOWN) -R root:root rpmbuild
+	mkdir -p "rpmbuild/$@"
+	$(CHOWN) -R root:root "rpmbuild/$@"
 	$(BUILD)
 	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) rpmbuild
+	$(CHOWN) -R $(shell id -u):$(shell id -g) "rpmbuild/$@"
 
 rpmbuild/SOURCES/engine.tgz:
 	mkdir -p $(@D)
@@ -107,3 +113,6 @@ rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
+
+rpmbuild/bundles-ce-%-$(DPKG_ARCH).tar.gz: %
+	tar czf $@ --transform="s|^rpmbuild/\(.*\)|bundles/$(VERSION)/build-rpm/\1|" rpmbuild/$*
