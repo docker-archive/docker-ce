@@ -24,7 +24,15 @@ ENV CC=gcc
 RUN if [ -f /etc/yum.repos.d/CentOS-Sources.repo ]; then sed -i 's/altarch/centos/g' /etc/yum.repos.d/CentOS-Sources.repo; fi
 RUN yum install -y rpm-build rpmlint
 COPY SPECS /root/rpmbuild/SPECS
-RUN yum-builddep -y /root/rpmbuild/SPECS/*.spec
+
+# TODO change once we support scan-plugin on other architectures
+RUN \
+  if [ "$(uname -m)" = "x86_64" ]; then \
+    yum-builddep -y /root/rpmbuild/SPECS/*.spec; \
+  else \
+    yum-builddep -y /root/rpmbuild/SPECS/docker-c*.spec; \
+  fi
+
 COPY --from=golang /usr/local/go /usr/local/go
 WORKDIR /root/rpmbuild
 ENTRYPOINT ["/bin/rpmbuild"]
