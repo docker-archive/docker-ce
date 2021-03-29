@@ -1,4 +1,6 @@
 ARCH=$(shell uname -m)
+# if this fails on centos-based OS: yum install -y epel-release && yum install -y dpkg
+DPKG_ARCH=$(shell dpkg --print-architecture)
 BUILDTIME=$(shell date -u -d "@$${SOURCE_DATE_EPOCH:-$$(date +%s)}" --rfc-3339 ns 2> /dev/null | sed -e 's/ /T/')
 CHOWN:=docker run --rm -v $(CURDIR):/v -w /v alpine chown
 DEFAULT_PRODUCT_LICENSE:=Community Engine
