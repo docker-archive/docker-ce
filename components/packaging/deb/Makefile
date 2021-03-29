@@ -102,3 +102,6 @@ sources/plugin-installers.tgz: $(wildcard ../plugins/*)
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
+
+debbuild/bundles-ce-%-$(DPKG_ARCH).tar.gz: %
+	tar czf $@ --transform="s|^debbuild/\(.*\)|bundles/$(VERSION)/build-deb/\1|" debbuild/$*
