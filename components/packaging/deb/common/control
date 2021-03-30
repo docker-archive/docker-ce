@@ -62,6 +62,8 @@ Description: Docker: the open-source application container engine
 Package: docker-ce-cli
 Architecture: linux-any
 Depends: ${shlibs:Depends}
+# TODO change once we support scan-plugin on other architectures
+Recommends: docker-scan-plugin [amd64]
 Conflicts: docker (<< 1.5~),
            docker-engine,
            docker-engine-cs,
@@ -98,3 +100,11 @@ Description: Rootless support for Docker.
   This package contains RootlessKit, but does not contain VPNKit.
   Either VPNKit or slirp4netns (>= 0.4.0) needs to be installed separately.
 Homepage: https://docs.docker.com/engine/security/rootless/
+
+Package: docker-scan-plugin
+Priority: optional
+# TODO change once we support scan-plugin on other architectures (see dpkg-architecture -L)
+Architecture: linux-amd64
+Enhances: docker-ce-cli
+Description: Docker scan cli plugin.
+Homepage: https://github.com/docker/scan-cli-plugin
