@@ -103,5 +103,8 @@ sources/plugin-installers.tgz: $(wildcard ../plugins/*)
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
 
-debbuild/bundles-ce-%-$(DPKG_ARCH).tar.gz: %
+# See ARCHES in common.mk. Could not figure out how to match both distro and arch.
+BUNDLES:=$(addsuffix .tar.gz,$(addprefix debbuild/bundles-ce-%-,$(ARCHES)))
+
+$(BUNDLES): %
 	tar czf $@ --transform="s|^debbuild/\(.*\)|bundles/$(VERSION)/build-deb/\1|" debbuild/$*

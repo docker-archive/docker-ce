@@ -48,6 +48,7 @@ RHEL_RELEASES ?=
 endif
 
 DISTROS := $(FEDORA_RELEASES) $(CENTOS_RELEASES) $(RHEL_RELEASES)
+BUNDLES := $(patsubst %,rpmbuild/bundles-ce-%-$(DPKG_ARCH).tar.gz,$(DISTROS))
 
 .PHONY: help
 help: ## show make targets
@@ -114,5 +115,8 @@ rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
 		alpine \
 		tar -C / -c -z -f /v/plugin-installers.tgz --exclude .git plugins
 
-rpmbuild/bundles-ce-%-$(DPKG_ARCH).tar.gz: %
+# See ARCHES in common.mk. Could not figure out how to match both distro and arch.
+BUNDLES:=$(addsuffix .tar.gz,$(addprefix rpmbuild/bundles-ce-%-,$(ARCHES)))
+
+$(BUNDLES): %
 	tar czf $@ --transform="s|^rpmbuild/\(.*\)|bundles/$(VERSION)/build-rpm/\1|" rpmbuild/$*
