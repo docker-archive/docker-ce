@@ -81,5 +81,14 @@ override_dh_install:
 	# TODO Can we do this from within our container?
 	dh_apparmor --profile-name=docker-ce -pdocker-ce
 
+override_dh_gencontrol:
+	# Use separate version for the scan-plugin package, then generate the other control files as usual
+	# TODO override "Source" field in control as well (to point to scan-cli-plugin, as it doesn't match the package name)
+	# TODO change once we support scan-plugin on other architectures (see dpkg-architecture -L)
+	if [ "$(TARGET_ARCH)" = "amd64" ]; then \
+		dh_gencontrol -pdocker-scan-plugin -- -v$${SCAN_VERSION#v}~$${DISTRO}-$${SUITE}; \
+	fi
+	dh_gencontrol --remaining-packages
+
 %:
 	dh $@ --with=bash-completion $(shell command -v dh_systemd_enable > /dev/null 2>&1 && echo --with=systemd)
