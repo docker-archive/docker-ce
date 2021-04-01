@@ -40,7 +40,7 @@ RUN?=docker run --rm \
 	debbuild-$@/$(ARCH)
 
 DEBIAN_VERSIONS ?= debian-buster debian-bullseye
-UBUNTU_VERSIONS ?= ubuntu-xenial ubuntu-bionic ubuntu-focal ubuntu-groovy
+UBUNTU_VERSIONS ?= ubuntu-xenial ubuntu-bionic ubuntu-focal ubuntu-groovy ubuntu-hirsute
 RASPBIAN_VERSIONS ?= raspbian-buster raspbian-bullseye
 DISTROS := $(DEBIAN_VERSIONS) $(UBUNTU_VERSIONS) $(RASPBIAN_VERSIONS)
 
