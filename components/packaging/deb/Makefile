@@ -68,9 +68,10 @@ raspbian: $(RASPBIAN_VERSIONS) ## build all raspbian deb packages
 .PHONY: $(DISTROS)
 $(DISTROS): sources/cli.tgz sources/engine.tgz sources/docker.service sources/docker.socket sources/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
+	mkdir -p "debbuild/$@"
 	$(BUILD)
 	$(RUN)
-	$(CHOWN) -R $(shell id -u):$(shell id -g) debbuild/$@
+	$(CHOWN) -R $(shell id -u):$(shell id -g) "debbuild/$@"
 
 sources/engine.tgz:
 	mkdir -p $(@D)

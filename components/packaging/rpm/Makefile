@@ -79,7 +79,6 @@ rhel: $(RHEL_RELEASES) ## build all rhel rpm packages
 $(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
 	mkdir -p "rpmbuild/$@"
-	$(CHOWN) -R root:root "rpmbuild/$@"
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) "rpmbuild/$@"
