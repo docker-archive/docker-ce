@@ -7,11 +7,14 @@ This repository is solely maintained by Docker, Inc.
 
 The scripts will build for this list of packages types:
 
+* DEB packages for Ubuntu 21.04 Hirsute
+* DEB packages for Ubuntu 20.10 Groovy
 * DEB packages for Ubuntu 20.04 Focal
 * DEB packages for Ubuntu 18.04 Bionic
 * DEB packages for Ubuntu 16.04 Xenial
 * DEB packages for Debian 11 BullsEye
 * DEB packages for Debian 10 Buster
+* RPM packages for Fedora 34
 * RPM packages for Fedora 33
 * RPM packages for Fedora 32
 * RPM packages for CentOS 8
