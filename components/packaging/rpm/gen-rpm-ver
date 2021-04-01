@@ -11,7 +11,7 @@ fi
 
 GIT_COMMAND="git -C $REPO_DIR"
 origVersion="$VERSION"
-rpmVersion="$VERSION"
+rpmVersion="${VERSION#v}"
 rpmRelease=3
 
 # rpmRelease versioning is as follows

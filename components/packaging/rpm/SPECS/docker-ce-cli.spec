@@ -16,6 +16,10 @@ Packager: Docker <support@docker.com>
 # required packages on install
 Requires: /bin/sh
 Requires: /usr/sbin/groupadd
+# TODO change once we support scan-plugin on other architectures
+%ifarch x86_64
+Requires: docker-scan-plugin(x86-64)
+%endif
 
 BuildRequires: make
 BuildRequires: libtool-ltdl-devel
@@ -53,7 +57,9 @@ popd
 # Build all associated plugins
 pushd ${RPM_BUILD_DIR}/src/plugins
 for installer in *.installer; do
-    bash ${installer} build
+    if [ "${installer}" != "scan.installer" ]; then
+        bash ${installer} build
+    fi
 done
 popd
 
@@ -69,9 +75,11 @@ install -p -m 755 cli/build/docker ${RPM_BUILD_ROOT}%{_bindir}/docker
 # install plugins
 pushd ${RPM_BUILD_DIR}/src/plugins
 for installer in *.installer; do
-    DESTDIR=${RPM_BUILD_ROOT} \
+    if [ "${installer}" != "scan.installer" ]; then
+        DESTDIR=${RPM_BUILD_ROOT} \
         PREFIX=%{_libexecdir}/docker/cli-plugins \
         bash ${installer} install_plugin
+    fi
 done
 popd
 

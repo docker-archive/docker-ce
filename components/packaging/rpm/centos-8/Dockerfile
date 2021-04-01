@@ -31,7 +31,15 @@ RUN if [ -f /etc/yum.repos.d/CentOS-Linux-PowerTools.repo ]; then sed -i 's/enab
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 RUN yum install -y rpm-build rpmlint yum-utils
 COPY SPECS /root/rpmbuild/SPECS
-RUN yum-builddep --define '_without_btrfs 1' -y /root/rpmbuild/SPECS/*.spec
+
+# TODO change once we support scan-plugin on other architectures
+RUN \
+  if [ "$(uname -m)" = "x86_64" ]; then \
+    yum-builddep --define '_without_btrfs 1' -y /root/rpmbuild/SPECS/*.spec; \
+  else \
+    yum-builddep --define '_without_btrfs 1' -y /root/rpmbuild/SPECS/docker-c*.spec; \
+  fi
+
 COPY --from=golang /usr/local/go /usr/local/go
 WORKDIR /root/rpmbuild
 ENTRYPOINT ["/bin/rpmbuild"]
