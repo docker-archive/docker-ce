@@ -11,6 +11,7 @@ fi
 
 GIT_COMMAND="git -C $REPO_DIR"
 origVersion="$VERSION"
+debVersion="${VERSION#v}"
 
 gen_deb_version() {
 	# Adds an increment to the deb version to get proper order
@@ -26,21 +27,20 @@ gen_deb_version() {
 	echo "$baseVersion-$increment.$testVersion.$pattern$testVersion"
 }
 
-case "$VERSION" in
+case "$debVersion" in
 	*-dev)
-		debVersion="$VERSION"
 		;;
 	*-tp[0-9]*)
-		debVersion="$(gen_deb_version "$VERSION" tp 0)"
+		debVersion="$(gen_deb_version "$debVersion" tp 0)"
 		;;
 	*-beta[0-9]*)
-		debVersion="$(gen_deb_version "$VERSION" beta 1)"
+		debVersion="$(gen_deb_version "$debVersion" beta 1)"
 		;;
 	*-rc[0-9]*)
-		debVersion="$(gen_deb_version "$VERSION" rc 2)"
+		debVersion="$(gen_deb_version "$debVersion" rc 2)"
 		;;
 	*)
-		debVersion="$VERSION-3"
+		debVersion="$debVersion-3"
 		;;
 esac
 

@@ -8,6 +8,7 @@ GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 GEN_DEB_VER=$(shell ./gen-deb-ver $(realpath $(CURDIR)/../src/github.com/docker/cli) "$(VERSION)")
 EPOCH?=5
+SCAN_GITCOMMIT?=$(shell cd $(realpath $(CURDIR)/../src/github.com/docker/scan-cli-plugin) && git rev-parse --short HEAD)
 
 ifdef BUILD_IMAGE
 	BUILD_IMAGE_FLAG=--build-arg $(BUILD_IMAGE)
@@ -32,6 +33,8 @@ RUN?=docker run --rm \
 	-e VERSION=$(word 2, $(GEN_DEB_VER)) \
 	-e CLI_GITCOMMIT=$(CLI_GITCOMMIT) \
 	-e ENGINE_GITCOMMIT=$(ENGINE_GITCOMMIT) \
+	-e SCAN_VERSION=$(DOCKER_SCAN_REF) \
+	-e SCAN_GITCOMMIT=$(SCAN_GITCOMMIT) \
 	-v $(CURDIR)/debbuild/$@:/build \
 	$(RUN_FLAGS) \
 	debbuild-$@/$(ARCH)
@@ -66,12 +69,15 @@ debian: $(DEBIAN_VERSIONS) ## build all debian deb packages
 raspbian: $(RASPBIAN_VERSIONS) ## build all raspbian deb packages
 
 .PHONY: $(DISTROS)
-$(DISTROS): sources/cli.tgz sources/engine.tgz sources/docker.service sources/docker.socket sources/plugin-installers.tgz
+$(DISTROS): sources
 	@echo "== Building packages for $@ =="
 	mkdir -p "debbuild/$@"
 	$(BUILD)
 	$(RUN)
 	$(CHOWN) -R $(shell id -u):$(shell id -g) "debbuild/$@"
+
+.PHONY: sources
+sources: sources/cli.tgz sources/engine.tgz sources/scan-cli-plugin.tgz sources/docker.service sources/docker.socket sources/plugin-installers.tgz
 
 sources/engine.tgz:
 	mkdir -p $(@D)
@@ -88,6 +94,14 @@ sources/cli.tgz:
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli
+
+sources/scan-cli-plugin.tgz:
+	mkdir -p $(@D)
+	docker run --rm -w /v \
+		-v $(realpath $(CURDIR)/../src/github.com/docker/scan-cli-plugin):/scan-cli-plugin \
+		-v $(CURDIR)/$(@D):/v \
+		alpine \
+		tar -C / -c -z -f /v/scan-cli-plugin.tgz --exclude .git scan-cli-plugin
 
 sources/docker.service: ../systemd/docker.service
 	mkdir -p $(@D)

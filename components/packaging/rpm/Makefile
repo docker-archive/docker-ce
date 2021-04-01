@@ -4,6 +4,7 @@ PLUGINS_DIR=$(realpath $(CURDIR)/../plugins)
 GO_BASE_IMAGE=golang
 GO_IMAGE?=$(GO_BASE_IMAGE):$(GO_VERSION)-buster
 GEN_RPM_VER=$(shell ./gen-rpm-ver $(realpath $(CURDIR)/../src/github.com/docker/cli) "$(VERSION)")
+GEN_SCAN_RPM_VER=$(shell ./gen-rpm-ver $(realpath $(CURDIR)/../src/github.com/docker/scan-cli-plugin) "$(DOCKER_SCAN_REF)")
 CLI_GITCOMMIT?=$(shell cd $(realpath $(CURDIR)/../src/github.com/docker/cli) && git rev-parse --short HEAD)
 ENGINE_GITCOMMIT?=$(shell cd $(realpath $(CURDIR)/../src/github.com/docker/docker) && git rev-parse --short HEAD)
 
@@ -18,7 +19,13 @@ BUILD?=DOCKER_BUILDKIT=1 \
 	-f $@/Dockerfile \
 	.
 
+
+ifeq ($(ARCH),x86_64)
+SPEC_FILES?=docker-ce.spec docker-ce-cli.spec docker-ce-rootless-extras.spec docker-scan-plugin.spec
+else
 SPEC_FILES?=docker-ce.spec docker-ce-cli.spec docker-ce-rootless-extras.spec
+endif
+
 SPECS?=$(addprefix SPECS/, $(SPEC_FILES))
 RPMBUILD_FLAGS?=-ba\
 	--define '_gitcommit_cli $(CLI_GITCOMMIT)' \
@@ -26,6 +33,7 @@ RPMBUILD_FLAGS?=-ba\
 	--define '_release $(word 2,$(GEN_RPM_VER))' \
 	--define '_version $(word 1,$(GEN_RPM_VER))' \
 	--define '_origversion $(word 4, $(GEN_RPM_VER))' \
+	--define '_scan_version $(word 1,$(GEN_SCAN_RPM_VER))' \
 	$(RPMBUILD_EXTRA_FLAGS) \
 	$(SPECS)
 
@@ -76,7 +84,7 @@ centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 rhel: $(RHEL_RELEASES) ## build all rhel rpm packages
 
 .PHONY: $(DISTROS)
-$(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
+$(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/scan-cli-plugin.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
 	mkdir -p "rpmbuild/$@"
 	$(BUILD)
@@ -98,6 +106,14 @@ rpmbuild/SOURCES/cli.tgz:
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/cli.tgz --exclude .git cli
+
+rpmbuild/SOURCES/scan-cli-plugin.tgz:
+	mkdir -p $(@D)
+	docker run --rm -w /v \
+		-v $(realpath $(CURDIR)/../src/github.com/docker/scan-cli-plugin):/scan-cli-plugin \
+		-v $(CURDIR)/$(@D):/v \
+		alpine \
+		tar -C / -c -z -f /v/scan-cli-plugin.tgz --exclude .git scan-cli-plugin
 
 rpmbuild/SOURCES/docker.service: ../systemd/docker.service
 	mkdir -p $(@D)

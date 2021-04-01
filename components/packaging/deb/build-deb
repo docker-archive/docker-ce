@@ -7,11 +7,14 @@ mkdir -p /root/build-deb/engine
 tar -C /root/build-deb -xzf /sources/engine.tgz
 mkdir -p /root/build-deb/cli
 tar -C /root/build-deb -xzf /sources/cli.tgz
+mkdir -p /root/build-deb/scan-cli-plugin
+tar -C /root/build-deb -xzf /sources/scan-cli-plugin.tgz
 
 # link them to their canonical path
 mkdir -p /go/src/github.com/docker
 ln -snf /root/build-deb/engine /go/src/github.com/docker/docker
 ln -snf /root/build-deb/cli /go/src/github.com/docker/cli
+ln -snf /root/build-deb/scan-cli-plugin /go/src/github.com/docker/scan-cli-plugin
 
 EPOCH="${EPOCH:-}"
 EPOCH_SEP=""
@@ -44,6 +47,9 @@ EOF
 # Give the script a git commit because it wants it
 export CLI_GITCOMMIT=${CLI_GITCOMMIT-$(cd cli; $GIT_COMMAND rev-parse --short HEAD)}
 export ENGINE_GITCOMMIT=${ENGINE_GITCOMMIT-$(cd engine; $GIT_COMMAND rev-parse --short HEAD)}
+
+# Scan plugin
+export SCAN_GITCOMMIT=${SCAN_GITCOMMIT-$(cd scan-cli-plugin; $GIT_COMMAND rev-parse --short HEAD)}
 
 echo VERSION BBB $VERSION
 dpkg-buildpackage -uc -us -I.git

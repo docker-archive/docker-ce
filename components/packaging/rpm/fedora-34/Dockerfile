@@ -1,6 +1,6 @@
 ARG GO_IMAGE
 ARG DISTRO=fedora
-ARG SUITE=33
+ARG SUITE=34
 ARG BUILD_IMAGE=${DISTRO}:${SUITE}
 
 FROM ${GO_IMAGE} AS golang
@@ -19,15 +19,7 @@ ENV DISTRO=${DISTRO}
 ENV SUITE=${SUITE}
 RUN dnf install -y rpm-build rpmlint dnf-plugins-core
 COPY SPECS /root/rpmbuild/SPECS
-
-# TODO change once we support scan-plugin on other architectures
-RUN \
-  if [ "$(uname -m)" = "x86_64" ]; then \
-    dnf builddep -y /root/rpmbuild/SPECS/*.spec; \
-  else \
-    dnf builddep -y /root/rpmbuild/SPECS/docker-c*.spec; \
-  fi
-
+RUN dnf builddep -y /root/rpmbuild/SPECS/*.spec
 COPY --from=golang /usr/local/go /usr/local/go
 WORKDIR /root/rpmbuild
 ENTRYPOINT ["/bin/rpmbuild"]
