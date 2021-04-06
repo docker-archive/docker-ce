@@ -44,14 +44,23 @@ hash_files:
 	@echo "Hashing directory $(DIR_TO_HASH)"
 	$(HASH_CMD) "$(DIR_TO_HASH)"
 
+.PHONY: buildx
+buildx:
+	docker buildx inspect | grep -q 'Driver: docker-container' || docker buildx create --use
+
 .PHONY: cross-mac
-cross-mac: cross-all-cli cross-mac-plugins ## create tgz with darwin x86_64 client only
-	mkdir -p build/mac/docker
-	cp $(CLI_DIR)/build/docker-darwin-amd64 build/mac/docker/docker
-	tar -C build/mac -c -z -f build/mac/docker-$(GEN_STATIC_VER).tgz docker
+cross-mac: buildx cross-mac-plugins
+	cd $(CLI_DIR) && VERSION=$(GEN_STATIC_VER) docker buildx bake --set binary.platform=darwin/amd64,darwin/arm64 binary
+	dest=$$PWD/build/mac; cd $(CLI_DIR)/build && for platform in *; do \
+		arch=$$(echo $$platform | cut -d_ -f2); \
+		mkdir -p $$dest/$$arch/docker; \
+		cp $$platform/docker-darwin-* $$dest/$$arch/docker/docker && \
+		tar -C $$dest/$$arch -c -z -f $$dest/$$arch/docker-$(GEN_STATIC_VER).tgz docker; \
+	done
 
 .PHONY: cross-win
-cross-win: cross-all-cli cross-win-engine cross-win-plugins ## create zip file with windows x86_64 client and server
+cross-win: cross-win-engine cross-win-plugins
+	cd $(CLI_DIR) && VERSION=$(GEN_STATIC_VER) docker buildx bake --set binary.platform=windows/amd64 binary
 	mkdir -p build/win/docker
 	cp $(CLI_DIR)/build/docker-windows-amd64.exe build/win/docker/docker.exe
 	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(GEN_STATIC_VER).exe build/win/docker/dockerd.exe
@@ -101,4 +110,4 @@ cross-win-plugins:
 	mkdir -p build/$(CLI_BUILD_DIR)/docker/cli-plugins
 	docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build
-	find build/$(CLI_BUILD_DIR)/docker -type f -not -name "*.exe" -exec mv {} {}.exe \;
+	find build/$(CLI_BUILD_DIR)/$*/docker -type f -not -name "*.exe" -exec mv {} {}.exe \;
