@@ -74,7 +74,7 @@ cross-arm: cross-all-cli ## create tgz with linux armhf client only
 
 .PHONY: static-cli
 static-cli:
-	$(MAKE) -C $(CLI_DIR) -f docker.Makefile VERSION=$(GEN_STATIC_VER) build
+	cd $(CLI_DIR) && VERSION=$(GEN_STATIC_VER) docker buildx bake --set binary.platform=$(TARGETPLATFORM) --set binary.args.CGO_ENABLED=$(CGO_ENABLED) binary
 
 .PHONY: static-engine
 static-engine:
