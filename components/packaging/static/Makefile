@@ -90,24 +90,29 @@ cross-win-engine:
 	$(MAKE) -C $(ENGINE_DIR) VERSION=$(GEN_STATIC_VER) DOCKER_CROSSPLATFORMS=windows/amd64 cross
 
 BUILD_PLUGIN_RUN_VARS = --rm \
-	-e GOOS=$(SPOOF_GOOS) \
-	-v "$(CURDIR)/build/$(CLI_BUILD_DIR)/docker/cli-plugins":/out \
+	-e GOOS \
+	-e GOARCH \
+	-v "$(CURDIR)/build/$(CLI_BUILD_DIR)/$*/docker/cli-plugins":/out \
 	-v "$(CURDIR)/../plugins":/plugins:ro \
 	-v "$(CURDIR)/scripts/build-cli-plugins":/build:ro
 
 .PHONY: cross-mac-plugins
-cross-mac-plugins: SPOOF_GOOS := darwin
-cross-mac-plugins: CLI_BUILD_DIR := mac
-cross-mac-plugins:
-	mkdir -p build/$(CLI_BUILD_DIR)/docker
-	docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
-	$(CHOWN) -R $(shell id -u):$(shell id -g) build
+cross-mac-plugins: cross-mac-plugins-amd64 cross-mac-plugins-arm64
+
+.PHONY: cross-mac-plugins-%
+cross-mac-plugins-%: CLI_BUILD_DIR := mac
+cross-mac-plugins-%:
+	mkdir -p build/$(CLI_BUILD_DIR)/$*/docker
+	GOOS=darwin GOARCH=$* docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
+	$(CHOWN) -R $(shell id -u):$(shell id -g) build/$(CLI_BUILD_DIR)/$*
 
 .PHONY: cross-win-plugins
-cross-win-plugins: SPOOF_GOOS := windows
-cross-win-plugins: CLI_BUILD_DIR := win
-cross-win-plugins:
-	mkdir -p build/$(CLI_BUILD_DIR)/docker/cli-plugins
-	docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
-	$(CHOWN) -R $(shell id -u):$(shell id -g) build
+cross-win-plugins: cross-win-plugins-amd64
+
+.PHONY: cross-win-plugins-%
+cross-win-plugins-%: CLI_BUILD_DIR := win
+cross-win-plugins-%:
+	mkdir -p build/$(CLI_BUILD_DIR)/$*/docker/cli-plugins
+	GOOS=windows GOARCH=$* docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
+	$(CHOWN) -R $(shell id -u):$(shell id -g) build/$(CLI_BUILD_DIR)/$*
 	find build/$(CLI_BUILD_DIR)/$*/docker -type f -not -name "*.exe" -exec mv {} {}.exe \;
