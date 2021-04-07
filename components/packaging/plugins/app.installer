@@ -18,7 +18,7 @@ build() {
         git fetch --all
         git checkout -q "${COMMIT}"
         # There's no real versions yet, but this'll just leave it blank
-        make dynamic
+        GO111MODULE=off make dynamic
     )
 }
 
