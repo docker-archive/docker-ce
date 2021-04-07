@@ -60,10 +60,10 @@ cross-mac: buildx cross-mac-plugins
 .PHONY: cross-win
 cross-win: cross-win-engine cross-win-plugins
 	cd $(CLI_DIR) && VERSION=$(GEN_STATIC_VER) docker buildx bake --set binary.platform=windows/amd64 binary
-	mkdir -p build/win/docker
-	cp $(CLI_DIR)/build/docker-windows-amd64.exe build/win/docker/docker.exe
-	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(GEN_STATIC_VER).exe build/win/docker/dockerd.exe
-	docker run --rm -v $(CURDIR)/build/win:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(GEN_STATIC_VER).zip docker'
+	mkdir -p build/win/amd64/docker
+	cp $(CLI_DIR)/build/docker-windows-amd64.exe build/win/amd64/docker/docker.exe
+	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(GEN_STATIC_VER).exe build/win/amd64/docker/dockerd.exe
+	docker run --rm -v $(CURDIR)/build/win/amd64:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(GEN_STATIC_VER).zip docker'
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build
 
 .PHONY: cross-arm
