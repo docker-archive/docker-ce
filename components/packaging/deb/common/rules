@@ -10,8 +10,7 @@ override_dh_auto_build:
 	cd engine && TMP_GOPATH="/go" hack/dockerfile/install/install.sh proxy dynamic
 	cd engine && TMP_GOPATH="/go" hack/dockerfile/install/install.sh rootlesskit dynamic
 	# Build the CLI
-	cd /go/src/github.com/docker/cli && \
-		LDFLAGS='' DISABLE_WARN_OUTSIDE_CONTAINER=1 make VERSION=$(VERSION) GITCOMMIT=$(CLI_GITCOMMIT) dynbinary manpages
+	cd /go/src/github.com/docker/cli && VERSION=$(VERSION) GITCOMMIT=$(CLI_GITCOMMIT) LDFLAGS='' GO_LINKMODE=dynamic ./scripts/build/binary && DISABLE_WARN_OUTSIDE_CONTAINER=1 LDFLAGS='' make manpages
 
 	# Build the scan-plugin
 	# TODO change once we support scan-plugin on other architectures

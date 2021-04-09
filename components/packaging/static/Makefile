@@ -5,8 +5,7 @@ ENGINE_DIR=$(realpath $(CURDIR)/../src/github.com/docker/docker)
 GEN_STATIC_VER=$(shell ./gen-static-ver $(CLI_DIR) $(VERSION))
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
-GO_VERSION=$(shell grep "ARG GO_VERSION" $(CLI_DIR)/dockerfiles/Dockerfile.dev | awk -F'=' '{print $$2}')
-DOCKER_CLI_GOLANG_IMG=golang:$(GO_VERSION)
+DOCKER_CLI_PLUGIN_GOLANG_IMG=golang:1.16.3
 
 .PHONY: help
 help: ## show make targets
@@ -44,18 +43,27 @@ hash_files:
 	@echo "Hashing directory $(DIR_TO_HASH)"
 	$(HASH_CMD) "$(DIR_TO_HASH)"
 
+.PHONY: buildx
+buildx:
+	docker buildx inspect | grep -q 'Driver: docker-container' || docker buildx create --use
+
 .PHONY: cross-mac
-cross-mac: cross-all-cli cross-mac-plugins ## create tgz with darwin x86_64 client only
-	mkdir -p build/mac/docker
-	cp $(CLI_DIR)/build/docker-darwin-amd64 build/mac/docker/docker
-	tar -C build/mac -c -z -f build/mac/docker-$(GEN_STATIC_VER).tgz docker
+cross-mac: buildx cross-mac-plugins
+	cd $(CLI_DIR) && VERSION=$(GEN_STATIC_VER) docker buildx bake --set binary.platform=darwin/amd64,darwin/arm64 binary
+	dest=$$PWD/build/mac; cd $(CLI_DIR)/build && for platform in *; do \
+		arch=$$(echo $$platform | cut -d_ -f2); \
+		mkdir -p $$dest/$$arch/docker; \
+		cp $$platform/docker-darwin-* $$dest/$$arch/docker/docker && \
+		tar -C $$dest/$$arch -c -z -f $$dest/$$arch/docker-$(GEN_STATIC_VER).tgz docker; \
+	done
 
 .PHONY: cross-win
-cross-win: cross-all-cli cross-win-engine cross-win-plugins ## create zip file with windows x86_64 client and server
-	mkdir -p build/win/docker
-	cp $(CLI_DIR)/build/docker-windows-amd64.exe build/win/docker/docker.exe
-	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(GEN_STATIC_VER).exe build/win/docker/dockerd.exe
-	docker run --rm -v $(CURDIR)/build/win:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(GEN_STATIC_VER).zip docker'
+cross-win: cross-win-engine cross-win-plugins
+	cd $(CLI_DIR) && VERSION=$(GEN_STATIC_VER) docker buildx bake --set binary.platform=windows/amd64 binary
+	mkdir -p build/win/amd64/docker
+	cp $(CLI_DIR)/build/docker-windows-amd64.exe build/win/amd64/docker/docker.exe
+	cp $(ENGINE_DIR)/bundles/cross/windows/amd64/dockerd-$(GEN_STATIC_VER).exe build/win/amd64/docker/dockerd.exe
+	docker run --rm -v $(CURDIR)/build/win/amd64:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(GEN_STATIC_VER).zip docker'
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build
 
 .PHONY: cross-arm
@@ -66,7 +74,7 @@ cross-arm: cross-all-cli ## create tgz with linux armhf client only
 
 .PHONY: static-cli
 static-cli:
-	$(MAKE) -C $(CLI_DIR) -f docker.Makefile VERSION=$(GEN_STATIC_VER) build
+	cd $(CLI_DIR) && VERSION=$(GEN_STATIC_VER) docker buildx bake --set binary.platform=$(TARGETPLATFORM) --set binary.args.CGO_ENABLED=$(CGO_ENABLED) binary
 
 .PHONY: static-engine
 static-engine:
@@ -81,24 +89,29 @@ cross-win-engine:
 	$(MAKE) -C $(ENGINE_DIR) VERSION=$(GEN_STATIC_VER) DOCKER_CROSSPLATFORMS=windows/amd64 cross
 
 BUILD_PLUGIN_RUN_VARS = --rm \
-	-e GOOS=$(SPOOF_GOOS) \
-	-v "$(CURDIR)/build/$(CLI_BUILD_DIR)/docker/cli-plugins":/out \
+	-e GOOS \
+	-e GOARCH \
+	-v "$(CURDIR)/build/$(CLI_BUILD_DIR)/$*/docker/cli-plugins":/out \
 	-v "$(CURDIR)/../plugins":/plugins:ro \
 	-v "$(CURDIR)/scripts/build-cli-plugins":/build:ro
 
 .PHONY: cross-mac-plugins
-cross-mac-plugins: SPOOF_GOOS := darwin
-cross-mac-plugins: CLI_BUILD_DIR := mac
-cross-mac-plugins:
-	mkdir -p build/$(CLI_BUILD_DIR)/docker
-	docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
-	$(CHOWN) -R $(shell id -u):$(shell id -g) build
+cross-mac-plugins: cross-mac-plugins-amd64 cross-mac-plugins-arm64
+
+.PHONY: cross-mac-plugins-%
+cross-mac-plugins-%: CLI_BUILD_DIR := mac
+cross-mac-plugins-%:
+	mkdir -p build/$(CLI_BUILD_DIR)/$*/docker
+	GOOS=darwin GOARCH=$* docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_PLUGIN_GOLANG_IMG) /build
+	$(CHOWN) -R $(shell id -u):$(shell id -g) build/$(CLI_BUILD_DIR)/$*
 
 .PHONY: cross-win-plugins
-cross-win-plugins: SPOOF_GOOS := windows
-cross-win-plugins: CLI_BUILD_DIR := win
-cross-win-plugins:
-	mkdir -p build/$(CLI_BUILD_DIR)/docker/cli-plugins
-	docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
-	$(CHOWN) -R $(shell id -u):$(shell id -g) build
-	find build/$(CLI_BUILD_DIR)/docker -type f -not -name "*.exe" -exec mv {} {}.exe \;
+cross-win-plugins: cross-win-plugins-amd64
+
+.PHONY: cross-win-plugins-%
+cross-win-plugins-%: CLI_BUILD_DIR := win
+cross-win-plugins-%:
+	mkdir -p build/$(CLI_BUILD_DIR)/$*/docker/cli-plugins
+	GOOS=windows GOARCH=$* docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_PLUGIN_GOLANG_IMG) /build
+	$(CHOWN) -R $(shell id -u):$(shell id -g) build/$(CLI_BUILD_DIR)/$*
+	find build/$(CLI_BUILD_DIR)/$*/docker -type f -not -name "*.exe" -exec mv {} {}.exe \;
