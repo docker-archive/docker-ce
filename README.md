@@ -1,6 +1,6 @@
 # Docker CE
 
-:warning: **This repository is now deprecated and will be archived** :warning:
+:warning: **This repository is now deprecated and will be archived** (Docker CE itself is **NOT** deprecated) :warning:
 
 Starting with the Docker 20.10 release, packages for the Docker Engine and
 Docker CLI are built directly from their respective source repositories instead
