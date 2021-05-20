@@ -77,7 +77,7 @@ $(DISTROS): sources
 	$(CHOWN) -R $(shell id -u):$(shell id -g) "debbuild/$@"
 
 .PHONY: sources
-sources: sources/cli.tgz sources/engine.tgz sources/scan-cli-plugin.tgz sources/docker.service sources/docker.socket sources/plugin-installers.tgz
+sources: sources/cli.tgz sources/engine.tgz sources/scan-cli-plugin.tgz sources/plugin-installers.tgz
 
 sources/engine.tgz:
 	mkdir -p $(@D)
@@ -102,14 +102,6 @@ sources/scan-cli-plugin.tgz:
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/scan-cli-plugin.tgz --exclude .git scan-cli-plugin
-
-sources/docker.service: ../systemd/docker.service
-	mkdir -p $(@D)
-	cp $< $@
-
-sources/docker.socket: ../systemd/docker.socket
-	mkdir -p $(@D)
-	cp $< $@
 
 sources/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -w /v \
