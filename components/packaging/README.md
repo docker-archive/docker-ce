@@ -1,23 +1,16 @@
 # Docker CE Packaging
 
-This repo contains the open source scripts for packaging
-[Docker CE products](https://store.docker.com/search?offering=community&q=&type=edition).
+This repo contains the open source scripts for packaging the
+[Docker Engine](https://docs.docker.com/engine/), the Docker CLI, CLI plugins,
+and rootless-extras packages.
 
-This repository is solely maintained by Docker, Inc.
+The repository contains Dockerfiles to build packages for various distributions,
+which can be found in the "rpm" and "deb" subdirectories, as well as scripts to
+build static binaries.
 
-The scripts will build for this list of packages types:
-
-* DEB packages for Ubuntu 21.04 Hirsute
-* DEB packages for Ubuntu 20.10 Groovy
-* DEB packages for Ubuntu 20.04 Focal
-* DEB packages for Ubuntu 18.04 Bionic
-* DEB packages for Ubuntu 16.04 Xenial
-* DEB packages for Debian 11 BullsEye
-* DEB packages for Debian 10 Buster
-* RPM packages for Fedora 34
-* RPM packages for Fedora 33
-* RPM packages for Fedora 32
-* RPM packages for CentOS 8
-* RPM packages for CentOS 7
-* RPM packages for Red Hat Enterprise Linux 7
-* TGZ and ZIP files with static binaries
+Docker uses these recipes to build and release packages that are available on the
+https://download.docker.com package repositories. We welcome contributions to
+this repository, including the addition of new distros or distro-versions. Note,
+however, that Docker makes a subselection of distros and architectures for release,
+and not all distros available in this repository may be released to download.docker.com,
+but you can use these scripts to build your own packages.
