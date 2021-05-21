@@ -8,8 +8,6 @@ Version: %{_version}
 Release: %{_release}%{?dist}
 Epoch: 3
 Source0: engine.tgz
-Source1: docker.service
-Source2: docker.socket
 Summary: The open-source application container engine
 Group: Tools/Docker
 License: ASL 2.0
@@ -101,8 +99,8 @@ install -D -p -m 0755 /usr/local/bin/docker-proxy ${RPM_BUILD_ROOT}%{_bindir}/do
 install -D -p -m 755 /usr/local/bin/docker-init ${RPM_BUILD_ROOT}%{_bindir}/docker-init
 
 # install systemd scripts
-install -D -m 0644 ${RPM_SOURCE_DIR}/docker.service ${RPM_BUILD_ROOT}%{_unitdir}/docker.service
-install -D -m 0644 ${RPM_SOURCE_DIR}/docker.socket ${RPM_BUILD_ROOT}%{_unitdir}/docker.socket
+install -D -m 0644 engine/contrib/init/systemd/docker.service ${RPM_BUILD_ROOT}%{_unitdir}/docker.service
+install -D -m 0644 engine/contrib/init/systemd/docker.socket ${RPM_BUILD_ROOT}%{_unitdir}/docker.socket
 
 %files
 %{_bindir}/dockerd
