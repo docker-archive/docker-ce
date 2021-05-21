@@ -84,7 +84,7 @@ centos: $(CENTOS_RELEASES) ## build all centos rpm packages
 rhel: $(RHEL_RELEASES) ## build all rhel rpm packages
 
 .PHONY: $(DISTROS)
-$(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/scan-cli-plugin.tgz rpmbuild/SOURCES/docker.service rpmbuild/SOURCES/docker.socket rpmbuild/SOURCES/plugin-installers.tgz
+$(DISTROS): rpmbuild/SOURCES/engine.tgz rpmbuild/SOURCES/cli.tgz rpmbuild/SOURCES/scan-cli-plugin.tgz rpmbuild/SOURCES/plugin-installers.tgz
 	@echo "== Building packages for $@ =="
 	mkdir -p "rpmbuild/$@"
 	$(BUILD)
@@ -114,14 +114,6 @@ rpmbuild/SOURCES/scan-cli-plugin.tgz:
 		-v $(CURDIR)/$(@D):/v \
 		alpine \
 		tar -C / -c -z -f /v/scan-cli-plugin.tgz --exclude .git scan-cli-plugin
-
-rpmbuild/SOURCES/docker.service: ../systemd/docker.service
-	mkdir -p $(@D)
-	cp $< $@
-
-rpmbuild/SOURCES/docker.socket: ../systemd/docker.socket
-	mkdir -p $(@D)
-	cp $< $@
 
 rpmbuild/SOURCES/plugin-installers.tgz: $(wildcard ../plugins/*)
 	docker run --rm -w /v \
