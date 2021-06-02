@@ -30,8 +30,15 @@ override_dh_auto_build:
 		done
 
 override_dh_auto_test:
-	./engine/bundles/dynbinary-daemon/dockerd -v
-	./cli/build/docker -v
+	ver="$$(engine/bundles/dynbinary-daemon/dockerd --version)"; \
+		test "$$ver" = "Docker version $(VERSION), build $(ENGINE_GITCOMMIT)" && echo "PASS: daemon version OK" || echo "FAIL: daemon version ($$ver) did not match"
+
+	ver="$$(cli/build/docker --version)"; \
+		test "$$ver" = "Docker version $(VERSION), build $(CLI_GITCOMMIT)" && echo "PASS: cli version OK" || echo "FAIL: cli version ($$ver) did not match"
+
+	# FIXME: --version currently doesn't work as it makes a connection to the daemon, so using the plugin metadata instead
+	ver="$$(/usr/libexec/docker/cli-plugins/docker-scan docker-cli-plugin-metadata | awk '{ gsub(/[",:]/,"")}; $$1 == "Version" { print $$2 }')"; \
+		test "$$ver" = "$(SCAN_VERSION)" && echo "PASS: docker-scan version OK" || echo "FAIL: docker-scan version ($$ver) did not match"
 
 override_dh_strip:
 	# Go has lots of problems with stripping, so just don't

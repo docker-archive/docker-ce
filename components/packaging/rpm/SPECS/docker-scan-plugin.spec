@@ -31,9 +31,10 @@ popd
 
 
 %check
-# FIXME: --version currently doesn't work as it makes a connection to the daemon
+# FIXME: --version currently doesn't work as it makes a connection to the daemon, so using the plugin metadata instead
 #${RPM_BUILD_ROOT}%{_libexecdir}/docker/cli-plugins/docker-scan scan --accept-license --version
-${RPM_BUILD_ROOT}%{_libexecdir}/docker/cli-plugins/docker-scan --help
+ver="$(${RPM_BUILD_ROOT}%{_libexecdir}/docker/cli-plugins/docker-scan docker-cli-plugin-metadata | awk '{ gsub(/[",:]/,"")}; $1 == "Version" { print $2 }')"; \
+	test "$ver" = "%{_scan_version}" && echo "PASS: docker-scan version OK" || echo "FAIL: docker-scan version ($ver) did not match"
 
 %install
 pushd ${RPM_BUILD_DIR}/src/scan-cli-plugin
