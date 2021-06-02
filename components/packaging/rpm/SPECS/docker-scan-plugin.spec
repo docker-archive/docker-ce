@@ -1,7 +1,7 @@
 %global debug_package %{nil}
 
 Name: docker-scan-plugin
-Version: %{_scan_version}
+Version: %{_scan_rpm_version}
 Release: %{_release}%{?dist}
 Epoch: 0
 Source0: scan-cli-plugin.tgz
@@ -26,7 +26,7 @@ Docker Scan plugin for the Docker CLI.
 
 %build
 pushd ${RPM_BUILD_DIR}/src/scan-cli-plugin
-bash -c 'GOPROXY="https://proxy.golang.org" PLATFORM_BINARY=docker-scan make native-build'
+bash -c 'GOPROXY="https://proxy.golang.org" TAG_NAME="%{_scan_version}" COMMIT="%{_scan_gitcommit}" PLATFORM_BINARY=docker-scan make native-build'
 popd
 
 
