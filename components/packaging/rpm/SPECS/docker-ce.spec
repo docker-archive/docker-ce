@@ -86,7 +86,8 @@ VERSION=%{_origversion} PRODUCT=docker hack/make.sh dynbinary
 popd
 
 %check
-engine/bundles/dynbinary-daemon/dockerd -v
+ver="$(engine/bundles/dynbinary-daemon/dockerd --version)"; \
+    test "$ver" = "Docker version %{_origversion}, build %{_gitcommit_engine}" && echo "PASS: daemon version OK" || echo "FAIL: daemon version ($ver) did not match"
 
 %install
 # install daemon binary
