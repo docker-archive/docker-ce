@@ -64,8 +64,9 @@ done
 popd
 
 
-# %check
-# cli/build/docker -v
+%check
+ver="$(cli/build/docker --version)"; \
+    test "$ver" = "Docker version %{_origversion}, build %{_gitcommit_cli}" && echo "PASS: cli version OK" || echo "FAIL: cli version ($ver) did not match"
 
 %install
 # install binary
