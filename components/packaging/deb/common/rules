@@ -7,7 +7,6 @@ override_dh_auto_build:
 	# Build the daemon and dependencies
 	cd engine && DOCKER_GITCOMMIT=$(ENGINE_GITCOMMIT) PRODUCT=docker ./hack/make.sh dynbinary
 	cd engine && TMP_GOPATH="/go" hack/dockerfile/install/install.sh tini
-	cd engine && TMP_GOPATH="/go" hack/dockerfile/install/install.sh proxy dynamic
 	cd engine && TMP_GOPATH="/go" hack/dockerfile/install/install.sh rootlesskit dynamic
 	# Build the CLI
 	cd /go/src/github.com/docker/cli && VERSION=$(VERSION) GITCOMMIT=$(CLI_GITCOMMIT) LDFLAGS='' GO_LINKMODE=dynamic ./scripts/build/binary && DISABLE_WARN_OUTSIDE_CONTAINER=1 LDFLAGS='' make manpages
@@ -59,7 +58,7 @@ override_dh_auto_install:
 	install -D -m 0644 engine/contrib/init/systemd/docker.service debian/docker-ce/lib/systemd/system/docker.service
 	install -D -m 0644 engine/contrib/init/systemd/docker.socket debian/docker-ce/lib/systemd/system/docker.socket
 	install -D -m 0755 $(shell readlink -e engine/bundles/dynbinary-daemon/dockerd) debian/docker-ce/usr/bin/dockerd
-	install -D -m 0755 /usr/local/bin/docker-proxy debian/docker-ce/usr/bin/docker-proxy
+	install -D -m 0755 $(shell readlink -e engine/bundles/dynbinary-daemon/docker-proxy) debian/docker-ce/usr/bin/docker-proxy
 	install -D -m 0755 /usr/local/bin/docker-init debian/docker-ce/usr/bin/docker-init
 
 	# docker-scan-plugin install
