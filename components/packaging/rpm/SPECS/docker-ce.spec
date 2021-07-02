@@ -35,6 +35,7 @@ BuildRequires: device-mapper-devel
 BuildRequires: gcc
 BuildRequires: git
 BuildRequires: glibc-static
+BuildRequires: libarchive
 BuildRequires: libseccomp-devel
 BuildRequires: libselinux-devel
 BuildRequires: libtool
@@ -79,9 +80,7 @@ mkdir -p /go/src/github.com/docker
 ln -s ${RPM_BUILD_DIR}/src/engine /go/src/github.com/docker/docker
 
 pushd ${RPM_BUILD_DIR}/src/engine
-for component in tini "proxy dynamic";do
-    TMP_GOPATH="/go" hack/dockerfile/install/install.sh $component
-done
+TMP_GOPATH="/go" hack/dockerfile/install/install.sh tini
 VERSION=%{_origversion} PRODUCT=docker hack/make.sh dynbinary
 popd
 
@@ -90,14 +89,9 @@ ver="$(engine/bundles/dynbinary-daemon/dockerd --version)"; \
     test "$ver" = "Docker version %{_origversion}, build %{_gitcommit_engine}" && echo "PASS: daemon version OK" || echo "FAIL: daemon version ($ver) did not match"
 
 %install
-# install daemon binary
 install -D -p -m 0755 $(readlink -f engine/bundles/dynbinary-daemon/dockerd) ${RPM_BUILD_ROOT}%{_bindir}/dockerd
-
-# install proxy
-install -D -p -m 0755 /usr/local/bin/docker-proxy ${RPM_BUILD_ROOT}%{_bindir}/docker-proxy
-
-# install tini
-install -D -p -m 755 /usr/local/bin/docker-init ${RPM_BUILD_ROOT}%{_bindir}/docker-init
+install -D -p -m 0755 $(readlink -f engine/bundles/dynbinary-daemon/docker-proxy) ${RPM_BUILD_ROOT}%{_bindir}/docker-proxy
+install -D -p -m 0755 /usr/local/bin/docker-init ${RPM_BUILD_ROOT}%{_bindir}/docker-init
 
 # install systemd scripts
 install -D -m 0644 engine/contrib/init/systemd/docker.service ${RPM_BUILD_ROOT}%{_unitdir}/docker.service
