@@ -30,14 +30,17 @@ override_dh_auto_build:
 
 override_dh_auto_test:
 	ver="$$(engine/bundles/dynbinary-daemon/dockerd --version)"; \
-		test "$$ver" = "Docker version $(VERSION), build $(ENGINE_GITCOMMIT)" && echo "PASS: daemon version OK" || echo "FAIL: daemon version ($$ver) did not match"
+		test "$$ver" = "Docker version $(VERSION), build $(ENGINE_GITCOMMIT)" && echo "PASS: daemon version OK" || (echo "FAIL: daemon version ($$ver) did not match" && exit 1)
 
 	ver="$$(cli/build/docker --version)"; \
-		test "$$ver" = "Docker version $(VERSION), build $(CLI_GITCOMMIT)" && echo "PASS: cli version OK" || echo "FAIL: cli version ($$ver) did not match"
+		test "$$ver" = "Docker version $(VERSION), build $(CLI_GITCOMMIT)" && echo "PASS: cli version OK" || (echo "FAIL: cli version ($$ver) did not match" && exit 1)
 
 	# FIXME: --version currently doesn't work as it makes a connection to the daemon, so using the plugin metadata instead
-	ver="$$(/usr/libexec/docker/cli-plugins/docker-scan docker-cli-plugin-metadata | awk '{ gsub(/[",:]/,"")}; $$1 == "Version" { print $$2 }')"; \
-		test "$$ver" = "$(SCAN_VERSION)" && echo "PASS: docker-scan version OK" || echo "FAIL: docker-scan version ($$ver) did not match"
+	# TODO change once we support scan-plugin on other architectures
+	if [ "$(TARGET_ARCH)" = "amd64" ]; then \
+		ver="$$(/usr/libexec/docker/cli-plugins/docker-scan docker-cli-plugin-metadata | awk '{ gsub(/[",:]/,"")}; $$1 == "Version" { print $$2 }')"; \
+			test "$$ver" = "$(SCAN_VERSION)" && echo "PASS: docker-scan version OK" || (echo "FAIL: docker-scan version ($$ver) did not match" && exit 1); \
+	fi
 
 override_dh_strip:
 	# Go has lots of problems with stripping, so just don't
