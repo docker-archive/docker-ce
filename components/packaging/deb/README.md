@@ -29,7 +29,7 @@ make ubuntu
 
 ## Specifying a specific distro version
 ```shell
-make ubuntu-xenial
+make ubuntu-focal
 ```
 
 ## Building the for all distros
