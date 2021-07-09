@@ -99,4 +99,4 @@ override_dh_gencontrol:
 	dh_gencontrol --remaining-packages
 
 %:
-	dh $@ --with=bash-completion $(shell command -v dh_systemd_enable > /dev/null 2>&1 && echo --with=systemd)
+	dh $@ --with=bash-completion
