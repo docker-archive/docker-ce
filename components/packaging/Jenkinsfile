@@ -4,12 +4,12 @@ def branch = env.CHANGE_TARGET ?: env.BRANCH_NAME
 
 test_steps = [
 	'deb': { ->
-		stage('Ubuntu Xenial and Focal Package') {
+		stage('Ubuntu and Debian Package') {
 			wrappedNode(label: 'ubuntu-2004 && x86_64', cleanWorkspace: true) {
 				try {
 					checkout scm
 					sh "make REF=$branch checkout"
-					sh "make -C deb ubuntu-xenial ubuntu-focal ubuntu-hirsute debian-bullseye"
+					sh "make -C deb ubuntu-focal ubuntu-hirsute debian-bullseye"
 				} finally {
 					sh "make clean"
 				}
