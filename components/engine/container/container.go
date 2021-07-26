@@ -31,13 +31,13 @@ import (
 	"github.com/docker/docker/pkg/containerfs"
 	"github.com/docker/docker/pkg/idtools"
 	"github.com/docker/docker/pkg/ioutils"
-	"github.com/docker/docker/pkg/signal"
 	"github.com/docker/docker/pkg/system"
 	"github.com/docker/docker/restartmanager"
 	"github.com/docker/docker/volume"
 	volumemounts "github.com/docker/docker/volume/mounts"
 	units "github.com/docker/go-units"
 	agentexec "github.com/docker/swarmkit/agent/exec"
+	"github.com/moby/sys/signal"
 	"github.com/moby/sys/symlink"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -474,11 +474,7 @@ func (container *Container) ShouldRestart() bool {
 
 // AddMountPointWithVolume adds a new mount point configured with a volume to the container.
 func (container *Container) AddMountPointWithVolume(destination string, vol volume.Volume, rw bool) {
-	operatingSystem := container.OS
-	if operatingSystem == "" {
-		operatingSystem = runtime.GOOS
-	}
-	volumeParser := volumemounts.NewParser(operatingSystem)
+	volumeParser := volumemounts.NewParser()
 	container.MountPoints[destination] = &volumemounts.MountPoint{
 		Type:        mounttypes.TypeVolume,
 		Name:        vol.Name(),
