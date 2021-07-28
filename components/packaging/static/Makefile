@@ -5,7 +5,8 @@ ENGINE_DIR=$(realpath $(CURDIR)/../src/github.com/docker/docker)
 GEN_STATIC_VER=$(shell ./gen-static-ver $(CLI_DIR) $(VERSION))
 HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
-DOCKER_CLI_PLUGIN_GOLANG_IMG=golang:1.16.3
+GO_VERSION=$(shell grep "ARG GO_VERSION" $(CLI_DIR)/dockerfiles/Dockerfile.dev | awk -F'=' '{print $$2}')
+DOCKER_CLI_GOLANG_IMG=golang:$(GO_VERSION)
 
 .PHONY: help
 help: ## show make targets
@@ -103,7 +104,7 @@ cross-mac-plugins: cross-mac-plugins-amd64 cross-mac-plugins-arm64
 cross-mac-plugins-%: CLI_BUILD_DIR := mac
 cross-mac-plugins-%:
 	mkdir -p build/$(CLI_BUILD_DIR)/$*/docker
-	GOOS=darwin GOARCH=$* docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_PLUGIN_GOLANG_IMG) /build
+	GOOS=darwin GOARCH=$* docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build/$(CLI_BUILD_DIR)/$*
 
 .PHONY: cross-win-plugins
@@ -113,6 +114,6 @@ cross-win-plugins: cross-win-plugins-amd64
 cross-win-plugins-%: CLI_BUILD_DIR := win
 cross-win-plugins-%:
 	mkdir -p build/$(CLI_BUILD_DIR)/$*/docker/cli-plugins
-	GOOS=windows GOARCH=$* docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_PLUGIN_GOLANG_IMG) /build
+	GOOS=windows GOARCH=$* docker run $(BUILD_PLUGIN_RUN_VARS) $(DOCKER_CLI_GOLANG_IMG) /build
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build/$(CLI_BUILD_DIR)/$*
 	find build/$(CLI_BUILD_DIR)/$*/docker -type f -not -name "*.exe" -exec mv {} {}.exe \;
