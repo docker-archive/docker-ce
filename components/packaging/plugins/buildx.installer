@@ -6,7 +6,7 @@ source "$(dirname "$0")/.common"
 PKG=github.com/docker/buildx
 GOPATH=$(go env GOPATH)
 REPO=https://${PKG}.git
-: "${BUILDX_COMMIT=v0.5.1}"
+: "${BUILDX_COMMIT=v0.6.0}"
 DEST=${GOPATH}/src/${PKG}
 
 build() {
@@ -20,7 +20,7 @@ build() {
         local LDFLAGS
         LDFLAGS="-X ${PKG}/version.Version=$(git describe --match 'v[0-9]*' --always --tags)-docker -X ${PKG}/version.Revision=$(git rev-parse HEAD) -X ${PKG}/version.Package=${PKG}"
         set -x
-        GOFLAGS=-mod=vendor go build -o bin/docker-buildx -ldflags "${LDFLAGS}" ./cmd/buildx
+        GO111MODULE=on go build -mod=vendor -o bin/docker-buildx -ldflags "${LDFLAGS}" ./cmd/buildx
     )
 }
 
