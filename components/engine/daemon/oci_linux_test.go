@@ -1,7 +1,6 @@
 package daemon // import "github.com/docker/docker/daemon"
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,7 +18,7 @@ import (
 )
 
 func setupFakeDaemon(t *testing.T, c *container.Container) *Daemon {
-	root, err := ioutil.TempDir("", "oci_linux_test-root")
+	root, err := os.MkdirTemp("", "oci_linux_test-root")
 	assert.NilError(t, err)
 
 	rootfs := filepath.Join(root, "rootfs")
@@ -67,7 +66,7 @@ func TestTmpfsDevShmNoDupMount(t *testing.T) {
 	c := &container.Container{
 		ShmPath: "foobar", // non-empty, for c.IpcMounts() to work
 		HostConfig: &containertypes.HostConfig{
-			IpcMode: containertypes.IpcMode("shareable"), // default mode
+			IpcMode: containertypes.IPCModeShareable, // default mode
 			// --tmpfs /dev/shm:rw,exec,size=NNN
 			Tmpfs: map[string]string{
 				"/dev/shm": "rw,exec,size=1g",
@@ -89,7 +88,7 @@ func TestIpcPrivateVsReadonly(t *testing.T) {
 	skip.If(t, os.Getuid() != 0, "skipping test that requires root")
 	c := &container.Container{
 		HostConfig: &containertypes.HostConfig{
-			IpcMode:        containertypes.IpcMode("private"),
+			IpcMode:        containertypes.IPCModePrivate,
 			ReadonlyRootfs: true,
 		},
 	}
