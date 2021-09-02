@@ -13,6 +13,7 @@ Vendor: Docker
 Packager: Docker <support@docker.com>
 
 Requires: docker-ce
+# TODO: conditionally add `Requires: dbus-daemon` for Fedora and CentOS 8
 # slirp4netns >= 0.4 is available in the all supported versions of CentOS and Fedora.
 Requires: slirp4netns >= 0.4
 # fuse-overlayfs >= 0.7 is available in the all supported versions of CentOS and Fedora.
