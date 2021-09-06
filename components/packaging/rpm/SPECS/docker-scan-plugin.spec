@@ -26,6 +26,9 @@ Docker Scan plugin for the Docker CLI.
 
 %build
 pushd ${RPM_BUILD_DIR}/src/scan-cli-plugin
+# Using goproxy instead of "direct" to work around an issue in go mod not
+# working with older git versions (default version on CentOS 7 is git 1.8),
+# see https://github.com/golang/go/issues/38373
 bash -c 'GOPROXY="https://proxy.golang.org" TAG_NAME="%{_scan_version}" COMMIT="%{_scan_gitcommit}" PLATFORM_BINARY=docker-scan make native-build'
 popd
 

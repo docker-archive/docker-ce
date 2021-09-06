@@ -39,7 +39,10 @@ Either VPNKit or slirp4netns (>= 0.4.0) needs to be installed separately.
 export DOCKER_GITCOMMIT=%{_gitcommit_engine}
 mkdir -p /go/src/github.com/docker
 ln -s ${RPM_BUILD_DIR}/src/engine /go/src/github.com/docker/docker
-TMP_GOPATH="/go" ${RPM_BUILD_DIR}/src/engine/hack/dockerfile/install/install.sh rootlesskit dynamic
+# Using goproxy instead of "direct" to work around an issue in go mod not
+# working with older git versions (default version on CentOS 7 is git 1.8),
+# see https://github.com/golang/go/issues/38373
+TMP_GOPATH="/go" GOPROXY="https://proxy.golang.org" ${RPM_BUILD_DIR}/src/engine/hack/dockerfile/install/install.sh rootlesskit dynamic
 
 %check
 /usr/local/bin/rootlesskit -v
