@@ -63,7 +63,7 @@ cross-win: cross-win-engine cross-win-plugins
 	mkdir -p build/win/amd64/docker
 	cp $(CLI_DIR)/build/docker-windows-amd64.exe build/win/amd64/docker/docker.exe
 	cp $(ENGINE_DIR)/bundles/cross/windows/amd64-daemon/dockerd-$(GEN_STATIC_VER).exe build/win/amd64/docker/dockerd.exe
-	cp $(ENGINE_DIR)/bundles/cross/windows/amd64-daemon/docker-proxy-$(GEN_STATIC_VER).exe build/win/amd64/docker/dockerd.exe
+	cp $(ENGINE_DIR)/bundles/cross/windows/amd64-daemon/docker-proxy-$(GEN_STATIC_VER).exe build/win/amd64/docker/docker-proxy.exe
 	docker run --rm -v $(CURDIR)/build/win/amd64:/v -w /v alpine sh -c 'apk update&&apk add zip&&zip -r docker-$(GEN_STATIC_VER).zip docker'
 	$(CHOWN) -R $(shell id -u):$(shell id -g) build
 
