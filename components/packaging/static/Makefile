@@ -7,6 +7,25 @@ HASH_CMD=docker run -v $(CURDIR):/sum -w /sum debian:jessie bash hash_files
 DIR_TO_HASH:=build/linux
 DOCKER_CLI_GOLANG_IMG=golang:$(GO_VERSION)
 
+DOCKER_BUILD_OPTS=
+
+ifneq ($(strip $(CONTAINERD_VERSION)),)
+# Set custom build-args to override the containerd version to build for static
+# packages. The Dockerfile for 20.10 and earlier used CONTAINERD_COMMIT, later
+# versions use CONTAINERD_VERSION. We can remove CONTAINERD_VERSION once 20.10.x
+# reaches EOL.
+DOCKER_BUILD_OPTS +=--build-arg=CONTAINERD_VERSION=$(CONTAINERD_VERSION)
+DOCKER_BUILD_OPTS +=--build-arg=CONTAINERD_COMMIT=$(CONTAINERD_VERSION)
+endif
+
+ifneq ($(strip $(RUNC_VERSION)),)
+# Set custom build-args to override the runc version to build for static packages.
+# The Dockerfile for 20.10 and earlier used RUNC_COMMIT, later versions use
+# RUNC_VERSION. We can remove RUNC_COMMIT once 20.10.x reaches EOL.
+DOCKER_BUILD_OPTS +=--build-arg=RUNC_VERSION=$(RUNC_VERSION)
+DOCKER_BUILD_OPTS +=--build-arg=RUNC_COMMIT=$(RUNC_VERSION)
+endif
+
 .PHONY: help
 help: ## show make targets
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf " \033[36m%-20s\033[0m  %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -79,7 +98,7 @@ static-cli:
 
 .PHONY: static-engine
 static-engine:
-	$(MAKE) -C $(ENGINE_DIR) VERSION=$(GEN_STATIC_VER) binary
+	$(MAKE) -C $(ENGINE_DIR) VERSION=$(GEN_STATIC_VER) DOCKER_BUILD_OPTS="$(DOCKER_BUILD_OPTS)" binary
 
 .PHONY: cross-all-cli
 cross-all-cli:
@@ -87,7 +106,7 @@ cross-all-cli:
 
 .PHONY: cross-win-engine
 cross-win-engine:
-	$(MAKE) -C $(ENGINE_DIR) VERSION=$(GEN_STATIC_VER) DOCKER_CROSSPLATFORMS=windows/amd64 cross
+	$(MAKE) -C $(ENGINE_DIR) VERSION=$(GEN_STATIC_VER) DOCKER_CROSSPLATFORMS=windows/amd64 DOCKER_BUILD_OPTS="$(DOCKER_BUILD_OPTS)" cross
 
 BUILD_PLUGIN_RUN_VARS = --rm \
 	-e GOOS \
