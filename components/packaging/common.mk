@@ -36,7 +36,7 @@ DOCKER_SCAN_REPO   ?= https://github.com/docker/scan-cli-plugin.git
 REF                ?= HEAD
 DOCKER_CLI_REF     ?= $(REF)
 DOCKER_ENGINE_REF  ?= $(REF)
-DOCKER_SCAN_REF    ?= v0.8.0
+DOCKER_SCAN_REF    ?= v0.9.0
 
 export BUILDTIME
 export DEFAULT_PRODUCT_LICENSE
