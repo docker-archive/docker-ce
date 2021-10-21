@@ -3,6 +3,11 @@
 VERSION ?= $(shell cat engine/VERSION)
 TARGET_ARCH = $(shell dpkg-architecture -qDEB_TARGET_ARCH)
 
+# force packages to be built with xz compression, as Ubuntu 21.10 and up use
+# zstd compression, which is non-standard, and breaks 'dpkg-sig --verify'
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
+
 override_dh_auto_build:
 	# Build the daemon and dependencies
 	cd engine && DOCKER_GITCOMMIT=$(ENGINE_GITCOMMIT) PRODUCT=docker ./hack/make.sh dynbinary
