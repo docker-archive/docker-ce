@@ -63,13 +63,17 @@ clean: clean-src ## remove build artifacts
 	$(MAKE) -C deb clean
 	$(MAKE) -C static clean
 
-.PHONY: rpm
-rpm: checkout ## build rpm packages
-	$(MAKE) -C $@ VERSION=$(VERSION) GO_VERSION=$(GO_VERSION) rpm
+.PHONY: deb rpm
+deb rpm: checkout ## build rpm/deb packages
+	$(MAKE) -C $@ VERSION=$(VERSION) GO_VERSION=$(GO_VERSION) $@
 
-.PHONY: deb
-deb: checkout ## build deb packages
-	$(MAKE) -C $@ VERSION=$(VERSION) GO_VERSION=$(GO_VERSION) deb
+.PHONY: centos-% fedora-% rhel-%
+centos-% fedora-% rhel-%: checkout ## build rpm packages for the specified distro
+	$(MAKE) -C rpm VERSION=$(VERSION) GO_VERSION=$(GO_VERSION) $@
+
+.PHONY: debian-% raspbian-% ubuntu-%
+debian-% raspbian-% ubuntu-%: checkout ## build deb packages for the specified distro
+	$(MAKE) -C deb VERSION=$(VERSION) GO_VERSION=$(GO_VERSION) $@
 
 .PHONY: static
 static: DOCKER_BUILD_PKGS:=static-linux cross-mac cross-win cross-arm
