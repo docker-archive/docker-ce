@@ -348,7 +348,7 @@ explains in detail how to manipulate ports in Docker.
 
 Note that ports which are not bound to the host (i.e., `-p 80:80` instead of
 `-p 127.0.0.1:80:80`) will be accessible from the outside. This also applies if
-you configured UFW to block this specific port, as Docker manages his
+you configured UFW to block this specific port, as Docker manages its
 own iptables rules. [Read more](https://docs.docker.com/network/iptables/)
 
 ```console
@@ -403,10 +403,10 @@ VAR1=value1
 VAR2=value2
 USER
 
-$ docker run --env-file env.list ubuntu env | grep VAR
+$ docker run --env-file env.list ubuntu env | grep -E 'VAR|USER'
 VAR1=value1
 VAR2=value2
-USER=denis
+USER=jonzeolla
 ```
 
 ### Set metadata on container (-l, --label, --label-file)
