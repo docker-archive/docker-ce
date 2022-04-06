@@ -30,7 +30,7 @@ Options:
       --bip string                            Specify network bridge IP
   -b, --bridge string                         Attach containers to a network bridge
       --cgroup-parent string                  Set parent cgroup for all containers
-      --config-file string                    Daemon configuration file (default "/etc/docker/daemon.json")
+      --config-file string                    Daemon configuration file (default "/etc/docker/daemon.json", may not exist or be empty)
       --containerd string                     containerd grpc address
       --containerd-namespace string           Containerd namespace to use (default "moby")
       --containerd-plugins-namespace string   Containerd namespace to use for plugins (default "plugins.moby")
